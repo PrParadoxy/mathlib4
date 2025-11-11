@@ -372,6 +372,7 @@ theorem tmulInsertEquiv_symm_tprod (f : (i : ↥(insert i₀ S)) → s i) :
 
 end InsertLeft
 
+-- TBD: Is this one too close to the section above to keep?
 section InsertRight
 
 variable [(i : ι) → Decidable (i ∈ S)]
