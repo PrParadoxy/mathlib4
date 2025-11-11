@@ -35,7 +35,7 @@ support. The term "local" also does not fit, because it refers to a geometric
 interpretation of the index type `ι`. The name "incomplete tensor product" does
 not seem to have caught on outside a narrow niche.
 
-We tentatively propose to call the module the "finsupp tensor product"
+We tentatively propose to call the module the "finsupp tensor product" of the family `s`
 (acknowledging that it doesn't roll off the tongue).
 
 Reference: Guichardet, "Tensor Products of C^*-algebras, Part II: Infinite

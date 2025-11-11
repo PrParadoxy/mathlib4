@@ -18,6 +18,8 @@ We establish a number of linear equivalences.
 * `unionEquiv` between tensors with index type `ι` and tensors with index type `univ : Set ι`.
 * `tmulUnionEquiv` between products of tensors indexed by two disjoint sets `S₁`, `S₂` and
 tensors indexed by the union `S₁ ∪ S₂`.
+* `tmulBipartitionEquiv` between products of tensors indexed by `S`, `Sᶜ` and tensors with
+index type `ι`.
 * `tmulUnifyEquiv`: Given sets `S ⊆ T`, a linear equivalence between product of tensors indexed
 by `S` and `T \ S`, and tensors indexed by `T`.
 * `singletonEquiv` between tensors indexed by a singleton set `{i₀}` and the module `s i₀`.
@@ -36,11 +38,11 @@ on `T \ S`.
 
 ## Implementation notes
 
-This file was motivated by this TBD item from `PiTensorProduct.lean`:
-* API for the various ways `ι` can be split into subsets; connect this with the binary
-  tensor product.
-and also by the goal to implement a type of "tensors with finite support", see
-`QuasiFinite.lean.`
+This file was motivated by the goal to implement a type of "tensors with finite support", see
+`PiTensorFinSupp.lean`, and also by this TBD item from `PiTensorProduct.lean`:
+
+  * API for the various ways `ι` can be split into subsets; connect this with the binary
+    tensor product.
 
 The fist `section` contains a dependent version of `PiTensorProduct.subsingletonEquiv`,
 which is not direct part of the `Set` API.
@@ -278,7 +280,6 @@ theorem partialContract_tprod (l : (⨂[R] i : S, s i) →ₗ[R] R) (f : (i : T)
 end LinearMap
 
 section ExtendTensor
-
 
 /-- Given a family of distinguished elements `s₀ : (i : ι) → s i`, map a tensor
 with index set `S ⊆ T` to a tensor with index set `T`, by padding with vectors
