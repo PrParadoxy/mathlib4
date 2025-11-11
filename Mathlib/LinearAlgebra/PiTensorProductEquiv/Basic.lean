@@ -396,23 +396,29 @@ theorem tmulInsertRightEquiv_symm_tprod (f : (i : ↥(S ∪ {i₀})) → s i) :
 end InsertRight
 end tmulInsertEquiv
 
-
--- TBD: Nested `PiTensorProducts` and `iUnion`s.
--- We have constructed an equivalence
-def tprodiUnionEquiv {n} {Sf : Fin n → Set ι}
-    [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
-      (H : Pairwise fun k l => Disjoint (Sf k) (Sf l)) :
-        (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : (Set.iUnion Sf), s i) := sorry
--- by induction, but it isn't very clean at the moment.
--- Alternatively, could write a more low-level function for the general case.
-
-section general
+section Nested
 
 variable {κ : Type*} {Sf : κ → Set ι} [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
 variable (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
 
+-- TBD: Nested PiTensorProducts
+def tmulTmulUnionEquiv : (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : (Set.iUnion Sf), s i) :=
+  sorry
+-- Such an equivalence would describe "block partitions" used in quantum lattice
+-- models e.g. to construct renormalization flows or quantum cellular automata.
+-- (See Fig. 8 in https://arxiv.org/pdf/quant-ph/0405174 for a particularly artistic rendering).
+--
+-- As a first step, the experimental section below contains a construction of
+-- the special case where the outer product is over a finite index set:
+def tmulFinTmulUnionEquiv {n} {Sf : Fin n → Set ι} :
+        (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : (Set.iUnion Sf), s i) := sorry -- below
+-- It's built by induction using the high-level constructions in this file.
+-- We could clean it up, but it might be better to treat the general case directly.
+-- This will likely involve using lower-level functions (maybe generalizing
+-- `PiTensorProduct.lift`?)
 
-end general
+
+end Nested
 
 
 
@@ -423,7 +429,6 @@ end general
 ------------------~the~watershed~of~polish~-----------------------
 
 ↓↓↓ ------ code below this fold is experimental and messy ---- ↓↓↓
-
 
 -/
 
@@ -508,7 +513,7 @@ protected lemma Set.union_iUnion_fin_succ (Sf : Fin (n + 1) → Set ι) :
 
 /-- Isomorphism induced by identifying the tensor product over finitely many
 pairwise disjoint index sets with the tensor product indexed by their union -/
-def tprodiUnionEquiv' {n} {Sf : Fin n → Set ι}
+def tmulFinTmulUnionEquiv' {n} {Sf : Fin n → Set ι}
     [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
       (H : Pairwise fun k l => Disjoint (Sf k) (Sf l)) :
         (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : (Set.iUnion Sf), s i) := by
