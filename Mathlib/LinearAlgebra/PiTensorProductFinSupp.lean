@@ -80,7 +80,7 @@ instance Finsupp.directedSystem : DirectedSystem
     rw [←Function.comp_apply (f := extendTensor h2 s₀)]
     apply congrFun
     erw [←LinearMap.coe_comp, DFunLike.coe_fn_eq]
-    rw [extendTensor_trans]
+    exact extendTensor_trans h1 h2
 
 /-- Tensors with finite support -/
 abbrev Finsupp :=

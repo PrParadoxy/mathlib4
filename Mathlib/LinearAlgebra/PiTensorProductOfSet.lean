@@ -279,15 +279,16 @@ end LinearMap
 
 section ExtendTensor
 
-variable (s₀ : (i : ι) → s i)
 
 /-- Given a family of distinguished elements `s₀ : (i : ι) → s i`, map a tensor
 with index set `S ⊆ T` to a tensor with index set `T`, by padding with vectors
 provided by `s₀` on `T \ S`. -/
-def extendTensor : (⨂[R] (i : S), s i) →ₗ[R] (⨂[R] (i : T), s i) where
+def extendTensor (s₀ : (i : ι) → s i) : (⨂[R] (i : S), s i) →ₗ[R] (⨂[R] (i : T), s i) where
   toFun t := (tmulUnifyEquiv hsub) (t ⊗ₜ[R] (⨂ₜ[R] i : ↥(T \ S), s₀ i))
   map_add' _ _ := by simp [TensorProduct.add_tmul]
   map_smul' _ _ := by simp [←TensorProduct.smul_tmul']
+
+variable {s₀ : (i : ι) → s i}
 
 @[simp]
 theorem extendTensor_self : extendTensor (subset_refl S) s₀ = LinearMap.id (R:=R) :=
