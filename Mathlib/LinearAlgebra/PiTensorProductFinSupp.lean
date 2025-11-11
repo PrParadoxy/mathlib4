@@ -3,7 +3,7 @@ Copyright (c) 2025 Davood Tehrani, David Gross. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Davood Tehrani, David Gross
 -/
-import Mathlib.LinearAlgebra.PiTensorProductEquiv.Basic
+import Mathlib.LinearAlgebra.PiTensorProductOfSet
 import Mathlib.Algebra.Colimit.Module
 
 /-!
