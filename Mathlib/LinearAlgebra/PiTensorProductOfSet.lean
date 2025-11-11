@@ -442,8 +442,7 @@ section Perm
 variable (M : Type*) [AddCommMonoid M] [Module R M]
 
 def permEquiv (e : Equiv.Perm ι) : (⨂[R] _ : ι, M) ≃ₗ[R] ⨂[R] _ : ι, M :=
-  let f := MultilinearMap.domDomCongrLinearEquiv R R  M (⨂[R] _ : ι, M) e
-  LinearEquiv.ofLinear (lift <| f.symm <| tprod R) (lift <| f <| tprod R) (by aesop) (by aesop)
+  reindex _ _ e
 
 variable {S : Set ι} [(i : ι) → Decidable (i ∈ S)]
 
