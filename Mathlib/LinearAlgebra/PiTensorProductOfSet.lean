@@ -404,7 +404,7 @@ variable {κ : Type*} {Sf : κ → Set ι} [hd : ∀ i, ∀ x, Decidable (x ∈ 
 variable (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
 
 -- TBD: Nested PiTensorProducts
-def tmulTmulUnionEquiv : (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : (Set.iUnion Sf), s i) :=
+def tprodiUnionEquiv : (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : (Set.iUnion Sf), s i) :=
   sorry
 -- Such an equivalence would describe "block partitions" used in quantum lattice
 -- models e.g. to construct renormalization flows or quantum cellular automata.
@@ -412,8 +412,8 @@ def tmulTmulUnionEquiv : (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i 
 --
 -- As a first step, the experimental section below contains a construction of
 -- the special case where the outer product is over a finite index set:
-def tmulFinTmulUnionEquiv {n} {Sf : Fin n → Set ι} :
-        (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : (Set.iUnion Sf), s i) := sorry -- below
+def tprodFiniUnionEquiv {n} {Sf : Fin n → Set ι} :
+        (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : (Set.iUnion Sf), s i) := sorry -- see below
 -- It's built by induction using the high-level constructions in this file.
 -- We could clean it up, but it might be better to treat the general case directly.
 -- This will likely involve using lower-level functions (maybe generalizing
@@ -446,7 +446,8 @@ def permEquiv (e : Equiv.Perm ι) : (⨂[R] _ : ι, M) ≃ₗ[R] ⨂[R] _ : ι, 
 
 variable {S : Set ι} [(i : ι) → Decidable (i ∈ S)]
 
--- TBD: why does this want to be marked `noncomputable`?
+-- This takes apart the equivalence and builds it back up, loosing computability
+-- along the way. TBD: fix.
 noncomputable def permSetEquiv (e : ι ≃ ι) : (⨂[R] _ : S, M) ≃ₗ[R] ⨂[R] _ : (e '' S), M :=
   reindex R (fun _ => M) (Equiv.Set.image e S e.injective)
 
