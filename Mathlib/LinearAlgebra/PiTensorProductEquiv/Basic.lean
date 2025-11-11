@@ -415,8 +415,6 @@ variable (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
 end general
 
 
-end Set
-end PiTensorProduct
 
 /-
 
@@ -428,6 +426,26 @@ end PiTensorProduct
 
 
 -/
+
+
+-- WIP
+section Perm
+
+variable (M : Type*) [AddCommMonoid M] [Module R M]
+
+def permEquiv (e : ι ≃ ι) : (⨂[R] _ : ι, M) ≃ₗ[R] ⨂[R] _ : ι, M :=
+  let f := MultilinearMap.domDomCongrLinearEquiv R R  M (⨂[R] _ : ι, M) e
+  LinearEquiv.ofLinear (lift <| f.symm <| tprod R) (lift <| f <| tprod R) (by aesop) (by aesop)
+
+variable {S : Set ι} [(i : ι) → Decidable (i ∈ S)]
+
+def permSetEquiv (e : ι ≃ ι) : (⨂[R] _ : S, M) ≃ₗ[R] ⨂[R] _ : (e '' S), M := sorry
+
+end Perm
+
+end Set
+end PiTensorProduct
+
 
 
 open Set

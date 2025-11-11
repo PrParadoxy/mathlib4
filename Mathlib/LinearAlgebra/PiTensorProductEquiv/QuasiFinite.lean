@@ -29,7 +29,7 @@ the _incomplete tensor product_ associated with the section `s₀`. Such Hilbert
 spaces appear in the representation theory of infinite tensor products of C^*
 algebras and are connected to superselection sectors of quantum lattice models.
 
-The term "infinite tensor product" does not seem appropriate here, given that
+The term "infinite tensor product" does not seem optimal here, given that
 Mathlib's `PiTensorProduct` can handle tensors that actually have infinite
 support. The term "local" also does not fit, because it refers to a geometric
 interpretation of the index type `ι`. The name "incomplete tensor product" does
