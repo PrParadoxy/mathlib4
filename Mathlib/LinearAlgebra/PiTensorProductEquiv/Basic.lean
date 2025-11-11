@@ -12,10 +12,6 @@ import Mathlib.LinearAlgebra.TensorProduct.Associator
 Given a family of modules `s : ι → Type*`, we consider tensor products of type
 `⨂ (i : S), s i`, where `S : Set ι`.
 
-This class of types is particularly suited for situations where the elements of
-the index type have an independent meaning. An example is quantum physics, where
-`ι` may label distinguishable degrees of freedom.
-
 ## Main definitions
 
 We establish a number of linear equivalences.
@@ -174,6 +170,33 @@ theorem tmulUnionEquiv_symm_tprod (f : (i : ↥(S₁ ∪ S₂)) → s i) :
 
 end tmulUnionEquiv
 
+section tmulBipartitionEquiv
+
+variable {S : Set ι} [(i : ι) → Decidable (i ∈ S)]
+
+/-- TBD. -/
+def tmulBipartitionEquiv : (⨂[R] i₁ : S, s i₁) ⊗[R] (⨂[R] i₂ : ↥Sᶜ, s i₂) ≃ₗ[R] ⨂[R] i , s i :=
+  (tmulUnionEquiv (disjoint_compl_right)).trans (reindex R (fun i : ↥(S ∪ Sᶜ) => s i)
+    (Equiv.trans (Equiv.subtypeEquivProp (Set.union_compl_self S)) (Equiv.Set.univ ι)))
+
+@[simp]
+theorem tmulBipartitionEquiv_tprod (lv : (i : S) → s i) (rv : (i : ↥Sᶜ) → s i) :
+    tmulBipartitionEquiv ((⨂ₜ[R] i : S, lv i) ⊗ₜ (⨂ₜ[R] i : ↥Sᶜ, rv i)) =
+      ⨂ₜ[R] j, if h : j ∈ S then lv ⟨j, h⟩ else rv ⟨j, by aesop⟩ := by
+  erw [tmulBipartitionEquiv, LinearEquiv.trans_apply, tmulUnionEquiv_tprod, reindex_tprod]
+  rfl
+
+@[simp]
+theorem tmulBipartition_symm_tprod (f : (i : ι) → s i) :
+    tmulBipartitionEquiv.symm (⨂ₜ[R] i, f i) =
+      (⨂ₜ[R] i : S, f i) ⊗ₜ (⨂ₜ[R] i : ↥Sᶜ, f i) := by
+  simp only [LinearEquiv.symm_apply_eq, tmulBipartitionEquiv_tprod]
+  congr
+  aesop
+
+end tmulBipartitionEquiv
+
+
 section tmulUnifyEquiv
 
 variable {S T : Set ι} (hsub : S ⊆ T) [(i : ι) → Decidable (i ∈ S)]
@@ -192,7 +215,7 @@ theorem tmulUnifyEquiv_tprod (lv : (i : S) → s i) (rv : (i : ↑(T \ S)) → s
     tmulUnifyEquiv hsub ((⨂ₜ[R] i, lv i) ⊗ₜ (⨂ₜ[R] i, rv i)) =
       ⨂ₜ[R] i : T, if h : ↑i ∈ S then lv ⟨↑i, by aesop⟩ else rv ⟨↑i, by aesop⟩ := by
   erw [tmulUnifyEquiv, LinearEquiv.trans_apply, tmulUnionEquiv_tprod, reindex_tprod]
-  simpa [Equiv.subtypeEquivProp] using by rfl
+  rfl
 
 @[simp]
 theorem tmulUnifyEquiv_tprod_symm (av : (i : T) → s i) :
@@ -253,12 +276,12 @@ theorem partialContract_apply (l : (⨂[R] i : S, s i) →ₗ[R] R) (f : (i : T)
 
 end LinearMap
 
-section TensorPad
+section ExtendTensor
 
 variable (s₀ : (i : ι) → s i)
 
 /-- Given a family of distinguished elements `s₀ : (i : ι) → s i`, map a tensor
-with index set `S ⊆ T` to a tensor with index set `T`, by padding with the vectors
+with index set `S ⊆ T` to a tensor with index set `T`, by padding with vectors
 provided by `s₀` on `T \ S`. -/
 def extendTensor : (⨂[R] (i : S), s i) →ₗ[R] (⨂[R] (i : T), s i) where
   toFun t := (tmulUnifyEquiv hsub) (t ⊗ₜ[R] (⨂ₜ[R] i : ↥(T \ S), s₀ i))
@@ -283,7 +306,7 @@ theorem extendTensor_trans [(i : ι) → Decidable (i ∈ T)] {U : Set ι} (hsub
 
 -- TBD: prove injectivtity given `NonZero s₀ i`
 
-end TensorPad
+end ExtendTensor
 end tmulUnifyEquiv
 
 section singletonEquiv
@@ -341,19 +364,18 @@ theorem tmulInsertEquiv_tprod (x : s i₀) (f : (i : S) → s i) :
 theorem tmulInsertEquiv_symm_tprod (f : (i : ↥(insert i₀ S)) → s i) :
     (tmulInsertEquiv h₀).symm (⨂ₜ[R] i, f i) =
     (f ⟨i₀, by simp⟩) ⊗ₜ[R](⨂ₜ[R] i : S, f ⟨i, by simp⟩) := by
-  erw [tmulInsertEquiv, LinearEquiv.trans_symm,
-    LinearEquiv.trans_apply, tmulUnionEquiv_symm_tprod]
+  erw [tmulInsertEquiv, LinearEquiv.trans_symm, LinearEquiv.trans_apply, tmulUnionEquiv_symm_tprod]
   simp
 
 end InsertLeft
 
--- Too similar to previous result?
+-- Too similar to previous section?
 section InsertRight
 
 variable [(i : ι) → Decidable (i ∈ S)]
 
 /-- The tensor product of tensor indexed by `S` and a vector in `s i₀` is equivalent to a
-    tensor indexed by `S ∪ {i₀}`, assuming `i₀ ∉ S`. -/
+tensor indexed by `S ∪ {i₀}`, assuming `i₀ ∉ S`. -/
 def tmulInsertRightEquiv :
     ((⨂[R] (i₁ : S), s i₁) ⊗[R] (s i₀)) ≃ₗ[R] ⨂[R] i : ↥(S ∪ {i₀}), s i :=
   (TensorProduct.congr (LinearEquiv.refl _ _) (singletonEquiv i₀).symm).trans
@@ -374,6 +396,7 @@ theorem tmulInsertRightEquiv_symm_tprod (f : (i : ↥(S ∪ {i₀})) → s i) :
 end InsertRight
 end tmulInsertEquiv
 
+
 -- TBD: Nested `PiTensorProducts` and `iUnion`s.
 -- We have constructed an equivalence
 def tprodiUnionEquiv {n} {Sf : Fin n → Set ι}
@@ -383,136 +406,14 @@ def tprodiUnionEquiv {n} {Sf : Fin n → Set ι}
 -- by induction, but it isn't very clean at the moment.
 -- Alternatively, could write a more low-level function for the general case.
 
-end Set
-
-/-
-↑↑↑ ------ code above this fold is reasonably polished ------- ↑↑↑
-↓↓↓ ------ code below this fold is experimental and messy ---- ↓↓↓
--/
-
-
-open Set
-
-section Fin
-
-open Fin
-
-variable {n m} {R : Type*} {s : Fin (n + m) → Type*}
-variable [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
-
-section tmulFinSumEquiv
-
-
-/-- Isomorphism between product of tensors indexed by `{1, ..., n} ⊆ Fin (n+m)`
-and `{n+1, ..., m} ⊆ Fin (n+m)`, and tensors indexed by `Fin (n + m)`. -/
-def tmulFinSumEquiv :
-    ((⨂[R] (i₁ : Fin n), s (castAdd m i₁)) ⊗[R] (⨂[R] (i₂ : Fin m), s (natAdd n i₂)))
-      ≃ₗ[R] ⨂[R] (i : Fin (n + m)), s i :=
-  (tmulEquivDep R (fun i => s (finSumFinEquiv i))).trans
-    (reindex R (fun i => s i) (finSumFinEquiv.symm)).symm
-
-@[simp]
-def tmulFinSumEquiv_tprod
-    (lv : (i : Fin n) → s ⟨i, by omega⟩) (rv : (i : Fin m) → s ⟨n + i, by omega⟩) :
-      tmulFinSumEquiv ((⨂ₜ[R] i, lv i) ⊗ₜ (⨂ₜ[R] i : Fin m, rv i))
-        = ⨂ₜ[R] i : Fin (n + m), addCases lv rv i := by
-  simp only [tmulFinSumEquiv, LinearEquiv.trans_apply]
-  erw [LinearEquiv.symm_apply_eq, reindex_tprod, tmulEquivDep_apply]
-  congr with x
-  aesop
-
-@[simp]
-def tmulFinSumEquiv_symm_tprod (av : (i : Fin (n + m)) → s i) :
-    (tmulFinSumEquiv).symm (⨂ₜ[R] i, av i) =
-      (⨂ₜ[R] i : Fin n, av (castAdd m i)) ⊗ₜ[R] (⨂ₜ[R] i : Fin m, av (natAdd n i)) := by
-  simp only [tmulFinSumEquiv, LinearEquiv.trans_symm, LinearEquiv.trans_apply]
-  erw [reindex_tprod finSumFinEquiv.symm] -- argument for performance reasons
-  erw [tmulEquivDep_symm_apply]
-  simp
-
-end tmulFinSumEquiv
-
-
-
-section tprodiUnionEquiv
-
-variable {ι : Type*} {s : ι → Type*} [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
-
-protected lemma Set.union_iUnion_fin_succ (Sf : Fin (n + 1) → Set ι) :
-    iUnion Sf = iUnion (fun i : Fin n => Sf ⟨i, by omega⟩) ∪ Sf ⟨n, by simp⟩ := by
-  ext x
-  simp only [mem_iUnion, mem_union]
-  constructor
-  · intro ⟨i, hi⟩
-    by_cases hi₂ : i = n
-    · exact Or.inr (by convert hi; simp [hi₂])
-    · exact Or.inl (by use ⟨i.val, by omega⟩)
-  · rintro (h | _)
-    · exact ⟨castAdd 1 h.choose, h.choose_spec⟩
-    · use ⟨n, by omega⟩
-
-/-- Isomorphism induced by identifying the tensor product over finitely many
-pairwise disjoint index sets with the tensor product indexed by their union -/
-def tprodiUnionEquiv' {n} {Sf : Fin n → Set ι}
-    [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
-      (H : Pairwise fun k l => Disjoint (Sf k) (Sf l)) :
-        (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : (Set.iUnion Sf), s i) := by
-  induction n with
-  | zero =>
-    have : IsEmpty (iUnion Sf) := by simp
-    exact (isEmptyEquiv (Fin 0)).trans ((isEmptyEquiv (iUnion Sf)).symm)
-  | succ k ih =>
-    rw [Set.union_iUnion_fin_succ Sf]
-    have : DecidablePred fun x ↦ x ∈ ⋃ i : Fin k, Sf ⟨↑i, by omega⟩ := by
-      intro x
-      simp only [mem_iUnion]
-      infer_instance
-    refine tmulFinSumEquiv.symm ≪≫ₗ ?_ ≪≫ₗ (tmulUnionEquiv ?_)
-    · apply TensorProduct.congr
-      · exact @ih (fun i => Sf ⟨i, by omega⟩) inferInstance (fun i j _ =>
-          @H ⟨i, by omega⟩ ⟨j, by omega⟩ (by simp; omega))
-      · exact (subsingletonEquivDep 0) ≪≫ₗ (by aesop)
-    · simpa using fun i : Fin k =>
-        @H ⟨i, by omega⟩ ⟨k, by omega⟩ (by simp; omega)
-
-end tprodiUnionEquiv
-end Fin
-
-
 section general
 
 variable {κ : Type*} {Sf : κ → Set ι} [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
 variable (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
 
-def tprodiUnionEquiv'' : (⨂[R] i : (Set.iUnion Sf), s i) ≃ₗ[R] (⨂[R] k, (⨂[R] i : Sf k, s i)) :=
-  sorry
-
-def tprodiUnionEquiv''' : (⨂[R] i : (Set.iUnion Sf), s i) ≃ₗ[R] (⨂[R] k, (⨂[R] i : Sf k, s i)) :=
-  LinearEquiv.ofLinear
-    (
-      lift {
-      toFun f := ⨂ₜ[R] k, (⨂ₜ[R] i : Sf k, f ⟨i, by aesop⟩)
-      map_update_add' := by
-
-        intro hdec m i  x y
-
-      -- This can be proven by rewriting fun i_1 ↦ Function.update m i (x + y) ⟨↑i_1, ⋯⟩ as
-      -- Function.update (some function) .. .  so rather than  (tprod R) fun i_1 ↦ Function.update
-      -- one has  (tprod R) Function.update ..., the goal will immediately close.
-
-        sorry
-      map_update_smul' := sorry -- by aesop (add safe forward Subsingleton.allEq)
-    })
-    ({
-      toFun x := sorry -- How would you convert a family of general tensors to a tensor?
-      map_add' x y := sorry
-      map_smul' x y := sorry
-    })
-    (by sorry )
-    (by sorry)
 
 end general
 
 
-
+end Set
 end PiTensorProduct
