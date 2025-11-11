@@ -440,7 +440,7 @@ section Perm
 
 variable (M : Type*) [AddCommMonoid M] [Module R M]
 
-def permEquiv (e : ι ≃ ι) : (⨂[R] _ : ι, M) ≃ₗ[R] ⨂[R] _ : ι, M :=
+def permEquiv (e : Equiv.Perm ι) : (⨂[R] _ : ι, M) ≃ₗ[R] ⨂[R] _ : ι, M :=
   let f := MultilinearMap.domDomCongrLinearEquiv R R  M (⨂[R] _ : ι, M) e
   LinearEquiv.ofLinear (lift <| f.symm <| tprod R) (lift <| f <| tprod R) (by aesop) (by aesop)
 
@@ -515,7 +515,7 @@ protected lemma Set.union_iUnion_fin_succ (Sf : Fin (n + 1) → Set ι) :
 
 /-- Isomorphism induced by identifying the tensor product over finitely many
 pairwise disjoint index sets with the tensor product indexed by their union -/
-def tmulFinTmulUnionEquiv' {n} {Sf : Fin n → Set ι}
+def tprodFiniUnionEquiv {n} {Sf : Fin n → Set ι}
     [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
       (H : Pairwise fun k l => Disjoint (Sf k) (Sf l)) :
         (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : (Set.iUnion Sf), s i) := by
