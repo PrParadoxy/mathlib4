@@ -423,7 +423,7 @@ def tprodFiniUnionEquiv {n} {Sf : Fin n → Set ι} :
 -- The general version, like this:
 def tprodiUnionEquiv : (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : (Set.iUnion Sf), s i) :=
   sorry
--- appear to be mathematically false if the outer index type `κ` is infinite
+-- appears to be mathematically false if the outer index type `κ` is infinite
 -- (because the lhs then contains elements with infinite tensor rank, while the rhs doesn't).
 -- TBD: Decide this more rigorously.
 
