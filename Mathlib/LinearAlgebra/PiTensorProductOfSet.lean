@@ -404,21 +404,17 @@ section Nested
 variable {κ : Type*} {Sf : κ → Set ι} [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
 variable (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
 
--- TBD: Nested PiTensorProducts
-def tprodiUnionEquiv : (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : (Set.iUnion Sf), s i) :=
-  sorry
--- Such an equivalence would describe "block partitions" used in quantum lattice
--- models e.g. to construct renormalization flows or quantum cellular automata.
--- (See Fig. 8 in https://arxiv.org/pdf/quant-ph/0405174 for a particularly artistic rendering).
---
--- As a first step, the experimental section below contains a construction of
--- the special case where the outer product is over a finite index set:
+-- The experimental part of this file below contains a construction of the following equivalence:
 def tprodFiniUnionEquiv {n} {Sf : Fin n → Set ι} :
         (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : (Set.iUnion Sf), s i) := sorry -- see below
--- It's built by induction using the high-level constructions in this file.
--- We could clean it up, but it might be better to treat the general case directly.
--- This will likely involve using lower-level functions (maybe generalizing
--- `PiTensorProduct.lift`?)
+-- TBD: Make it nicer.
+
+-- The general version, like this:
+def tprodiUnionEquiv : (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : (Set.iUnion Sf), s i) :=
+  sorry
+-- appear to be mathematically false if the outer index type `κ` is infinite
+-- (because the lhs then contains elements with infinite tensor rank, while the rhs doesn't).
+-- TBD: Decide this more rigorously.
 
 
 end Nested
