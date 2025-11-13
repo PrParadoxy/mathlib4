@@ -548,7 +548,7 @@ def tprodFiniUnionEquiv {n} {Sf : Fin n → Set ι}
         @H ⟨i, by omega⟩ ⟨k, by omega⟩ (by simp; omega)
 
 
-
+-- This does not use tmulFinSumEquiv but is extremly ugly and 10x longer. I don't want to finish it.
 def tprodFiniUnionEquiv' {n} {Sf : Fin n → Set ι}
     [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
       (H : Pairwise fun k l => Disjoint (Sf k) (Sf l)) :
