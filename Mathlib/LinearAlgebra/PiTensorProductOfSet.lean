@@ -179,7 +179,7 @@ variable {S : Set ι} [(i : ι) → Decidable (i ∈ S)]
 /-- Isomorphism between the product of tensors indexed by a set and tensors
 indexed by its complement, and the space of all tensors. -/
 def tmulBipartitionEquiv : (⨂[R] i₁ : S, s i₁) ⊗[R] (⨂[R] i₂ : ↥Sᶜ, s i₂) ≃ₗ[R] ⨂[R] i, s i :=
-  (tmulUnionEquiv (disjoint_compl_right)) ≪≫ₗ (reindex R (fun i : ↥(S ∪ Sᶜ) => s i)
+  (tmulUnionEquiv (disjoint_compl_right)) ≪≫ₗ (reindex R (fun i : ↥(S ∪ Sᶜ) ↦ s i)
     (Equiv.trans (Equiv.subtypeEquivProp (Set.union_compl_self S)) (Equiv.Set.univ ι)))
 
 @[simp]
@@ -191,8 +191,7 @@ theorem tmulBipartitionEquiv_tprod (lv : (i : S) → s i) (rv : (i : ↥Sᶜ) �
 
 @[simp]
 theorem tmulBipartition_symm_tprod (f : (i : ι) → s i) :
-    tmulBipartitionEquiv.symm (⨂ₜ[R] i, f i) =
-      (⨂ₜ[R] i : S, f i) ⊗ₜ (⨂ₜ[R] i : ↥Sᶜ, f i) := by
+    tmulBipartitionEquiv.symm (⨂ₜ[R] i, f i) = (⨂ₜ[R] i : S, f i) ⊗ₜ (⨂ₜ[R] i : ↥Sᶜ, f i) := by
   simp only [LinearEquiv.symm_apply_eq, tmulBipartitionEquiv_tprod]
   congr
   aesop
@@ -304,7 +303,7 @@ variable {s₀ : (i : ι) → s i}
 theorem extendTensor_self : extendTensor (subset_refl S) s₀ = LinearMap.id (R:=R) :=
   by ext; simp [extendTensor]
 
-/-- Extending along a chain `S ⊆ T ⊆ U` is the same as directly extendng from `S` to `U`. -/
+/-- Extending along a chain `S ⊆ T ⊆ U` is the same as directly extending from `S` to `U`. -/
 @[simp]
 theorem extendTensor_trans [(i : ι) → Decidable (i ∈ T)] {U : Set ι} (hsub₂ : T ⊆ U) :
     (extendTensor hsub₂ s₀) ∘ₗ (extendTensor hsub s₀) =
