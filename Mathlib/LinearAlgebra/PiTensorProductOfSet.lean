@@ -431,7 +431,6 @@ def tprodiUnionEquiv : (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : 
 end Nested
 
 
-
 /-
 
 ↑↑↑ ------ code above this fold is reasonably polished ------- ↑↑↑
@@ -453,10 +452,8 @@ def permEquiv (e : Equiv.Perm ι) : (⨂[R] _ : ι, M) ≃ₗ[R] ⨂[R] _ : ι, 
 
 variable {S : Set ι} [(i : ι) → Decidable (i ∈ S)]
 
--- This takes apart the equivalence and builds it back up, loosing computability
--- along the way. TBD: fix.
-noncomputable def permSetEquiv (e : ι ≃ ι) : (⨂[R] _ : S, M) ≃ₗ[R] ⨂[R] _ : (e '' S), M :=
-  reindex R (fun _ => M) (Equiv.Set.image e S e.injective)
+def permSetEquiv (e : ι ≃ ι) : (⨂[R] _ : S, M) ≃ₗ[R] ⨂[R] _ : (e '' S), M :=
+  reindex R (fun _ => M) (Equiv.image e S)
 
 end Perm
 
@@ -577,4 +574,3 @@ def tprodFiniUnionEquiv' {n} {Sf : Fin n → Set ι}
 
 end tprodiUnionEquiv
 end Fin
-#check tmulUnionEquiv
