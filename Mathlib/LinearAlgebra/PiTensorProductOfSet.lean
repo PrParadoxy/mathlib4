@@ -7,7 +7,7 @@ import Mathlib.LinearAlgebra.PiTensorProduct
 import Mathlib.LinearAlgebra.TensorProduct.Associator
 
 /-!
-# API for splitting the index type of PiTensorProducts into subsets
+# PiTensorProducts indexed by sets
 
 Given a family of modules `s : ι → Type*`, we consider tensor products of type
 `⨂ (i : S), s i`, where `S : Set ι`.
@@ -17,24 +17,24 @@ Given a family of modules `s : ι → Type*`, we consider tensor products of typ
 We establish a number of linear equivalences.
 * `unionEquiv` between tensors with index type `ι` and tensors with index type `univ : Set ι`.
 * `tmulUnionEquiv` between products of tensors indexed by two disjoint sets `S₁`, `S₂` and
-tensors indexed by the union `S₁ ∪ S₂`.
+  tensors indexed by the union `S₁ ∪ S₂`.
 * `tmulBipartitionEquiv` between products of tensors indexed by `S`, `Sᶜ` and tensors with
-index type `ι`.
+  index type `ι`.
 * `tmulUnifyEquiv`: Given sets `S ⊆ T`, a linear equivalence between product of tensors indexed
-by `S` and `T \ S`, and tensors indexed by `T`.
+  by `S` and `T \ S`, and tensors indexed by `T`.
 * `singletonEquiv` between tensors indexed by a singleton set `{i₀}` and the module `s i₀`.
 * `tmulInsertEquiv` between the product of vectors in `s i₀` with a tensor indexed by `S`,
-and tensors indexed by `insert i₀ S`.
+  and tensors indexed by `insert i₀ S`.
 
 Given sets `S ⊆ T`, various objects can be "extended" from tensors with index set `S` to
 tensors with index set `T`.
 * `extendLinear` converts a linear map defined on tensors with index set `S` to tensors with
-index set `T`.
+  index set `T`.
 * `extendEnd` and `partialContract` are special cases for endomorphisms and linear functionals,
-respectively.
+  respectively.
 * `extendTensor`: Given a family of distinguished elements `s₀ : (i : ι) → s i`, map a tensor
-with index set `S` to a tensor with index set `T`, by padding with the vectors provided by `s₀`
-on `T \ S`.
+  with index set `S` to a tensor with index set `T`, by padding with the vectors provided by `s₀`
+  on `T \ S`.
 
 ## Implementation notes
 
@@ -232,15 +232,8 @@ open Module
 variable {M : Type*} [AddCommMonoid M] [Module R M]
 
 /-- Extension of a linear map on tensors with index set `S ⊆ T` to a linear map
-on tensors with index set `T`. -/
-def extendLinear (l : (⨂[R] i : S, s i) →ₗ[R] M) :
-    (⨂[R] i : T, s i) →ₗ[R] (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂)) :=
-  (LinearEquiv.congrLeft R (M := (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂)))
-    (tmulUnifyEquiv hsub)) (TensorProduct.map l (LinearMap.id))
-
-
--- TBD: Realize the above as a linear imbedding?
-def extendLinearEmbed :
+on tensors with index set `T`. Bundled as a linear map. -/
+def extendLinear :
     ((⨂[R] i : S, s i) →ₗ[R] M) →ₗ[R]
       ((⨂[R] i : T, s i) →ₗ[R]
         (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂))) where
@@ -271,7 +264,7 @@ theorem extendLinear_tprod (l : (⨂[R] i : S, s i) →ₗ[R] M) (f : (i : T) �
   simp [extendLinear, LinearEquiv.congrLeft]
 
 @[simp]
-theorem extendEnd_tprod (l : End R (⨂[R] i : S, s i)) (f : (i : T) → s i) :
+theorem extendEnd_tprod (l : End _ (⨂[R] i : S, s i)) (f : (i : T) → s i) :
     extendEnd hsub l (⨂ₜ[R] i, f i)
     = (tmulUnifyEquiv hsub) (l (⨂ₜ[R] i₁ : S, f ⟨i₁, by aesop⟩)
       ⊗ₜ[R] (⨂ₜ[R] i₂ : ↑(T \ S), f ⟨↑i₂, by aesop⟩)) := by
@@ -284,6 +277,32 @@ theorem partialContract_tprod (l : (⨂[R] i : S, s i) →ₗ[R] R) (f : (i : T)
   simp [partialContract, LinearEquiv.congrRight]
 
 -- TBD: `self` and `trans` lemmas, as for `extendTensor` below.
+
+variable {κ : Type*} {Sf : κ → Set ι} [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
+variable (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
+variable {M : κ → Type*} [∀ k, AddCommMonoid (M k)] [∀ k, Module R (M k)]
+
+-- Doesn't need Fin!
+-- Actually, it's multilinear.
+/-- Given a family `(k : κ) → Sf` of disjoint sets and a family of linear maps
+where `L k` is defined on tensors indexed by `Sf k`, construct a linear map
+defined on tensors indexed by the union of `Sf`. -/
+def Fig8v1 (L : (k : κ) → ((⨂[R] i : Sf k, s i) →ₗ[R] (M k))) :
+  (⨂[R] i : iUnion Sf, s i) →ₗ[R] (⨂[R] k, M k) := lift {
+    toFun x := ⨂ₜ[R] k, (L k) (⨂ₜ[R] i : Sf k, x ⟨i, by aesop⟩)
+    map_update_add' := sorry
+    map_update_smul' := sorry
+  }
+
+-- -- TBD: Need to think more about this one.
+-- noncomputable def Fig8v2 (L : (k : κ) → (End R (⨂[R] i : Sf k, s i))) : End R (⨂[R] i : iUnion Sf, s i) :=
+--   lift {
+--     toFun x :=
+--       let getIdx (i : iUnion Sf) : κ := Classical.choose (Set.mem_iUnion.mp i.property)
+--       ⨂ₜ[R] i : iUnion Sf, (L (getIdx i)) (⨂ₜ[R] i : Sf (getIdx i), x ⟨i, by aesop⟩)
+--     map_update_add' := sorry
+--     map_update_smul' := sorry
+--   }
 
 end LinearMap
 
@@ -380,7 +399,7 @@ theorem tmulInsertEquiv_symm_tprod (f : (i : ↥(insert i₀ S)) → s i) :
 
 end InsertLeft
 
--- TBD: Is this one too close to the section above to keep?
+-- RFC: Is this section too similar to the section above?
 section InsertRight
 
 variable [(i : ι) → Decidable (i ∈ S)]
