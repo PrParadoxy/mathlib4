@@ -282,28 +282,26 @@ variable {κ : Type*} {Sf : κ → Set ι} [hd : ∀ i, ∀ x, Decidable (x ∈ 
 variable (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
 variable {M : κ → Type*} [∀ k, AddCommMonoid (M k)] [∀ k, Module R (M k)]
 
--- Doesn't need Fin!
--- Actually, it's multilinear.
 /-- Given a family `(k : κ) → Sf` of disjoint sets and a family of linear maps
 where `L k` is defined on tensors indexed by `Sf k`, construct a linear map
 defined on tensors indexed by the union of `Sf`. -/
-def Fig8v1 (L : (k : κ) → ((⨂[R] i : Sf k, s i) →ₗ[R] (M k))) :
+def unifyMaps (L : (k : κ) → ((⨂[R] i : Sf k, s i) →ₗ[R] (M k))) :
   (⨂[R] i : iUnion Sf, s i) →ₗ[R] (⨂[R] k, M k) := lift {
     toFun x := ⨂ₜ[R] k, (L k) (⨂ₜ[R] i : Sf k, x ⟨i, by aesop⟩)
     map_update_add' := sorry
     map_update_smul' := sorry
   }
-
--- This one doesn't work, again, for infinite `κ`, because it can create tensor
--- that would have infinite tensor rank.
--- noncomputable def Fig8v2 (L : (k : κ) → (End R (⨂[R] i : Sf k, s i))) : End R (⨂[R] i : iUnion Sf, s i) :=
---   lift {
---     toFun x :=
---       let getIdx (i : iUnion Sf) : κ := Classical.choose (Set.mem_iUnion.mp i.property)
---       ⨂ₜ[R] i : iUnion Sf, (L (getIdx i)) (⨂ₜ[R] i : Sf (getIdx i), x ⟨i, by aesop⟩)
---     map_update_add' := sorry
---     map_update_smul' := sorry
---   }
+-- TBD: prove & merge with above
+/-- Given a family `(k : κ) → Sf` of disjoint sets, there is a multilinear map
+from maps on tensors indexed by `Sf k` to tensors indexed by the union of `Sf`. -/
+def unifMaps_ml :
+  MultilinearMap R
+       (fun k => (⨂[R] i : Sf k, s i) →ₗ[R] (M k))
+       ((⨂[R] i : iUnion Sf, s i) →ₗ[R] (⨂[R] k, M k)) := {
+    toFun L := unifyMaps L
+    map_update_add' := sorry
+    map_update_smul' := sorry
+  }
 
 end LinearMap
 
@@ -532,7 +530,7 @@ protected lemma Set.union_iUnion_fin_succ (Sf : Fin (n + 1) → Set ι) :
 
 /-- Isomorphism induced by identifying the tensor product over finitely many
 pairwise disjoint index sets with the tensor product indexed by their union -/
-def tprodFiniUnionEquiv {n} {Sf : Fin n → Set ι}
+def tprodFiniUnionEquiv'' {n} {Sf : Fin n → Set ι}
     [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
       (H : Pairwise fun k l => Disjoint (Sf k) (Sf l)) :
         (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : (Set.iUnion Sf), s i) := by
