@@ -241,9 +241,20 @@ def extendLinear (l : (⨂[R] i : S, s i) →ₗ[R] M) :
   (LinearEquiv.congrLeft R (M := (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂)))
     (tmulUnifyEquiv hsub)) (TensorProduct.map l (LinearMap.id))
 
+
 -- TBD: Realize the above as a linear imbedding?
-def extendLinearEquiv : ((⨂[R] i : S, s i) →ₗ[R] M) →ₗ[R]
-    ((⨂[R] i : T, s i) →ₗ[R] (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂))) := sorry
+def extendLinearEmbed :
+    ((⨂[R] i : S, s i) →ₗ[R] M) →ₗ[R]
+      ((⨂[R] i : T, s i) →ₗ[R]
+        (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂))) where
+  toFun l := (LinearEquiv.congrLeft R (M := (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂)))
+    (tmulUnifyEquiv hsub)) (TensorProduct.map l (LinearMap.id))
+  map_add' := by
+    intros
+    simp [LinearEquiv.congrLeft, TensorProduct.map_add_left, LinearMap.add_comp]
+  map_smul' := by
+    intros
+    simp [LinearEquiv.congrLeft, TensorProduct.map_smul_left]
 
 /-- Extension of an endomorphism on tensors with index set `S ⊆ T` to one on
 tensors with index set `T`. -/
