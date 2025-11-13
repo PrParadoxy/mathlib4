@@ -547,5 +547,34 @@ def tprodFiniUnionEquiv {n} {Sf : Fin n → Set ι}
     · simpa using fun i : Fin k =>
         @H ⟨i, by omega⟩ ⟨k, by omega⟩ (by simp; omega)
 
+
+
+def tprodFiniUnionEquiv' {n} {Sf : Fin n → Set ι}
+    [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
+      (H : Pairwise fun k l => Disjoint (Sf k) (Sf l)) :
+        (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : (Set.iUnion Sf), s i) where
+  toFun := lift
+    { toFun := fun g => by
+        induction n with
+        | zero => sorry
+        | succ k ih =>
+          have : DecidablePred fun x ↦ x ∈ ⋃ i : Fin k, Sf ⟨↑i, by omega⟩ := by
+            intro x
+            simp only [mem_iUnion]
+            infer_instance
+          replace ih := @ih (fun i => Sf ⟨i, by omega⟩) inferInstance (fun i j _ =>
+            @H ⟨i, by omega⟩ ⟨j, by omega⟩ (by simp; omega)) (fun i => g ⟨i, by omega⟩)
+          rw [Set.union_iUnion_fin_succ]
+          refine (tmulUnionEquiv ?_) (ih ⊗ₜ[R] g ⟨k, by omega⟩)
+          simpa using fun i : Fin k =>
+            @H ⟨i, by omega⟩ ⟨k, by omega⟩ (by simp; omega)
+
+
+  }
+
+
+
+
 end tprodiUnionEquiv
 end Fin
+#check tmulUnionEquiv
