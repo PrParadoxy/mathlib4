@@ -148,8 +148,8 @@ tensors indexed by their union. -/
 def tmulUnionEquiv :
     ((⨂[R] (i₁ : S₁), s i₁) ⊗[R] (⨂[R] (i₂ : S₂), s i₂))
       ≃ₗ[R] ⨂[R] (i : ↥(S₁ ∪ S₂)), s i :=
-  (tmulEquivDep R (fun i => s ((Equiv.Set.union hdisj).symm i))).trans
-    (reindex R (fun i : ↥(S₁ ∪ S₂) => s i) (Equiv.Set.union hdisj)).symm
+  (tmulEquivDep R (fun i => s ((Equiv.Set.union hdisj).symm i))) ≪≫ₗ
+  (reindex R (fun i : ↥(S₁ ∪ S₂) => s i) (Equiv.Set.union hdisj)).symm
 
 @[simp]
 theorem tmulUnionEquiv_tprod (lv : (i : S₁) → s i) (rv : (i : S₂) → s i) :
@@ -179,7 +179,7 @@ variable {S : Set ι} [(i : ι) → Decidable (i ∈ S)]
 /-- Isomorphism between the product of tensors indexed by a set and tensors
 indexed by its complement, and the space of all tensors. -/
 def tmulBipartitionEquiv : (⨂[R] i₁ : S, s i₁) ⊗[R] (⨂[R] i₂ : ↥Sᶜ, s i₂) ≃ₗ[R] ⨂[R] i, s i :=
-  (tmulUnionEquiv (disjoint_compl_right)).trans (reindex R (fun i : ↥(S ∪ Sᶜ) => s i)
+  (tmulUnionEquiv (disjoint_compl_right)) ≪≫ₗ (reindex R (fun i : ↥(S ∪ Sᶜ) => s i)
     (Equiv.trans (Equiv.subtypeEquivProp (Set.union_compl_self S)) (Equiv.Set.univ ι)))
 
 @[simp]
@@ -207,11 +207,9 @@ variable {S T : Set ι} (hsub : S ⊆ T) [(i : ι) → Decidable (i ∈ S)]
 /-- Isomorphism between product of tensors indexed by `S` and `T \ S` with `S ⊆ T` and
 tensors indexed by `T`. -/
 def tmulUnifyEquiv :
-    ((⨂[R] (i₁ : S), s i₁) ⊗[R] (⨂[R] (i₂ : ↥(T \ S)), s i₂))
-      ≃ₗ[R] ⨂[R] (i : T), s i :=
-  (tmulUnionEquiv (disjoint_sdiff_right)).trans
-    (reindex R (fun i : ↥(S ∪ T \ S) => s i)
-      (Equiv.subtypeEquivProp (union_diff_cancel hsub)))
+    ((⨂[R] i₁ : S, s i₁) ⊗[R] (⨂[R] i₂ : ↥(T \ S), s i₂)) ≃ₗ[R] ⨂[R] i : T, s i :=
+  (tmulUnionEquiv (disjoint_sdiff_right)) ≪≫ₗ
+    (reindex R (fun i : ↥(S ∪ T \ S) => s i) (Equiv.subtypeEquivProp (union_diff_cancel hsub)))
 
 @[simp]
 theorem tmulUnifyEquiv_tprod (lv : (i : S) → s i) (rv : (i : ↑(T \ S)) → s i) :
@@ -309,7 +307,7 @@ theorem extendTensor_self : extendTensor (subset_refl S) s₀ = LinearMap.id (R:
 /-- Extending along a chain `S ⊆ T ⊆ U` is the same as directly extendng from `S` to `U`. -/
 @[simp]
 theorem extendTensor_trans [(i : ι) → Decidable (i ∈ T)] {U : Set ι} (hsub₂ : T ⊆ U) :
-    (extendTensor hsub₂ s₀).comp (extendTensor hsub s₀) =
+    (extendTensor hsub₂ s₀) ∘ₗ (extendTensor hsub s₀) =
     (extendTensor (R:=R) (subset_trans hsub hsub₂) s₀) := by
   ext f
   simp only [extendTensor, LinearMap.compMultilinearMap_apply, LinearMap.coe_comp,
@@ -364,7 +362,7 @@ variable [DecidableEq ι]
 tensor indexed by `insert i₀ S`, assuming `i₀ ∉ S`. -/
 def tmulInsertEquiv :
     ((s i₀) ⊗[R] (⨂[R] i₁ : S, s i₁)) ≃ₗ[R] (⨂[R] i₁ : ↥(insert i₀ S), s i₁) :=
-  (TensorProduct.congr (singletonEquiv i₀).symm (LinearEquiv.refl _ _)).trans
+  (TensorProduct.congr (singletonEquiv i₀).symm (LinearEquiv.refl _ _)) ≪≫ₗ
   (tmulUnionEquiv (Set.disjoint_singleton_left.mpr h₀))
 
 theorem tmulInsertEquiv_tprod (x : s i₀) (f : (i : S) → s i) :
@@ -391,8 +389,8 @@ variable [(i : ι) → Decidable (i ∈ S)]
 /-- The tensor product of tensor indexed by `S` and a vector in `s i₀` is equivalent to a
 tensor indexed by `S ∪ {i₀}`, assuming `i₀ ∉ S`. -/
 def tmulInsertRightEquiv :
-    ((⨂[R] (i₁ : S), s i₁) ⊗[R] (s i₀)) ≃ₗ[R] ⨂[R] i : ↥(S ∪ {i₀}), s i :=
-  (TensorProduct.congr (LinearEquiv.refl _ _) (singletonEquiv i₀).symm).trans
+    ((⨂[R] i₁ : S, s i₁) ⊗[R] (s i₀)) ≃ₗ[R] ⨂[R] i : ↥(S ∪ {i₀}), s i :=
+  (TensorProduct.congr (LinearEquiv.refl _ _) (singletonEquiv i₀).symm) ≪≫ₗ
   (tmulUnionEquiv (Set.disjoint_singleton_right.mpr h₀))
 
 @[simp]
