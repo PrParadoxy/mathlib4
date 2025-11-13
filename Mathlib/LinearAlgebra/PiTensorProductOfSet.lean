@@ -449,7 +449,7 @@ def permEquiv (e : Equiv.Perm ι) : (⨂[R] _ : ι, M) ≃ₗ[R] ⨂[R] _ : ι, 
 
 variable {S : Set ι} [(i : ι) → Decidable (i ∈ S)]
 
-def permSetEquiv (e : ι ≃ ι) : (⨂[R] _ : S, M) ≃ₗ[R] ⨂[R] _ : (e '' S), M :=
+def permSetEquiv (e : Equiv.Perm ι) : (⨂[R] _ : S, M) ≃ₗ[R] ⨂[R] _ : (e '' S), M :=
   reindex R (fun _ => M) (Equiv.image e S)
 
 end Perm
