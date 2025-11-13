@@ -426,6 +426,17 @@ theorem tmulInsertRightEquiv_symm_tprod (f : (i : ↥(S ∪ {i₀})) → s i) :
 end InsertRight
 end tmulInsertEquiv
 
+section Perm
+
+variable (M : Type*) [AddCommMonoid M] [Module R M]
+
+/-- An equivalence `e : Equiv.Perm ι` maps tensors indexed by a set `S` to
+tensors indexed by `e '' S` -/
+def permSetEquiv {S : Set ι} (e : Equiv.Perm ι) : (⨂[R] _ : S, M) ≃ₗ[R] ⨂[R] _ : (e '' S), M :=
+  reindex R (fun _ => M) (Equiv.image e S)
+
+end Perm
+
 section Nested
 
 variable {κ : Type*} {Sf : κ → Set ι} [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
@@ -466,10 +477,6 @@ variable (M : Type*) [AddCommMonoid M] [Module R M]
 def permEquiv (e : Equiv.Perm ι) : (⨂[R] _ : ι, M) ≃ₗ[R] ⨂[R] _ : ι, M :=
   reindex _ _ e
 
-variable {S : Set ι} [(i : ι) → Decidable (i ∈ S)]
-
-def permSetEquiv (e : Equiv.Perm ι) : (⨂[R] _ : S, M) ≃ₗ[R] ⨂[R] _ : (e '' S), M :=
-  reindex R (fun _ => M) (Equiv.image e S)
 
 end Perm
 
