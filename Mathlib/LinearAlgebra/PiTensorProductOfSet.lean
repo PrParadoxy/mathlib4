@@ -294,7 +294,8 @@ def Fig8v1 (L : (k : κ) → ((⨂[R] i : Sf k, s i) →ₗ[R] (M k))) :
     map_update_smul' := sorry
   }
 
--- -- TBD: Need to think more about this one.
+-- This one doesn't work, again, for infinite `κ`, because it can create tensor
+-- that would have infinite tensor rank.
 -- noncomputable def Fig8v2 (L : (k : κ) → (End R (⨂[R] i : Sf k, s i))) : End R (⨂[R] i : iUnion Sf, s i) :=
 --   lift {
 --     toFun x :=
@@ -470,23 +471,6 @@ end Nested
 ↓↓↓ ------ code below this fold is experimental and messy ---- ↓↓↓
 
 -/
-
-
--- WIP
-section Perm
-
-variable (M : Type*) [AddCommMonoid M] [Module R M]
-
-def permEquiv (e : Equiv.Perm ι) : (⨂[R] _ : ι, M) ≃ₗ[R] ⨂[R] _ : ι, M :=
-  reindex _ _ e
-
-
-end Perm
-
-end Set
-end PiTensorProduct
-
-
 
 open Set
 
