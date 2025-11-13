@@ -68,6 +68,8 @@ variable [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
 -- It is not part of the `Set` API.
 section subsingletonEquivDep
 
+-- RFC: We copied the following idiom from PiTensorProduct.lean. What's the reason for
+-- using it over `[Unique ι]`?
 variable [Subsingleton ι] (i₀ : ι)
 
 /-- Tensor product over a singleton type with element `i₀` is equivalent to `s i₀`.
@@ -95,8 +97,7 @@ def subsingletonEquivDep : (⨂[R] i, s i) ≃ₗ[R] s i₀ :=
 
 @[simp]
 theorem subsingletonEquivDep_tprod (f : (i : ι) → s i) :
-    subsingletonEquivDep i₀ (⨂ₜ[R] i, f i) = f i₀ := by
-  simp [subsingletonEquivDep]
+    subsingletonEquivDep i₀ (⨂ₜ[R] i, f i) = f i₀ := by simp [subsingletonEquivDep]
 
 /-- Any tensor indexed by a unique type is a pure tensor -/
 lemma subsingletonEquivDep_eq_tprod (z : ⨂[R] i, s i) :
@@ -122,12 +123,10 @@ open Set
 section univEquiv
 
 /-- Isomorphism between tensors indexed by `ι` and by `univ : Set ι`. -/
-def univEquiv : (⨂[R] i, s i) ≃ₗ[R] ⨂[R] i : ↥univ, s i.val :=
-  reindex R s (Equiv.Set.univ ι).symm
+def univEquiv : (⨂[R] i, s i) ≃ₗ[R] ⨂[R] i : ↥univ, s i.val := reindex R s (Equiv.Set.univ ι).symm
 
 @[simp]
-theorem univEquiv_tprod (f : (i : ι) → s i) :
-    univEquiv (⨂ₜ[R] i, f i) = ⨂ₜ[R] i : ↥univ, f i.val :=
+theorem univEquiv_tprod (f : (i : ι) → s i) : univEquiv (⨂ₜ[R] i, f i) = ⨂ₜ[R] i : ↥univ, f i.val :=
   reindex_tprod (Equiv.Set.univ ι).symm f
 
 @[simp]
@@ -349,10 +348,10 @@ theorem singletonEquiv_tprod (i₀ : ι) (f : (i : ({i₀} : Set ι)) → s i) :
     singletonEquiv i₀ (⨂ₜ[R] i, f i) = f ⟨i₀, by aesop⟩ := by
   simp [singletonEquiv]
 
+-- `#lint` complains about this. Remove?
 @[simp]
 theorem singletonEquiv_tprod' (i₀ : ι) (x : s i₀) :
-    singletonEquiv i₀ (⨂ₜ[R] i : ({i₀} : Set ι), cast (by aesop) x) = x := by
-  simp [singletonEquiv]
+    singletonEquiv i₀ (⨂ₜ[R] i : ({i₀} : Set ι), cast (by aesop) x) = x := by simp
 
 @[simp]
 theorem singletonEquiv_symm_tprod (i₀ : ι) (f : (i : ({i₀} : Set ι)) → s i) :
@@ -491,7 +490,7 @@ def tmulFinSumEquiv :
     (reindex R (fun i => s i) (finSumFinEquiv.symm)).symm
 
 @[simp]
-def tmulFinSumEquiv_tprod
+theorem tmulFinSumEquiv_tprod
     (lv : (i : Fin n) → s ⟨i, by omega⟩) (rv : (i : Fin m) → s ⟨n + i, by omega⟩) :
       tmulFinSumEquiv ((⨂ₜ[R] i, lv i) ⊗ₜ (⨂ₜ[R] i : Fin m, rv i))
         = ⨂ₜ[R] i : Fin (n + m), addCases lv rv i := by
@@ -501,7 +500,7 @@ def tmulFinSumEquiv_tprod
   aesop
 
 @[simp]
-def tmulFinSumEquiv_symm_tprod (av : (i : Fin (n + m)) → s i) :
+theorem tmulFinSumEquiv_symm_tprod (av : (i : Fin (n + m)) → s i) :
     (tmulFinSumEquiv).symm (⨂ₜ[R] i, av i) =
       (⨂ₜ[R] i : Fin n, av (castAdd m i)) ⊗ₜ[R] (⨂ₜ[R] i : Fin m, av (natAdd n i)) := by
   simp only [tmulFinSumEquiv, LinearEquiv.trans_symm, LinearEquiv.trans_apply]
@@ -582,3 +581,5 @@ def tprodFiniUnionEquiv' {n} {Sf : Fin n → Set ι}
 
 end tprodiUnionEquiv
 end Fin
+
+#lint
