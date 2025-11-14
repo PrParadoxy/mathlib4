@@ -234,9 +234,8 @@ variable {M : Type*} [AddCommMonoid M] [Module R M]
 /-- Extension of a linear map on tensors with index set `S ⊆ T` to a linear map
 on tensors with index set `T`. Bundled as a linear map. -/
 def extendLinear :
-    ((⨂[R] i : S, s i) →ₗ[R] M) →ₗ[R]
-      ((⨂[R] i : T, s i) →ₗ[R]
-        (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂))) where
+    ((⨂[R] i : S, s i) →ₗ[R] M) →ₗ[R] ((⨂[R] i : T, s i)
+      →ₗ[R] (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂))) where
   toFun l := (LinearEquiv.congrLeft R (M := (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂)))
     (tmulUnifyEquiv hsub)) (TensorProduct.map l (LinearMap.id))
   map_add' := by
@@ -248,14 +247,18 @@ def extendLinear :
 
 /-- Extension of an endomorphism on tensors with index set `S ⊆ T` to one on
 tensors with index set `T`. -/
-def extendEnd (l : End R (⨂[R] i : S, s i)) : End R (⨂[R] i : T, s i) :=
-  LinearEquiv.congrRight (tmulUnifyEquiv hsub) (extendLinear hsub l)
+def extendEnd : End R (⨂[R] i : S, s i) →ₗ[R] End R (⨂[R] i : T, s i) where
+  toFun l := LinearEquiv.congrRight (tmulUnifyEquiv hsub) (extendLinear hsub l)
+  map_add' := by simp
+  map_smul' := by simp
 
 /-- Partial contraction: a functional on tensors with index set `S ⊆ T` contracts
 tensors with index set `T` to tensors with index set `T \ S`. -/
-def partialContract (l : (⨂[R] i : S, s i) →ₗ[R] R) :
-    (⨂[R] i : T, s i) →ₗ[R] ⨂[R] (i₂ : ↑(T \ S)), s i₂ :=
-  LinearEquiv.congrRight (TensorProduct.lid _ _) (extendLinear hsub l)
+def partialContract :
+    ((⨂[R] i : S, s i) →ₗ[R] R) →ₗ[R] (⨂[R] i : T, s i) →ₗ[R] ⨂[R] (i₂ : ↑(T \ S)), s i₂ where
+  toFun l := LinearEquiv.congrRight (TensorProduct.lid _ _) (extendLinear hsub l)
+  map_add' := by simp
+  map_smul' := by simp
 
 @[simp]
 theorem extendLinear_tprod (l : (⨂[R] i : S, s i) →ₗ[R] M) (f : (i : T) → s i) :
