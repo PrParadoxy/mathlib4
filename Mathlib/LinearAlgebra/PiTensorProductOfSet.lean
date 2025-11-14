@@ -430,14 +430,20 @@ end tmulInsertEquiv
 section Perm
 
 variable {S : Set ι}
-variable (M : Type*) [AddCommMonoid M] [Module R M]
+variable {M : Type*} [AddCommMonoid M] [Module R M]
 
 /-- An equivalence `e : Equiv.Perm ι` maps tensors indexed by a set `S` to
 tensors indexed by `e '' S` -/
 abbrev permSetEquiv (e : Equiv.Perm ι) : (⨂[R] _ : S, M) ≃ₗ[R] ⨂[R] _ : (e '' S), M :=
-  reindex R (fun _ => M) (Equiv.image e S)
+  reindex R (fun _ ↦ M) (Equiv.image e S)
 
--- Could add `_tprod` lemmas, but this one really is just `reindex`.
+-- TBD.
+example (e : Equiv.Perm ι) (f : (i : S) → s i) :
+    (permSetEquiv e) (⨂ₜ[R] i, f i) = (⨂ₜ[R] i : (e '' S), fun i ↦ f ⟨e.symm i, by aesop⟩) := sorry
+
+-- Is this obvious?
+example (e : Equiv.Perm ι) (i : (e '' S)) : e.symm i ∈ S := by
+  sorry
 
 end Perm
 
