@@ -431,19 +431,18 @@ section Perm
 
 variable {S : Set ι}
 variable {M : Type*} [AddCommMonoid M] [Module R M]
+variable (e : Equiv.Perm ι)
 
 /-- An equivalence `e : Equiv.Perm ι` maps tensors indexed by a set `S` to
 tensors indexed by `e '' S` -/
-abbrev permSetEquiv (e : Equiv.Perm ι) : (⨂[R] _ : S, M) ≃ₗ[R] ⨂[R] _ : (e '' S), M :=
+def permSetEquiv : (⨂[R] _ : S, M) ≃ₗ[R] ⨂[R] _ : (e '' S), M :=
   reindex R (fun _ ↦ M) (Equiv.image e S)
 
--- TBD.
-example (e : Equiv.Perm ι) (f : (i : S) → s i) :
-    (permSetEquiv e) (⨂ₜ[R] i, f i) = (⨂ₜ[R] i : (e '' S), fun i ↦ f ⟨e.symm i, by aesop⟩) := sorry
+theorem permSetEquiv_tprod (f : S → M) :
+  (permSetEquiv e) (⨂ₜ[R] i, f i) = ⨂ₜ[R] i, f ((Equiv.image e S).symm i) := by simp [permSetEquiv]
 
--- Is this obvious?
-example (e : Equiv.Perm ι) (i : (e '' S)) : e.symm i ∈ S := by
-  sorry
+theorem permSetEquiv_symm_tprod (f : (e '' S) → M) :
+  (permSetEquiv e).symm (⨂ₜ[R] i, f i) = ⨂ₜ[R] i, f ((Equiv.image e S) i) := by simp [permSetEquiv]
 
 end Perm
 
