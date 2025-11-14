@@ -438,9 +438,11 @@ tensors indexed by `e '' S` -/
 def permSetEquiv : (⨂[R] _ : S, M) ≃ₗ[R] ⨂[R] _ : (e '' S), M :=
   reindex R (fun _ ↦ M) (Equiv.image e S)
 
+@[simp]
 theorem permSetEquiv_tprod (f : S → M) :
   (permSetEquiv e) (⨂ₜ[R] i, f i) = ⨂ₜ[R] i, f ((Equiv.image e S).symm i) := by simp [permSetEquiv]
 
+@[simp]
 theorem permSetEquiv_symm_tprod (f : (e '' S) → M) :
   (permSetEquiv e).symm (⨂ₜ[R] i, f i) = ⨂ₜ[R] i, f ((Equiv.image e S) i) := by simp [permSetEquiv]
 
