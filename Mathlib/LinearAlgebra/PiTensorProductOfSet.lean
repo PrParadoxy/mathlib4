@@ -434,7 +434,7 @@ variable (M : Type*) [AddCommMonoid M] [Module R M]
 
 /-- An equivalence `e : Equiv.Perm ι` maps tensors indexed by a set `S` to
 tensors indexed by `e '' S` -/
-def permSetEquiv (e : Equiv.Perm ι) : (⨂[R] _ : S, M) ≃ₗ[R] ⨂[R] _ : (e '' S), M :=
+abbrev permSetEquiv (e : Equiv.Perm ι) : (⨂[R] _ : S, M) ≃ₗ[R] ⨂[R] _ : (e '' S), M :=
   reindex R (fun _ => M) (Equiv.image e S)
 
 -- Could add `_tprod` lemmas, but this one really is just `reindex`.
