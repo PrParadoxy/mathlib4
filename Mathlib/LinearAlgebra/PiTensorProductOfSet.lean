@@ -534,13 +534,9 @@ def tmulFinInsertRight :
 
 
 def tmulFinInsertRight' :
-  (⨂[R] i : Fin n, s (castAdd 1 i)) ⊗[R] (s ⟨n, by simp⟩) ≃ₗ[R] ⨂[R] (i : Fin n.succ), s i :=
-  (tmulFinSumEquiv (s := s).symm ≪≫ₗ
+  (⨂[R] i : Fin n, s (castSucc i)) ⊗[R] (s ⟨n, by simp⟩) ≃ₗ[R] ⨂[R] (i : Fin n.succ), s i :=
+  (tmulFinSumEquiv.symm ≪≫ₗ
     (TensorProduct.congr (LinearEquiv.refl _ _ ) (subsingletonEquivDep 0))).symm
-
-
-
-
 
 end tmulFinSumEquiv
 
