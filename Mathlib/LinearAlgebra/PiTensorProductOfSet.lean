@@ -95,6 +95,13 @@ def subsingletonEquivDep : (⨂[R] i, s i) ≃ₗ[R] s i₀ :=
         ext k; rw [Subsingleton.elim i₀ k]; simp
       simp [h])
 
+-- Note: One could base `PiTensorProduct.subsingletonEquiv` on `subsingletonEquivDep`.
+section
+variable {M : Type*} [AddCommMonoid M] [Module R M]
+
+def subsingletonEquiv' : (⨂[R] _ : ι, M) ≃ₗ[R] M := subsingletonEquivDep i₀
+end
+
 @[simp]
 theorem subsingletonEquivDep_tprod (f : (i : ι) → s i) :
     subsingletonEquivDep i₀ (⨂ₜ[R] i, f i) = f i₀ := by simp [subsingletonEquivDep]
@@ -105,16 +112,7 @@ lemma subsingletonEquivDep_eq_tprod (z : ⨂[R] i, s i) :
   induction z using PiTensorProduct.induction_on
   all_goals rw [←subsingletonEquivDep_symm_apply, LinearEquiv.symm_apply_apply]
 
--- Note: One could base `PiTensorProduct.subsingletonEquiv` on `subsingletonEquivDep`.
-section
-variable {M : Type*} [AddCommMonoid M] [Module R M]
-
-def subsingletonEquiv' [Subsingleton ι] (i₀ : ι) : (⨂[R] _ : ι, M) ≃ₗ[R] M :=
-  subsingletonEquivDep i₀
-end
-
 end subsingletonEquivDep
-
 
 section Set
 
@@ -387,15 +385,16 @@ def tmulInsertEquiv :
 theorem tmulInsertEquiv_tprod (x : s i₀) (f : (i : S) → s i) :
     (tmulInsertEquiv h₀) (x ⊗ₜ[R] (⨂ₜ[R] i, f i)) = ⨂ₜ[R] i : ↥(insert i₀ S),
       if h : i.val ∈ ({i₀} : Set ι) then cast (by aesop) x else f ⟨i, by aesop⟩ := by
-  erw [tmulInsertEquiv, LinearEquiv.trans_apply,
-    TensorProduct.congr_tmul, singletonEquiv_symm_tprod', tmulUnionEquiv_tprod]
-  rfl
+  rw [tmulInsertEquiv, LinearEquiv.trans_apply,
+    TensorProduct.congr_tmul, singletonEquiv_symm_tprod']
+  apply tmulUnionEquiv_tprod
 
 @[simp]
 theorem tmulInsertEquiv_symm_tprod (f : (i : ↥(insert i₀ S)) → s i) :
     (tmulInsertEquiv h₀).symm (⨂ₜ[R] i, f i) =
     (f ⟨i₀, by simp⟩) ⊗ₜ[R](⨂ₜ[R] i : S, f ⟨i, by simp⟩) := by
-  erw [tmulInsertEquiv, LinearEquiv.trans_symm, LinearEquiv.trans_apply, tmulUnionEquiv_symm_tprod]
+  rw [tmulInsertEquiv, LinearEquiv.trans_symm, LinearEquiv.trans_apply]
+  erw [tmulUnionEquiv_symm_tprod]
   simp
 
 end InsertLeft
@@ -504,8 +503,8 @@ theorem tmulFinSumEquiv_tprod
     (lv : (i : Fin n) → s ⟨i, by omega⟩) (rv : (i : Fin m) → s ⟨n + i, by omega⟩) :
       tmulFinSumEquiv ((⨂ₜ[R] i, lv i) ⊗ₜ (⨂ₜ[R] i : Fin m, rv i))
         = ⨂ₜ[R] i : Fin (n + m), addCases lv rv i := by
-  simp only [tmulFinSumEquiv, LinearEquiv.trans_apply]
-  erw [LinearEquiv.symm_apply_eq, reindex_tprod, tmulEquivDep_apply]
+  simp only [tmulFinSumEquiv, LinearEquiv.trans_apply, LinearEquiv.symm_apply_eq]
+  erw [reindex_tprod, tmulEquivDep_apply]
   congr with x
   aesop
 
@@ -517,6 +516,21 @@ theorem tmulFinSumEquiv_symm_tprod (av : (i : Fin (n + m)) → s i) :
   erw [reindex_tprod finSumFinEquiv.symm] -- argument for performance reasons
   erw [tmulEquivDep_symm_apply]
   simp
+
+
+variable {n : Nat} {R : Type*} {s : Fin (n + 1) → Type*}
+variable [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
+
+#reduce(types:=true) Fin (n+1) -- `Fin n.succ`
+
+-- Spiritiually related to
+#check MultilinearMap.uncurryRight
+--
+def tmulFinInsertRight :
+  (⨂[R] i : Fin n, s (castAdd 1 i)) ⊗[R] (s ⟨n, by simp⟩) ≃ₗ[R] ⨂[R] (i : Fin n.succ), s i :=
+  (TensorProduct.congr (LinearEquiv.refl _ _) (subsingletonEquivDep  0).symm).trans <|
+  (tmulEquivDep R (fun i => s (finSumFinEquiv i))).trans <|
+  (reindex R (fun i => s i) (finSumFinEquiv.symm)).symm
 
 end tmulFinSumEquiv
 
