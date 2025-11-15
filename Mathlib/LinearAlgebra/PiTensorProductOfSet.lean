@@ -527,7 +527,7 @@ variable [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
 #check MultilinearMap.uncurryRight
 --
 def tmulFinInsertRight :
-  (⨂[R] i : Fin n, s (castAdd 1 i)) ⊗[R] (s ⟨n, by simp⟩) ≃ₗ[R] ⨂[R] (i : Fin n.succ), s i :=
+  (⨂[R] i : Fin n, s (castSucc i)) ⊗[R] (s ⟨n, by simp⟩) ≃ₗ[R] ⨂[R] (i : Fin n.succ), s i :=
   (TensorProduct.congr (LinearEquiv.refl _ _) (subsingletonEquivDep  0).symm).trans <|
   (tmulEquivDep R (fun i => s (finSumFinEquiv i))).trans <|
   (reindex R (fun i => s i) (finSumFinEquiv.symm)).symm
