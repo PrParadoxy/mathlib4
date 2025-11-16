@@ -533,10 +533,12 @@ def tmulFinInsertRight :
   (reindex R (fun i => s i) (finSumFinEquiv.symm)).symm
 
 
-def tmulFinInsertRight' :
-  (⨂[R] i : Fin n, s (castSucc i)) ⊗[R] (s ⟨n, by simp⟩) ≃ₗ[R] ⨂[R] (i : Fin n.succ), s i :=
+def tmulFinSucc :
+    (⨂[R] i : Fin n, s (castSucc i)) ⊗[R] (s ⟨n, by simp⟩) ≃ₗ[R] ⨂[R] (i : Fin n.succ), s i :=
   (tmulFinSumEquiv.symm ≪≫ₗ
     (TensorProduct.congr (LinearEquiv.refl _ _ ) (subsingletonEquivDep 0))).symm
+
+
 
 end tmulFinSumEquiv
 
@@ -573,38 +575,38 @@ def tprodFiniUnionEquiv'' {n} {Sf : Fin n → Set ι}
       intro x
       simp only [mem_iUnion]
       infer_instance
-    refine tmulFinSumEquiv.symm ≪≫ₗ ?_ ≪≫ₗ (tmulUnionEquiv ?_)
+    refine tmulFinSucc.symm ≪≫ₗ ?_ ≪≫ₗ (tmulUnionEquiv ?_)
     · apply TensorProduct.congr
       · exact @ih (fun i => Sf ⟨i, by omega⟩) inferInstance (fun i j _ =>
           @H ⟨i, by omega⟩ ⟨j, by omega⟩ (by simp; omega))
-      · exact (subsingletonEquivDep 0) ≪≫ₗ (by aesop)
+      · exact LinearEquiv.refl _ _
     · simpa using fun i : Fin k =>
         @H ⟨i, by omega⟩ ⟨k, by omega⟩ (by simp; omega)
 
 
--- This does not use tmulFinSumEquiv but is extremly ugly and 10x longer. I don't want to finish it.
-def tprodFiniUnionEquiv' {n} {Sf : Fin n → Set ι}
-    [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
-      (H : Pairwise fun k l => Disjoint (Sf k) (Sf l)) :
-        (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : (Set.iUnion Sf), s i) where
-  toFun := lift
-    { toFun := fun g => by
-        induction n with
-        | zero => sorry
-        | succ k ih =>
-          have : DecidablePred fun x ↦ x ∈ ⋃ i : Fin k, Sf ⟨↑i, by omega⟩ := by
-            intro x
-            simp only [mem_iUnion]
-            infer_instance
-          replace ih := @ih (fun i => Sf ⟨i, by omega⟩) inferInstance (fun i j _ =>
-            @H ⟨i, by omega⟩ ⟨j, by omega⟩ (by simp; omega)) (fun i => g ⟨i, by omega⟩)
-          rw [Set.union_iUnion_fin_succ]
-          refine (tmulUnionEquiv ?_) (ih ⊗ₜ[R] g ⟨k, by omega⟩)
-          simpa using fun i : Fin k =>
-            @H ⟨i, by omega⟩ ⟨k, by omega⟩ (by simp; omega)
+-- -- This does not use tmulFinSumEquiv but is extremly ugly and 10x longer. I don't want to finish it.
+-- def tprodFiniUnionEquiv' {n} {Sf : Fin n → Set ι}
+--     [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
+--       (H : Pairwise fun k l => Disjoint (Sf k) (Sf l)) :
+--         (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : (Set.iUnion Sf), s i) where
+--   toFun := lift
+--     { toFun := fun g => by
+--         induction n with
+--         | zero => sorry
+--         | succ k ih =>
+--           have : DecidablePred fun x ↦ x ∈ ⋃ i : Fin k, Sf ⟨↑i, by omega⟩ := by
+--             intro x
+--             simp only [mem_iUnion]
+--             infer_instance
+--           replace ih := @ih (fun i => Sf ⟨i, by omega⟩) inferInstance (fun i j _ =>
+--             @H ⟨i, by omega⟩ ⟨j, by omega⟩ (by simp; omega)) (fun i => g ⟨i, by omega⟩)
+--           rw [Set.union_iUnion_fin_succ]
+--           refine (tmulUnionEquiv ?_) (ih ⊗ₜ[R] g ⟨k, by omega⟩)
+--           simpa using fun i : Fin k =>
+--             @H ⟨i, by omega⟩ ⟨k, by omega⟩ (by simp; omega)
 
 
-  }
+--   }
 
 
 
