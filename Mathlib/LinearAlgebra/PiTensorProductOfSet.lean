@@ -607,20 +607,20 @@ def sigmaFinSumLastEquiv {n : Nat} {t : Fin n.succ → Type*} :
 -- reverse order to be in line with `finSumFinEquiv`?
 
 variable {n : Nat}
-variable {S : Fin (n + 1) → Type*}
-variable {s : (k : Fin (n + 1)) → (i : S k) → Type*}
+variable {Sf : Fin (n + 1) → Type*}
+variable {s : (k : Fin (n + 1)) → (i : Sf k) → Type*}
 variable [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
 
 -- Move one `Fin` index into binary tensor product
 protected def tprodTprodLastEquiv : (⨂[R] k : Fin n.succ, ⨂[R] i, s k i) ≃ₗ[R]
-    ((⨂[R] k : Fin n, ⨂[R] i, s k.castSucc i) ⊗[R] (⨂[R] i : S (last n), s (last n) i)) :=
-  (reindex R (fun k : Fin (n+1) ↦ ⨂[R] i : S k, s k i) finSumFinEquiv.symm) ≪≫ₗ
-  (tmulEquivDep R (fun j ↦ ⨂[R] i : S (finSumFinEquiv j), s (finSumFinEquiv j) i)).symm ≪≫ₗ
+    ((⨂[R] k : Fin n, ⨂[R] i, s k.castSucc i) ⊗[R] (⨂[R] i : Sf (last n), s (last n) i)) :=
+  (reindex R (fun k : Fin (n+1) ↦ ⨂[R] i : Sf k, s k i) finSumFinEquiv.symm) ≪≫ₗ
+  (tmulEquivDep R (fun j ↦ ⨂[R] i : Sf (finSumFinEquiv j), s (finSumFinEquiv j) i)).symm ≪≫ₗ
   (TensorProduct.congr (LinearEquiv.refl R _) (subsingletonEquivDep 0))
 
 -- TBD: I'm too dumb. Maybe make intermediate step without the `TensorProduct.congr`?
 @[simp] -- remove for local lemma?
-protected lemma tprodTprodLastEquiv_tprod (f : (k : Fin n.succ) → (i : S k) → s k i) :
+protected lemma tprodTprodLastEquiv_tprod (f : (k : Fin n.succ) → (i : Sf k) → s k i) :
     PiTensorProduct.tprodTprodLastEquiv (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) =
     (⨂ₜ[R] k : Fin n, ⨂ₜ[R] i, f k.castSucc i) ⊗ₜ[R] (⨂ₜ[R] i, f (last n) i) := by
   simp only [PiTensorProduct.tprodTprodLastEquiv]
@@ -634,10 +634,10 @@ protected lemma tprodTprodLastEquiv_tprod (f : (k : Fin n.succ) → (i : S k) �
 -- Move one summand from sigma type into binary tensor product
 
 -- `What is S vs s?`
-protected def tprodSigmaLastEquiv : (⨂[R] j : (Σ k : Fin n.succ, S k), s j.1 j.2) ≃ₗ[R]
-  ((⨂[R] j : (Σ k : Fin n, S k.castSucc), s j.1.castSucc j.2) ⊗[R]
-   (⨂[R] i : S (last n), s (last n) i)) :=
-  (reindex R (fun j : (Σ k, S k) ↦ s j.1 j.2) sigmaFinSumLastEquiv) ≪≫ₗ
+protected def tprodSigmaLastEquiv : (⨂[R] j : (Σ k : Fin n.succ, Sf k), s j.1 j.2) ≃ₗ[R]
+  ((⨂[R] j : (Σ k : Fin n, Sf k.castSucc), s j.1.castSucc j.2) ⊗[R]
+   (⨂[R] i : Sf (last n), s (last n) i)) :=
+  (reindex R (fun j : (Σ k, Sf k) ↦ s j.1 j.2) sigmaFinSumLastEquiv) ≪≫ₗ
   (tmulEquivDep R (fun i ↦ s (sigmaFinSumLastEquiv.symm i).1 (sigmaFinSumLastEquiv.symm i).2)).symm
 
 section -- `What is wrong with the following? it Doesn't have two s and S.`
@@ -659,9 +659,9 @@ end
 
 
 @[simp]
-protected lemma tprodSigmaLastEquiv_tprod (f : (j : Σ k : Fin n.succ, S k) → s j.1 j.2) :
+protected lemma tprodSigmaLastEquiv_tprod (f : (j : Σ k : Fin n.succ, Sf k) → s j.1 j.2) :
     PiTensorProduct.tprodSigmaLastEquiv (⨂ₜ[R] j, f j) =
-    ((⨂ₜ[R] j : (Σ k : Fin n, S k.castSucc), f ⟨j.1.castSucc, j.2⟩) ⊗ₜ[R]
+    ((⨂ₜ[R] j : (Σ k : Fin n, Sf k.castSucc), f ⟨j.1.castSucc, j.2⟩) ⊗ₜ[R]
     (⨂ₜ[R] i, f ⟨(last n), i⟩)) := by
   simp only [PiTensorProduct.tprodSigmaLastEquiv, Nat.succ_eq_add_one,
     LinearEquiv.trans_apply, reindex_tprod]
@@ -682,8 +682,8 @@ end RecursionHelpers
 
 #check isEmptyElim
 variable {n : Nat}
-variable {S : Fin n → Type*}
-variable {s : (k : Fin n) → (i : S k) → Type*}
+variable {Sf : Fin n → Type*}
+variable {s : (k : Fin n) → (i : Sf k) → Type*}
 variable [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
 
 -- TBD: Is it desirable to reformulate that as a recursive function?
@@ -691,7 +691,7 @@ variable [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
 /-! A nested `PiTensorProduct` is equivalent to a single `PiTensorProduct` over
 a sigma type if the outer type is finite. -/
 def tprodTprodEquiv :
-  (⨂[R] k, ⨂[R] i, s k i) ≃ₗ[R] (⨂[R] j : (Σ k, S k), s j.1 j.2) := by
+  (⨂[R] k, ⨂[R] i, s k i) ≃ₗ[R] (⨂[R] j : (Σ k, Sf k), s j.1 j.2) := by
   induction n with
   | zero => exact (isEmptyEquiv _) ≪≫ₗ (isEmptyEquiv _).symm
   | succ m ih => exact PiTensorProduct.tprodTprodLastEquiv ≪≫ₗ
@@ -699,8 +699,8 @@ def tprodTprodEquiv :
 
 -- this is very horrible.
 -- maybe it gets better if the proof is recursive, rather than by tactic?
-theorem tprodTprodEquiv_tprod (f : (k : Fin n) → (i : S k) → s k i) :
-  tprodTprodEquiv (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) = ⨂ₜ[R] j : (Σ k, S k), f j.1 j.2 := by
+theorem tprodTprodEquiv_tprod (f : (k : Fin n) → (i : Sf k) → s k i) :
+  tprodTprodEquiv (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) = ⨂ₜ[R] j : (Σ k, Sf k), f j.1 j.2 := by
     induction n with
     | zero =>
       simp [tprodTprodEquiv]
@@ -718,8 +718,8 @@ theorem tprodTprodEquiv_tprod (f : (k : Fin n) → (i : S k) → s k i) :
       sorry
 
 
-theorem tprodTprodEquiv_symm_tprod (f : (j : (Σ k, S k)) → s j.1 j.2) :
-  tprodTprodEquiv.symm (⨂ₜ[R] j : (Σ k, S k), f j) = (⨂ₜ[R] k, ⨂ₜ[R] i, f ⟨k, i⟩) := sorry
+theorem tprodTprodEquiv_symm_tprod (f : (j : (Σ k, Sf k)) → s j.1 j.2) :
+  tprodTprodEquiv.symm (⨂ₜ[R] j : (Σ k, Sf k), f j) = (⨂ₜ[R] k, ⨂ₜ[R] i, f ⟨k, i⟩) := sorry
 
 end TprodTprod
 
