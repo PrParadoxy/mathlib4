@@ -428,8 +428,7 @@ def tprodFiniUnionEquiv :
 
 theorem tprodFiniUnionEquiv_tprod (f : (k : Fin n) → (i : Sf k) → s i) :
     tprodFiniUnionEquiv H (⨂ₜ[R] k, ⨂ₜ[R] i, f k i)
-    = ⨂ₜ[R] i : (Set.iUnion Sf), have h := (Set.mem_iUnion.mp i.prop)
-      f h.choose ⟨i.val, h.choose_spec⟩ := by
+    = ⨂ₜ[R] i, have h := (Set.mem_iUnion.mp i.prop); f h.choose ⟨i.val, h.choose_spec⟩ := by
   induction n with
   | zero =>
     simp [tprodFiniUnionEquiv]
@@ -479,3 +478,33 @@ theorem tprodFiniUnionEquiv_tprod (f : (k : Fin n) → (i : Sf k) → s i) :
       congr!
 
 
+theorem tprodFiniUnionEquiv_symm_tprod (f : (i : (Set.iUnion Sf)) → s i) :
+    (tprodFiniUnionEquiv H).symm (⨂ₜ[R] i, f i) = ⨂ₜ[R] k, ⨂ₜ[R] i : Sf k, f ⟨i, by aesop⟩ := by
+  induction n with
+  | zero =>
+    simp [tprodFiniUnionEquiv]
+    congr with j
+    exfalso
+    exact IsEmpty.false j
+  | succ k ih =>
+    have hdisj : Disjoint (⋃ i : Fin k, Sf ⟨↑i, by omega⟩) (Sf (last k)) := by
+      simpa using fun i : Fin k => @H ⟨i, by omega⟩ ⟨k, by omega⟩ (by simp; omega)
+    have H' : Pairwise fun (m : Fin k) l ↦ Disjoint (Sf ⟨m, by omega⟩) (Sf ⟨l, by omega⟩) :=
+      fun i j _ => @H ⟨i, by omega⟩ ⟨j, by omega⟩ (by simp; omega)
+    replace ih := @ih (fun i => Sf ⟨i, by omega⟩) inferInstance H' (fun i => f ⟨i, by aesop⟩)
+
+    have ht : (tprodFiniUnionEquiv H).symm =
+      (reindex R _ (Equiv.subtypeEquivProp (Set.union_iUnion_fin_succ Sf)) ≪≫ₗ
+      (tmulFinSuccEquiv.symm ≪≫ₗ
+      (TensorProduct.congr (tprodFiniUnionEquiv H') (LinearEquiv.refl _ _)) ≪≫ₗ
+      (tmulUnionEquiv (s := s) hdisj)).symm) := by rfl
+
+    simp only [ht, Nat.succ_eq_add_one, LinearEquiv.trans_symm, LinearEquiv.symm_symm,
+      LinearEquiv.trans_apply]
+
+    conv => lhs; arg 2; arg 2; erw [reindex_tprod, tmulUnionEquiv_symm_tprod]
+
+    simp only [TensorProduct.congr_symm_tmul, LinearEquiv.refl_symm, LinearEquiv.refl_apply,
+      ← LinearEquiv.eq_symm_apply, tmulFinSucc_symm]
+
+    exact (congr_arg (· ⊗ₜ[R] (⨂ₜ[R] i : Sf (last k), f ⟨i, by aesop⟩)) ih)
