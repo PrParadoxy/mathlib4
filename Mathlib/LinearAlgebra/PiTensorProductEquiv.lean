@@ -456,6 +456,15 @@ theorem tprodFiniUnionEquiv_tprod (f : (k : Fin n) → (i : Sf k) → s i):
 
     rw [hfinal]
     clear hfinal
-    simp_all
-    -- now apply all LinearEquiv from lhs to rhs (something like LinearEquiv.symm_apply_eq)
-    -- and close the goal with ih.
+    simp only at *
+    rw [LinearEquiv.symm_apply_eq]
+    simp
+    erw [reindex_tprod]
+    conv => rhs; arg 2; arg 2; erw [tmulUnionEquiv_symm_tprod]
+    simp [←LinearEquiv.symm_apply_eq, Equiv.subtypeEquivProp]
+
+    replace ih := congr_arg (fun x => (tprodFiniUnionEquiv H').symm x) ih
+    replace ih := congr_arg (fun x => x ⊗ₜ[R] (⨂ₜ[R] i, f (last k) i)) ih
+    simp at ih
+
+    -- very close
