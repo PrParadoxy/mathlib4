@@ -426,7 +426,7 @@ def tprodFiniUnionEquiv :
 
 
 
-theorem tprodFiniUnionEquiv_tprod (f : (k : Fin n) → (i : Sf k) → s i):
+theorem tprodFiniUnionEquiv_tprod (f : (k : Fin n) → (i : Sf k) → s i) :
     tprodFiniUnionEquiv H (⨂ₜ[R] k, ⨂ₜ[R] i, f k i)
       =
     ⨂ₜ[R] i : (Set.iUnion Sf),
@@ -467,13 +467,13 @@ theorem tprodFiniUnionEquiv_tprod (f : (k : Fin n) → (i : Sf k) → s i):
     convert ih using 1 with _ hc
     congr with i
     split_ifs with hif
-    . generalize_proofs h1 h2 h3 h4 h5 h6 h7
+    · generalize_proofs h1 h2 h3 h4 h5 h6 h7
       have : h3.choose = ⟨↑h5.choose, h6⟩ := by
         by_contra hne
         have : Disjoint (Sf h3.choose) (Sf ⟨↑h5.choose, h6⟩) := H hne
         exact this.ne_of_mem h4 h7 rfl
       congr!
-    . generalize_proofs h1 h2 h3 h4 h5
+    · generalize_proofs h1 h2 h3 h4 h5
       have : h3.choose = last k := by
         by_contra hne
         have : Disjoint (Sf h3.choose) (Sf (last k)) := H hne
