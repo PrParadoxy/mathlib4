@@ -411,14 +411,17 @@ def tprodFiniUnionEquiv :
     have : IsEmpty (iUnion Sf) := by simp
     exact (isEmptyEquiv (Fin 0)).trans ((isEmptyEquiv (iUnion Sf)).symm)
   | succ k ih =>
-    rw [Set.union_iUnion_fin_succ Sf]
-    refine tmulFinSumEquiv.symm ≪≫ₗ ?_ ≪≫ₗ (tmulUnionEquiv ?_)
-    · apply TensorProduct.congr
-      · exact @ih (fun i => Sf ⟨i, by omega⟩) inferInstance (fun i j _ =>
-          @H ⟨i, by omega⟩ ⟨j, by omega⟩ (by simp; omega))
-      · exact (subsingletonEquivDep 0)
-    · simpa using fun i : Fin k =>
+
+    have hd : Disjoint (⋃ i : Fin k, Sf ⟨↑i, by omega⟩) (Sf (last k)) := by
+      simpa using fun i : Fin k =>
         @H ⟨i, by omega⟩ ⟨k, by omega⟩ (by simp; omega)
+
+    replace ih := @ih (fun i => Sf ⟨i, by omega⟩) inferInstance (fun i j _ =>
+      @H ⟨i, by omega⟩ ⟨j, by omega⟩ (by simp; omega))
+
+    exact (reindex R _ (Equiv.subtypeEquivProp (Set.union_iUnion_fin_succ Sf)) ≪≫ₗ
+      (tmulFinSumEquiv.symm ≪≫ₗ (TensorProduct.congr ih (subsingletonEquivDep 0))
+      ≪≫ₗ (tmulUnionEquiv hd)).symm).symm
 
 
 
@@ -445,17 +448,14 @@ theorem tprodFiniUnionEquiv_tprod (f : (k : Fin n) → (i : Sf k) → s i):
 
     replace ih := @ih (fun i => Sf ⟨i, by omega⟩) inferInstance H' (fun i j => f ⟨i, by omega⟩ j)
 
-    have :=
-          (tprodFiniUnionEquiv (Sf := Sf) (R := R) H) =
-      tmulFinSumEquiv.symm ≪≫ₗ TensorProduct.congr (tprodFiniUnionEquiv H')
-        (subsingletonEquivDep 0)  ≪≫ₗ  tmulUnionEquiv (R := R) hdisj
+    have hfinal :
+      (tprodFiniUnionEquiv H) =
+      (reindex R _ (Equiv.subtypeEquivProp (Set.union_iUnion_fin_succ Sf)) ≪≫ₗ
+      (tmulFinSumEquiv.symm ≪≫ₗ (TensorProduct.congr (tprodFiniUnionEquiv H') (subsingletonEquivDep 0))
+      ≪≫ₗ (tmulUnionEquiv (s := s) hdisj)).symm).symm := by rfl
 
-    -- change `rw [Set.union_iUnion_fin_succ Sf]` to reindex to make above work and we are done.
-
-    -- replace ih := congr_arg (fun x =>
-    --   tmulUnionEquiv hdisj (x ⊗ₜ[R] (⨂ₜ[R] i: Sf (last k), f (last k) i))) ih
-
-    -- simp_all
-
-    -- -- now prove that tprodFiniUnionEquiv and tmulUnionEquiv commute and we are done.
-    -- sorry
+    rw [hfinal]
+    clear hfinal
+    simp_all
+    -- now apply all LinearEquiv from lhs to rhs (something like LinearEquiv.symm_apply_eq)
+    -- and close the goal with ih. 
