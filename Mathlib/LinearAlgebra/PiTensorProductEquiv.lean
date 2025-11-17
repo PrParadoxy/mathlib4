@@ -417,17 +417,14 @@ def tprodFiniUnionEquiv :
     have : IsEmpty (iUnion Sf) := by simp
     exact (isEmptyEquiv (Fin 0)).trans ((isEmptyEquiv (iUnion Sf)).symm)
   | succ k ih =>
-
-    have hd : Disjoint (⋃ i : Fin k, Sf ⟨↑i, by omega⟩) (Sf (last k)) := by
+    have hdisj : Disjoint (⋃ i : Fin k, Sf ⟨↑i, by omega⟩) (Sf (last k)) := by
       simpa using fun i : Fin k =>
         @H ⟨i, by omega⟩ ⟨k, by omega⟩ (by simp; omega)
-
     replace ih := @ih (fun i => Sf ⟨i, by omega⟩) inferInstance (fun i j _ =>
       @H ⟨i, by omega⟩ ⟨j, by omega⟩ (by simp; omega))
-
     exact (reindex R _ (Equiv.subtypeEquivProp (Set.union_iUnion_fin_succ Sf)) ≪≫ₗ
       (tmulFinSuccEquiv.symm ≪≫ₗ (TensorProduct.congr ih (LinearEquiv.refl _ _))
-      ≪≫ₗ (tmulUnionEquiv hd)).symm).symm
+      ≪≫ₗ (tmulUnionEquiv hdisj)).symm).symm
 
 theorem tprodFiniUnionEquiv_tprod (f : (k : Fin n) → (i : Sf k) → s i) :
     tprodFiniUnionEquiv H (⨂ₜ[R] k, ⨂ₜ[R] i, f k i)
@@ -440,13 +437,10 @@ theorem tprodFiniUnionEquiv_tprod (f : (k : Fin n) → (i : Sf k) → s i) :
     exfalso
     exact IsEmpty.false (self := by simp) j
   | succ k ih =>
-
     have hdisj : Disjoint (⋃ i : Fin k, Sf ⟨↑i, by omega⟩) (Sf (last k)) := by
       simpa using fun i : Fin k => @H ⟨i, by omega⟩ ⟨k, by omega⟩ (by simp; omega)
-
     have H' : Pairwise fun (m : Fin k) l ↦ Disjoint (Sf ⟨m, by omega⟩) (Sf ⟨l, by omega⟩) :=
       fun i j _ => @H ⟨i, by omega⟩ ⟨j, by omega⟩ (by simp; omega)
-
     replace ih := @ih (fun i => Sf ⟨i, by omega⟩) inferInstance H' (fun i j => f ⟨i, by omega⟩ j)
 
     have hfinal :
@@ -466,12 +460,11 @@ theorem tprodFiniUnionEquiv_tprod (f : (k : Fin n) → (i : Sf k) → s i) :
 
     replace ih := congr_arg (tmulUnionEquiv hdisj · )
       (congr_arg (· ⊗ₜ[R] (⨂ₜ[R] i, f (last k) i)) ih)
-
     simp only [tmulUnionEquiv_tprod, mem_iUnion] at ih
 
-    convert ih using 1 with _ hc
+    convert ih using 1
     congr with i
-    split_ifs with hif
+    split_ifs with _
     · generalize_proofs _ _ h1 h2 h3 h4 h5
       have : h1.choose = ⟨↑h3.choose, h4⟩ := by
         by_contra hne
@@ -484,3 +477,5 @@ theorem tprodFiniUnionEquiv_tprod (f : (k : Fin n) → (i : Sf k) → s i) :
         have : Disjoint (Sf h1.choose) (Sf (last k)) := H hne
         exact this.ne_of_mem h2 h3 rfl
       congr!
+
+
