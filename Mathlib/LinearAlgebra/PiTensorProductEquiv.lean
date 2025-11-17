@@ -460,11 +460,10 @@ theorem tprodFiniUnionEquiv_tprod (f : (k : Fin n) → (i : Sf k) → s i):
     rw [LinearEquiv.symm_apply_eq]
     simp
     erw [reindex_tprod]
-    conv => rhs; arg 2; arg 2; erw [tmulUnionEquiv_symm_tprod]
     simp [←LinearEquiv.symm_apply_eq, Equiv.subtypeEquivProp]
-
-    replace ih := congr_arg (fun x => (tprodFiniUnionEquiv H').symm x) ih
-    replace ih := congr_arg (fun x => x ⊗ₜ[R] (⨂ₜ[R] i, f (last k) i)) ih
+    replace ih := congr_arg (· ⊗ₜ[R] (⨂ₜ[R] i, f (last k) i)) ih
+    replace ih := congr_arg (tmulUnionEquiv hdisj · ) ih
     simp at ih
-
-    -- very close
+    convert ih using 1 with _ hc
+    congr with i
+    
