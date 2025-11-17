@@ -420,7 +420,7 @@ def tprodFiniUnionEquiv :
       @H ⟨i, by omega⟩ ⟨j, by omega⟩ (by simp; omega))
 
     exact (reindex R _ (Equiv.subtypeEquivProp (Set.union_iUnion_fin_succ Sf)) ≪≫ₗ
-      (tmulFinSumEquiv.symm ≪≫ₗ (TensorProduct.congr ih (subsingletonEquivDep 0))
+      (tmulFinSucc.symm ≪≫ₗ (TensorProduct.congr ih (LinearEquiv.refl _ _))
       ≪≫ₗ (tmulUnionEquiv hd)).symm).symm
 
 
@@ -451,11 +451,11 @@ theorem tprodFiniUnionEquiv_tprod (f : (k : Fin n) → (i : Sf k) → s i):
     have hfinal :
       (tprodFiniUnionEquiv H) =
       (reindex R _ (Equiv.subtypeEquivProp (Set.union_iUnion_fin_succ Sf)) ≪≫ₗ
-      (tmulFinSumEquiv.symm ≪≫ₗ (TensorProduct.congr (tprodFiniUnionEquiv H') (subsingletonEquivDep 0))
+      (tmulFinSucc.symm ≪≫ₗ (TensorProduct.congr (tprodFiniUnionEquiv H') (LinearEquiv.refl _ _))
       ≪≫ₗ (tmulUnionEquiv (s := s) hdisj)).symm).symm := by rfl
 
     rw [hfinal]
     clear hfinal
     simp_all
     -- now apply all LinearEquiv from lhs to rhs (something like LinearEquiv.symm_apply_eq)
-    -- and close the goal with ih. 
+    -- and close the goal with ih.
