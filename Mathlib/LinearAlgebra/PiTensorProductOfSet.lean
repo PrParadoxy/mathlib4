@@ -632,11 +632,31 @@ protected lemma tprodTprodLastEquiv_tprod (f : (k : Fin n.succ) → (i : S k) �
   sorry
 
 -- Move one summand from sigma type into binary tensor product
+
+-- `What is S vs s?`
 protected def tprodSigmaLastEquiv : (⨂[R] j : (Σ k : Fin n.succ, S k), s j.1 j.2) ≃ₗ[R]
   ((⨂[R] j : (Σ k : Fin n, S k.castSucc), s j.1.castSucc j.2) ⊗[R]
    (⨂[R] i : S (last n), s (last n) i)) :=
   (reindex R (fun j : (Σ k, S k) ↦ s j.1 j.2) sigmaFinSumLastEquiv) ≪≫ₗ
   (tmulEquivDep R (fun i ↦ s (sigmaFinSumLastEquiv.symm i).1 (sigmaFinSumLastEquiv.symm i).2)).symm
+
+section -- `What is wrong with the following? it Doesn't have two s and S.`
+
+variable {n : Nat} {R : Type*} {s : Fin (n.succ) → Type*}
+variable [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
+
+def tmulSigmaEquiv :
+    (⨂[R] i : (Σ k : Fin n, s k.castSucc), s i.1.castSucc)
+      ⊗[R]
+    (⨂[R] (_ : s (last n)), s (last n))
+      ≃ₗ[R]
+    ⨂[R] i : (Σ k : Fin n.succ, s k), s i.1 := by
+  symm
+  exact (reindex _ _ sigmaFinSumLastEquiv ≪≫ₗ ((tmulEquivDep _ _).symm
+    ≪≫ₗ (TensorProduct.congr (LinearEquiv.refl _ _) (LinearEquiv.refl _ _))))
+end
+
+
 
 @[simp]
 protected lemma tprodSigmaLastEquiv_tprod (f : (j : Σ k : Fin n.succ, S k) → s j.1 j.2) :
@@ -660,7 +680,7 @@ protected lemma tprodSigmaLastEquiv_tprod (f : (j : Σ k : Fin n.succ, S k) → 
 
 end RecursionHelpers
 
-
+#check isEmptyElim
 variable {n : Nat}
 variable {S : Fin n → Type*}
 variable {s : (k : Fin n) → (i : S k) → Type*}
@@ -685,8 +705,9 @@ theorem tprodTprodEquiv_tprod (f : (k : Fin n) → (i : S k) → s k i) :
     | zero =>
       simp [tprodTprodEquiv]
       congr
-      ext
-      sorry
+      ext j
+      exfalso
+      exact IsEmpty.false j
 
     | succ m ih =>
       simp only [tprodTprodEquiv]
@@ -703,5 +724,3 @@ theorem tprodTprodEquiv_symm_tprod (f : (j : (Σ k, S k)) → s j.1 j.2) :
 end TprodTprod
 
 end Fin
-
--- #lint
