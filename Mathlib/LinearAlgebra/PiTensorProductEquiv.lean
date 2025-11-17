@@ -356,7 +356,7 @@ section tmulFinSuccEquiv
 variable {n : Nat} {R : Type*} {s : Fin (n.succ) → Type*}
 variable [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
 
-def tmulFinSucc :
+def tmulFinSuccEquiv :
     (⨂[R] i : Fin n, s (castSucc i)) ⊗[R] (s (last n)) ≃ₗ[R] ⨂[R] (i : Fin n.succ), s i :=
   (tmulFinSumEquiv.symm ≪≫ₗ
     (TensorProduct.congr (LinearEquiv.refl _ _ ) (subsingletonEquivDep 0))).symm
@@ -364,33 +364,36 @@ def tmulFinSucc :
 @[simp]
 theorem tmulFinSucc_tprod (f : (i : Fin n) → s (castSucc i)) (x : s (last n)) :
     haveI := decidableEq_of_subsingleton (α := Fin 1)
-    tmulFinSucc ((⨂ₜ[R] i, f i) ⊗ₜ[R] x)
+    tmulFinSuccEquiv ((⨂ₜ[R] i, f i) ⊗ₜ[R] x)
       = ⨂ₜ[R] (i : Fin (n + 1)), addCases f (Pi.single 0 x) i := by
-  erw [tmulFinSucc, LinearEquiv.trans_symm, LinearEquiv.symm_symm,
+  erw [tmulFinSuccEquiv, LinearEquiv.trans_symm, LinearEquiv.symm_symm,
     LinearEquiv.trans_apply, TensorProduct.congr_symm_tmul, tmulFinSumEquiv_tprod]
 
 @[simp]
 theorem tmulFinSucc_symm (f : (i : Fin n.succ) → s i) :
-    tmulFinSucc.symm (⨂ₜ[R] i, f i) = (⨂ₜ[R] i, f (castSucc i)) ⊗ₜ[R] f (last n) := by
-  simp only [Nat.succ_eq_add_one, tmulFinSucc, isValue, LinearEquiv.trans_symm,
+    tmulFinSuccEquiv.symm (⨂ₜ[R] i, f i) = (⨂ₜ[R] i, f (castSucc i)) ⊗ₜ[R] f (last n) := by
+  simp only [Nat.succ_eq_add_one, tmulFinSuccEquiv, isValue, LinearEquiv.trans_symm,
     LinearEquiv.symm_symm, LinearEquiv.trans_apply, tmulFinSumEquiv_symm_tprod]
   erw [TensorProduct.congr_tmul, LinearEquiv.refl_apply, subsingletonEquivDep_tprod]
   congr
 
+end PiTensorProduct.Set.Fin.tmulFinSuccEquiv
 
 
 section tprodiUnionEquiv
 
-variable {ι : Type*} {s : ι → Type*} [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
+variable {ι : Type*} {s : ι → Type*} {R : Type*} [CommRing R]
+  [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
 variable {n : Nat} {Sf : Fin n → Set ι} [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
   (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
+
+open Set Fin
 
 instance : DecidablePred fun x ↦ x ∈ ⋃ i, Sf i := by
   intro x
   simp only [mem_iUnion]
   infer_instance
 
--- move out
 protected lemma Set.union_iUnion_fin_succ (Sf : Fin (n + 1) → Set ι) :
     iUnion Sf = iUnion (fun i : Fin n => Sf ⟨i, by omega⟩) ∪ Sf ⟨n, by simp⟩ := by
   ext x
@@ -403,6 +406,9 @@ protected lemma Set.union_iUnion_fin_succ (Sf : Fin (n + 1) → Set ι) :
   · rintro (h | _)
     · exact ⟨castAdd 1 h.choose, h.choose_spec⟩
     · use ⟨n, by omega⟩
+
+
+namespace PiTensorProduct
 
 def tprodFiniUnionEquiv :
     (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : (Set.iUnion Sf), s i) := by
@@ -420,17 +426,12 @@ def tprodFiniUnionEquiv :
       @H ⟨i, by omega⟩ ⟨j, by omega⟩ (by simp; omega))
 
     exact (reindex R _ (Equiv.subtypeEquivProp (Set.union_iUnion_fin_succ Sf)) ≪≫ₗ
-      (tmulFinSucc.symm ≪≫ₗ (TensorProduct.congr ih (LinearEquiv.refl _ _))
+      (tmulFinSuccEquiv.symm ≪≫ₗ (TensorProduct.congr ih (LinearEquiv.refl _ _))
       ≪≫ₗ (tmulUnionEquiv hd)).symm).symm
-
-
-
 
 theorem tprodFiniUnionEquiv_tprod (f : (k : Fin n) → (i : Sf k) → s i) :
     tprodFiniUnionEquiv H (⨂ₜ[R] k, ⨂ₜ[R] i, f k i)
-      =
-    ⨂ₜ[R] i : (Set.iUnion Sf),
-      have h := (Set.mem_iUnion.mp i.prop)
+    = ⨂ₜ[R] i : (Set.iUnion Sf), have h := (Set.mem_iUnion.mp i.prop)
       f h.choose ⟨i.val, h.choose_spec⟩ := by
   induction n with
   | zero =>
@@ -451,31 +452,35 @@ theorem tprodFiniUnionEquiv_tprod (f : (k : Fin n) → (i : Sf k) → s i) :
     have hfinal :
       (tprodFiniUnionEquiv H) =
       (reindex R _ (Equiv.subtypeEquivProp (Set.union_iUnion_fin_succ Sf)) ≪≫ₗ
-      (tmulFinSucc.symm ≪≫ₗ (TensorProduct.congr (tprodFiniUnionEquiv H') (LinearEquiv.refl _ _))
-      ≪≫ₗ (tmulUnionEquiv (s := s) hdisj)).symm).symm := by rfl
+      (tmulFinSuccEquiv.symm ≪≫ₗ
+      (TensorProduct.congr (tprodFiniUnionEquiv H') (LinearEquiv.refl _ _)) ≪≫ₗ
+      (tmulUnionEquiv (s := s) hdisj)).symm).symm := by rfl
 
-    rw [hfinal]
-    clear hfinal
-    simp only at *
-    rw [LinearEquiv.symm_apply_eq]
-    simp
+    rw [hfinal, LinearEquiv.symm_apply_eq]
+    simp only [Nat.succ_eq_add_one, LinearEquiv.trans_symm, LinearEquiv.symm_symm,
+      LinearEquiv.trans_apply]
     erw [reindex_tprod]
-    simp [←LinearEquiv.symm_apply_eq, Equiv.subtypeEquivProp]
-    replace ih := congr_arg (· ⊗ₜ[R] (⨂ₜ[R] i, f (last k) i)) ih
-    replace ih := congr_arg (tmulUnionEquiv hdisj · ) ih
-    simp at ih
+    simp only [Equiv.subtypeEquivProp, Equiv.subtypeEquiv_symm, Equiv.refl_symm,
+      Equiv.subtypeEquiv_apply, Equiv.refl_apply, ← LinearEquiv.symm_apply_eq, Nat.succ_eq_add_one,
+      tmulFinSucc_symm, LinearEquiv.symm_symm, TensorProduct.congr_tmul, LinearEquiv.refl_apply]
+
+    replace ih := congr_arg (tmulUnionEquiv hdisj · )
+      (congr_arg (· ⊗ₜ[R] (⨂ₜ[R] i, f (last k) i)) ih)
+
+    simp only [tmulUnionEquiv_tprod, mem_iUnion] at ih
+
     convert ih using 1 with _ hc
     congr with i
     split_ifs with hif
-    · generalize_proofs h1 h2 h3 h4 h5 h6 h7
-      have : h3.choose = ⟨↑h5.choose, h6⟩ := by
+    · generalize_proofs _ _ h1 h2 h3 h4 h5
+      have : h1.choose = ⟨↑h3.choose, h4⟩ := by
         by_contra hne
-        have : Disjoint (Sf h3.choose) (Sf ⟨↑h5.choose, h6⟩) := H hne
-        exact this.ne_of_mem h4 h7 rfl
+        have : Disjoint (Sf h1.choose) (Sf ⟨↑h3.choose, h4⟩) := H hne
+        exact this.ne_of_mem h2 h5 rfl
       congr!
-    · generalize_proofs h1 h2 h3 h4 h5
-      have : h3.choose = last k := by
+    · generalize_proofs _ _ h1 h2 h3
+      have : h1.choose = last k := by
         by_contra hne
-        have : Disjoint (Sf h3.choose) (Sf (last k)) := H hne
-        exact this.ne_of_mem h4 h5 rfl
+        have : Disjoint (Sf h1.choose) (Sf (last k)) := H hne
+        exact this.ne_of_mem h2 h3 rfl
       congr!
