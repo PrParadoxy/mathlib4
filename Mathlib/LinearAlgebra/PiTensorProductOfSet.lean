@@ -697,30 +697,42 @@ def tprodTprodEquiv :
   | succ m ih => exact PiTensorProduct.tprodTprodLastEquiv ≪≫ₗ
       (TensorProduct.congr ih (LinearEquiv.refl _ _)) ≪≫ₗ PiTensorProduct.tprodSigmaLastEquiv.symm
 
--- this is very horrible.
--- maybe it gets better if the proof is recursive, rather than by tactic?
+@[simp]
 theorem tprodTprodEquiv_tprod (f : (k : Fin n) → (i : Sf k) → s k i) :
-  tprodTprodEquiv (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) = ⨂ₜ[R] j : (Σ k, Sf k), f j.1 j.2 := by
-    induction n with
-    | zero =>
-      simp [tprodTprodEquiv]
-      congr
-      ext j
-      exfalso
-      exact IsEmpty.false j
+    tprodTprodEquiv (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) = ⨂ₜ[R] j : (Σ k, Sf k), f j.1 j.2 := by
+  induction n with
+  | zero =>
+    simp [tprodTprodEquiv]
+    congr
+    ext j
+    exfalso
+    exact IsEmpty.false j
 
-    | succ m ih =>
-      simp only [tprodTprodEquiv]
-      simp only [Nat.succ_eq_add_one, LinearEquiv.trans_apply]
-      erw [LinearEquiv.symm_apply_eq]
-      simp_all
+  | succ m ih =>
+    replace ih := @ih (fun i => Sf i.castSucc) (fun i j => s i.castSucc j) _ _
+      (fun i j => f i.castSucc j)
 
-      sorry
+    have ht : tprodTprodEquiv (n := m + 1) (R := R) =
+      PiTensorProduct.tprodTprodLastEquiv ≪≫ₗ
+        (TensorProduct.congr tprodTprodEquiv (LinearEquiv.refl _ _))
+          ≪≫ₗ PiTensorProduct.tprodSigmaLastEquiv (s := s).symm := by rfl
+
+    simp only [ht, Nat.succ_eq_add_one, LinearEquiv.trans_apply,
+      PiTensorProduct.tprodTprodLastEquiv_tprod, TensorProduct.congr_tmul, LinearEquiv.refl_apply,
+      ← LinearEquiv.eq_symm_apply, LinearEquiv.symm_symm,
+      PiTensorProduct.tprodSigmaLastEquiv_tprod]
+
+    exact (congr_arg (· ⊗ₜ[R] (⨂ₜ[R] i : Sf (last m), f (last m) i)) ih)
 
 
 theorem tprodTprodEquiv_symm_tprod (f : (j : (Σ k, Sf k)) → s j.1 j.2) :
-  tprodTprodEquiv.symm (⨂ₜ[R] j : (Σ k, Sf k), f j) = (⨂ₜ[R] k, ⨂ₜ[R] i, f ⟨k, i⟩) := sorry
+    tprodTprodEquiv.symm (⨂ₜ[R] j : (Σ k, Sf k), f j) = (⨂ₜ[R] k, ⨂ₜ[R] i, f ⟨k, i⟩) := by
+  simp [LinearEquiv.symm_apply_eq]
+
+
 
 end TprodTprod
 
 end Fin
+
+open Module
