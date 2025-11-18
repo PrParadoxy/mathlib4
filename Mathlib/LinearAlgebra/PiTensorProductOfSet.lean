@@ -249,6 +249,15 @@ def extendLinearHom : ((⨂[R] i : S, s i) →ₗ[R] M) →ₗ[R]
     intros
     simp [extendLinear, LinearEquiv.congrLeft, TensorProduct.map_smul_left]
 
+-- TBD: I actually wanted `Function.Injective (extendLinearHom (R:=R) (s:=s) (M:=M) hsub)`.
+-- Note the missing `l`.
+-- Hm, got to think about what the proven result actually means.
+/-- Extending linear maps to tensors indexed by a superset is injective if the
+module of tensors indexed by the complement is flat.
+
+Note: Lean will synthesize the flatness assumption if `R` is a field. For
+general rings, there do not currently seem to be any results in Mathlib for
+proving flatness of PiTensorProducts. -/
 theorem extensionInjective [Flat R (⨂[R] (i₂ : ↑(T \ S)), s i₂)]
   (l : ((⨂[R] i : S, s i) →ₗ[R] M)) (h : Function.Injective l) :
   Function.Injective (extendLinearHom (R:=R) (s:=s) (M:=M) hsub l) := by
