@@ -254,11 +254,8 @@ def extendLinearAsMap : ((⨂[R] i : S, s i) →ₗ[R] M) →ₗ[R]
 theorem extensionInjective [Flat R (⨂[R] (i₂ : ↑(T \ S)), s ↑i₂)]
   (l : ((⨂[R] i : S, s i) →ₗ[R] M)) (h : Function.Injective l) :
   Function.Injective (extendLinearAsMap (R:=R) (s:=s) (M:=M) hsub l) := by
-  simp [extendLinearAsMap, extendLinear, LinearEquiv.congrLeft]
-  simp_intro a b h
-  simp [←LinearMap.rTensor_def] at h
-  revert h a b
-  exact Module.Flat.rTensor_preserves_injective_linearMap _ h
+  simpa [extendLinearAsMap, extendLinear, LinearEquiv.congrLeft, ←LinearMap.rTensor_def]
+    using Module.Flat.rTensor_preserves_injective_linearMap _ h
 
 theorem extensionInjective' [∀ i, Flat R (s i)] :
   Function.Injective (extendLinearAsMap (R:=R) (s:=s) (M:=M) hsub) :=
