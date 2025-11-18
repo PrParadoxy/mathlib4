@@ -570,13 +570,10 @@ theorem tprodTprodEquiv_tprod (f : (k : Fin n) → (i : Tf k) → s k i) :
         (TensorProduct.congr tprodTprodEquiv (LinearEquiv.refl _ _))
           ≪≫ₗ (PiTensorProduct.tprodSigmaLastEquiv (s := s)).symm := by rfl
     simp only [ht, LinearEquiv.trans_apply, PiTensorProduct.tprodTprodLastEquiv_tprod,
-      TensorProduct.congr_tmul, LinearEquiv.refl_apply, ← LinearEquiv.eq_symm_apply,
+      TensorProduct.congr_tmul, LinearEquiv.refl_apply, ←LinearEquiv.eq_symm_apply,
       LinearEquiv.symm_symm, PiTensorProduct.tprodSigmaLastEquiv_tprod]
     exact (congr_arg (· ⊗ₜ[R] (⨂ₜ[R] i : Tf (last m), f (last m) i)) ih)
 
--- TBD: Discuss.
--- That's a bit of a change in idiom. We usually specified the `.symm`'s in
--- terms of functions on the summands.
 @[simp]
 theorem tprodTprodEquiv_symm_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
     tprodTprodEquiv.symm (⨂ₜ[R] j : (Σ k, Tf k), f j) = (⨂ₜ[R] k, ⨂ₜ[R] i, f ⟨k, i⟩) := by
