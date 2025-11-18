@@ -452,26 +452,6 @@ theorem permSetEquiv_symm_tprod (f : (e '' S) → M) :
 
 end Perm
 
-section Nested
-
-variable {κ : Type*} {Sf : κ → Set ι} [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
-variable (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
-
--- The experimental part of this file below contains a construction of the following equivalence:
-def tprodFiniUnionEquiv {n} {Sf : Fin n → Set ι} :
-        (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : (Set.iUnion Sf), s i) := sorry -- see below
--- TBD: Make it nicer.
-
--- The general version, like this:
-def tprodiUnionEquiv : (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : (Set.iUnion Sf), s i) :=
-  sorry
--- appears to be mathematically false if the outer index type `κ` is infinite
--- (because the lhs then contains elements with infinite tensor rank, while the rhs doesn't).
--- TBD: Decide this more rigorously.
-
-
-end Nested
-
 
 /-
 
@@ -488,106 +468,6 @@ open Set
 section Fin
 
 open Fin
-
-variable {n m} {R : Type*} {s : Fin (n + m) → Type*}
-variable [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
-
-section tmulFinSumEquiv
-
-/-- Isomorphism between product of tensors indexed by `{1, ..., n} ⊆ Fin (n+m)`
-and `{n+1, ..., m} ⊆ Fin (n+m)`, and tensors indexed by `Fin (n + m)`. -/
-def tmulFinSumEquiv :
-    ((⨂[R] (i₁ : Fin n), s (castAdd m i₁)) ⊗[R] (⨂[R] (i₂ : Fin m), s (natAdd n i₂)))
-      ≃ₗ[R] ⨂[R] (i : Fin (n + m)), s i :=
-  (tmulEquivDep R (fun i => s (finSumFinEquiv i))).trans
-    (reindex R (fun i => s i) (finSumFinEquiv.symm)).symm
-
-@[simp]
-theorem tmulFinSumEquiv_tprod
-    (lv : (i : Fin n) → s ⟨i, by omega⟩) (rv : (i : Fin m) → s ⟨n + i, by omega⟩) :
-      tmulFinSumEquiv ((⨂ₜ[R] i, lv i) ⊗ₜ (⨂ₜ[R] i : Fin m, rv i))
-        = ⨂ₜ[R] i : Fin (n + m), addCases lv rv i := by
-  simp only [tmulFinSumEquiv, LinearEquiv.trans_apply, LinearEquiv.symm_apply_eq]
-  erw [reindex_tprod, tmulEquivDep_apply]
-  congr with x
-  aesop
-
-@[simp]
-theorem tmulFinSumEquiv_symm_tprod (av : (i : Fin (n + m)) → s i) :
-    (tmulFinSumEquiv).symm (⨂ₜ[R] i, av i) =
-      (⨂ₜ[R] i : Fin n, av (castAdd m i)) ⊗ₜ[R] (⨂ₜ[R] i : Fin m, av (natAdd n i)) := by
-  simp only [tmulFinSumEquiv, LinearEquiv.trans_symm, LinearEquiv.trans_apply]
-  erw [reindex_tprod finSumFinEquiv.symm] -- removing argument causes performance issues (v4.25.0)
-  erw [tmulEquivDep_symm_apply]
-  simp
-
-
-variable {n : Nat} {R : Type*} {s : Fin (n + 1) → Type*}
-variable [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
-
-#reduce(types:=true) Fin (n+1) -- `Fin n.succ`
-
--- Spiritiually related to
-#check MultilinearMap.uncurryRight
---
-def tmulFinInsertRight :
-  (⨂[R] i : Fin n, s (castSucc i)) ⊗[R] (s ⟨n, by simp⟩) ≃ₗ[R] ⨂[R] (i : Fin n.succ), s i :=
-  (TensorProduct.congr (LinearEquiv.refl _ _) (subsingletonEquivDep  0).symm).trans <|
-  (tmulEquivDep R (fun i => s (finSumFinEquiv i))).trans <|
-  (reindex R (fun i => s i) (finSumFinEquiv.symm)).symm
-
-
-def tmulFinSucc :
-    (⨂[R] i : Fin n, s (castSucc i)) ⊗[R] (s ⟨n, by simp⟩) ≃ₗ[R] ⨂[R] (i : Fin n.succ), s i :=
-  (tmulFinSumEquiv.symm ≪≫ₗ
-    (TensorProduct.congr (LinearEquiv.refl _ _ ) (subsingletonEquivDep 0))).symm
-
-
-
-end tmulFinSumEquiv
-
-section tprodiUnionEquiv
-
-variable {ι : Type*} {s : ι → Type*} [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
-
-protected lemma Set.union_iUnion_fin_succ (Sf : Fin (n + 1) → Set ι) :
-    iUnion Sf = iUnion (fun i : Fin n => Sf ⟨i, by omega⟩) ∪ Sf ⟨n, by simp⟩ := by
-  ext x
-  simp only [mem_iUnion, mem_union]
-  constructor
-  · intro ⟨i, hi⟩
-    by_cases hi₂ : i = n
-    · exact Or.inr (by convert hi; simp [hi₂])
-    · exact Or.inl (by use ⟨i.val, by omega⟩)
-  · rintro (h | _)
-    · exact ⟨castAdd 1 h.choose, h.choose_spec⟩
-    · use ⟨n, by omega⟩
-
-/-- Isomorphism induced by identifying the tensor product over finitely many
-pairwise disjoint index sets with the tensor product indexed by their union -/
-def tprodFiniUnionEquiv'' {n} {Sf : Fin n → Set ι}
-    [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
-      (H : Pairwise fun k l => Disjoint (Sf k) (Sf l)) :
-        (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : (Set.iUnion Sf), s i) := by
-  induction n with
-  | zero =>
-    have : IsEmpty (iUnion Sf) := by simp
-    exact (isEmptyEquiv (Fin 0)).trans ((isEmptyEquiv (iUnion Sf)).symm)
-  | succ k ih =>
-    rw [Set.union_iUnion_fin_succ Sf]
-    have : DecidablePred fun x ↦ x ∈ ⋃ i : Fin k, Sf ⟨↑i, by omega⟩ := by
-      intro x
-      simp only [mem_iUnion]
-      infer_instance
-    refine tmulFinSumEquiv.symm ≪≫ₗ ?_ ≪≫ₗ (tmulUnionEquiv ?_)
-    · apply TensorProduct.congr
-      · exact @ih (fun i => Sf ⟨i, by omega⟩) inferInstance (fun i j _ =>
-          @H ⟨i, by omega⟩ ⟨j, by omega⟩ (by simp; omega))
-      · exact (subsingletonEquivDep 0) ≪≫ₗ (by aesop)
-    · simpa using fun i : Fin k =>
-        @H ⟨i, by omega⟩ ⟨k, by omega⟩ (by simp; omega)
-
-end tprodiUnionEquiv
 
 section TprodTprod
 
@@ -623,40 +503,18 @@ protected def tprodTprodLastEquiv : (⨂[R] k : Fin n.succ, ⨂[R] i, s k i) ≃
 protected lemma tprodTprodLastEquiv_tprod (f : (k : Fin n.succ) → (i : Sf k) → s k i) :
     PiTensorProduct.tprodTprodLastEquiv (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) =
     (⨂ₜ[R] k : Fin n, ⨂ₜ[R] i, f k.castSucc i) ⊗ₜ[R] (⨂ₜ[R] i, f (last n) i) := by
-  simp only [PiTensorProduct.tprodTprodLastEquiv]
-  simp?
-  erw [reindex_tprod finSumFinEquiv.symm]
-  erw [tmulEquivDep_symm_apply]
-  simp?
-  erw [subsingletonEquivDep_tprod]
-  sorry
+  simp only [PiTensorProduct.tprodTprodLastEquiv, LinearEquiv.trans_apply]
+  erw [reindex_tprod finSumFinEquiv.symm, tmulEquivDep_symm_apply,
+    TensorProduct.congr_tmul, subsingletonEquivDep_tprod, LinearEquiv.refl_apply]
+  rfl
 
 -- Move one summand from sigma type into binary tensor product
 
--- `What is S vs s?`
 protected def tprodSigmaLastEquiv : (⨂[R] j : (Σ k : Fin n.succ, Sf k), s j.1 j.2) ≃ₗ[R]
   ((⨂[R] j : (Σ k : Fin n, Sf k.castSucc), s j.1.castSucc j.2) ⊗[R]
    (⨂[R] i : Sf (last n), s (last n) i)) :=
   (reindex R (fun j : (Σ k, Sf k) ↦ s j.1 j.2) sigmaFinSumLastEquiv) ≪≫ₗ
   (tmulEquivDep R (fun i ↦ s (sigmaFinSumLastEquiv.symm i).1 (sigmaFinSumLastEquiv.symm i).2)).symm
-
-section -- `What is wrong with the following? it Doesn't have two s and S.`
-
-variable {n : Nat} {R : Type*} {s : Fin (n.succ) → Type*}
-variable [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
-
-def tmulSigmaEquiv :
-    (⨂[R] i : (Σ k : Fin n, s k.castSucc), s i.1.castSucc)
-      ⊗[R]
-    (⨂[R] (_ : s (last n)), s (last n))
-      ≃ₗ[R]
-    ⨂[R] i : (Σ k : Fin n.succ, s k), s i.1 := by
-  symm
-  exact (reindex _ _ sigmaFinSumLastEquiv ≪≫ₗ ((tmulEquivDep _ _).symm
-    ≪≫ₗ (TensorProduct.congr (LinearEquiv.refl _ _) (LinearEquiv.refl _ _))))
-end
-
-
 
 @[simp]
 protected lemma tprodSigmaLastEquiv_tprod (f : (j : Σ k : Fin n.succ, Sf k) → s j.1 j.2) :
@@ -680,10 +538,9 @@ protected lemma tprodSigmaLastEquiv_tprod (f : (j : Σ k : Fin n.succ, Sf k) →
 
 end RecursionHelpers
 
-#check isEmptyElim
 variable {n : Nat}
-variable {Sf : Fin n → Type*}
-variable {s : (k : Fin n) → (i : Sf k) → Type*}
+variable {Tf : Fin n → Type*}
+variable {s : (k : Fin n) → (i : Tf k) → Type*}
 variable [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
 
 -- TBD: Is it desirable to reformulate that as a recursive function?
@@ -691,15 +548,15 @@ variable [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
 /-! A nested `PiTensorProduct` is equivalent to a single `PiTensorProduct` over
 a sigma type if the outer type is finite. -/
 def tprodTprodEquiv :
-  (⨂[R] k, ⨂[R] i, s k i) ≃ₗ[R] (⨂[R] j : (Σ k, Sf k), s j.1 j.2) := by
+  (⨂[R] k, ⨂[R] i, s k i) ≃ₗ[R] (⨂[R] j : (Σ k, Tf k), s j.1 j.2) := by
   induction n with
   | zero => exact (isEmptyEquiv _) ≪≫ₗ (isEmptyEquiv _).symm
   | succ m ih => exact PiTensorProduct.tprodTprodLastEquiv ≪≫ₗ
       (TensorProduct.congr ih (LinearEquiv.refl _ _)) ≪≫ₗ PiTensorProduct.tprodSigmaLastEquiv.symm
 
 @[simp]
-theorem tprodTprodEquiv_tprod (f : (k : Fin n) → (i : Sf k) → s k i) :
-    tprodTprodEquiv (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) = ⨂ₜ[R] j : (Σ k, Sf k), f j.1 j.2 := by
+theorem tprodTprodEquiv_tprod (f : (k : Fin n) → (i : Tf k) → s k i) :
+    tprodTprodEquiv (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) = ⨂ₜ[R] j : (Σ k, Tf k), f j.1 j.2 := by
   induction n with
   | zero =>
     simp [tprodTprodEquiv]
@@ -707,27 +564,56 @@ theorem tprodTprodEquiv_tprod (f : (k : Fin n) → (i : Sf k) → s k i) :
     ext j
     exfalso
     exact IsEmpty.false j
-
   | succ m ih =>
-    replace ih := @ih (fun i => Sf i.castSucc) (fun i j => s i.castSucc j) _ _
+    replace ih := @ih (fun i => Tf i.castSucc) (fun i j => s i.castSucc j) _ _
       (fun i j => f i.castSucc j)
-
-    have ht : tprodTprodEquiv (n := m + 1) (R := R) =
+    have ht : tprodTprodEquiv (R := R) =
       PiTensorProduct.tprodTprodLastEquiv ≪≫ₗ
         (TensorProduct.congr tprodTprodEquiv (LinearEquiv.refl _ _))
           ≪≫ₗ PiTensorProduct.tprodSigmaLastEquiv (s := s).symm := by rfl
+    simp only [ht, LinearEquiv.trans_apply, PiTensorProduct.tprodTprodLastEquiv_tprod,
+      TensorProduct.congr_tmul, LinearEquiv.refl_apply, ← LinearEquiv.eq_symm_apply,
+      LinearEquiv.symm_symm, PiTensorProduct.tprodSigmaLastEquiv_tprod]
+    exact (congr_arg (· ⊗ₜ[R] (⨂ₜ[R] i : Tf (last m), f (last m) i)) ih)
 
-    simp only [ht, Nat.succ_eq_add_one, LinearEquiv.trans_apply,
-      PiTensorProduct.tprodTprodLastEquiv_tprod, TensorProduct.congr_tmul, LinearEquiv.refl_apply,
-      ← LinearEquiv.eq_symm_apply, LinearEquiv.symm_symm,
-      PiTensorProduct.tprodSigmaLastEquiv_tprod]
-
-    exact (congr_arg (· ⊗ₜ[R] (⨂ₜ[R] i : Sf (last m), f (last m) i)) ih)
-
-
-theorem tprodTprodEquiv_symm_tprod (f : (j : (Σ k, Sf k)) → s j.1 j.2) :
-    tprodTprodEquiv.symm (⨂ₜ[R] j : (Σ k, Sf k), f j) = (⨂ₜ[R] k, ⨂ₜ[R] i, f ⟨k, i⟩) := by
+@[simp]
+theorem tprodTprodEquiv_symm_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
+    tprodTprodEquiv.symm (⨂ₜ[R] j : (Σ k, Tf k), f j) = (⨂ₜ[R] k, ⨂ₜ[R] i, f ⟨k, i⟩) := by
   simp [LinearEquiv.symm_apply_eq]
+
+variable {ι : Type*} {s : ι → Type*} {n : Nat} {Sf : Fin n → Set ι}
+  (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
+  [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
+
+noncomputable def iUnionSigmaEquiv : (Σ k, Sf k) ≃ iUnion Sf where
+  toFun s := ⟨s.2, by aesop⟩
+  invFun s :=
+    have h := mem_iUnion.mp s.prop
+    ⟨h.choose, by aesop (add safe forward h.choose_spec)⟩
+  left_inv := by
+    simp_intro s
+    generalize_proofs _ h
+    congr!
+    by_contra hc
+    exact (H hc).ne_of_mem h s.2.prop rfl
+  right_inv := by simp [Function.RightInverse, Function.LeftInverse]
+
+noncomputable def tprodFiniUnionEquiv :
+    (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : (Set.iUnion Sf), s i) :=
+  (tprodTprodEquiv ≪≫ₗ reindex R _ (iUnionSigmaEquiv H))
+
+@[simp]
+theorem tprodFiniUnionEquiv_tprod (f : (k : Fin n) → (i : Sf k) → s i) :
+    tprodFiniUnionEquiv H (⨂ₜ[R] k, ⨂ₜ[R] i, f k i)
+    = ⨂ₜ[R] i, f ((iUnionSigmaEquiv H).symm i).fst ((iUnionSigmaEquiv H).symm i).snd := by
+  simp only [tprodFiniUnionEquiv, LinearEquiv.trans_apply, tprodTprodEquiv_tprod]
+  erw [reindex_tprod]
+
+@[simp]
+theorem tprodFiniUnionEquiv_symm_tprod (f : (i : (Set.iUnion Sf)) → s i) :
+    (tprodFiniUnionEquiv H).symm (⨂ₜ[R] i, f i) = ⨂ₜ[R] k, ⨂ₜ[R] i : Sf k, f ⟨i, by aesop⟩ := by
+  simp [LinearEquiv.symm_apply_eq, iUnionSigmaEquiv]
+
 
 
 
