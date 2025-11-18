@@ -338,7 +338,11 @@ theorem extendTensor_trans [(i : ι) → Decidable (i ∈ T)] {U : Set ι} (hsub
   ext j
   split_ifs <;> tauto
 
--- TBD: prove injectivtity given `NonZero s₀ i`
+-- TBD: Prove injectivity for `extendTensor`.
+-- I think that's true under the condition that `∀ i, s₀ i` is not a multiple of
+-- a zero divisor. If that's the case, one should probably introduce this
+-- condition for `TensorProduct` first. Also, compare to `Flat` property, which
+-- gives related result for maps.
 
 end ExtendTensor
 end tmulUnifyEquiv
@@ -559,11 +563,9 @@ theorem tprodTprodEquiv_tprod (f : (k : Fin n) → (i : Tf k) → s k i) :
     tprodTprodEquiv (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) = ⨂ₜ[R] j : (Σ k, Tf k), f j.1 j.2 := by
   induction n with
   | zero =>
-    simp [tprodTprodEquiv]
-    congr
-    ext j
-    exfalso
-    exact IsEmpty.false j
+    simp only [tprodTprodEquiv, Nat.succ_eq_add_one, Nat.rec_zero, LinearEquiv.trans_apply]
+    rw [LinearEquiv.symm_apply_eq]
+    simp
   | succ m ih =>
     replace ih := @ih (fun i => Tf i.castSucc) (fun i j => s i.castSucc j) _ _
       (fun i j => f i.castSucc j)
@@ -576,6 +578,9 @@ theorem tprodTprodEquiv_tprod (f : (k : Fin n) → (i : Tf k) → s k i) :
       LinearEquiv.symm_symm, PiTensorProduct.tprodSigmaLastEquiv_tprod]
     exact (congr_arg (· ⊗ₜ[R] (⨂ₜ[R] i : Tf (last m), f (last m) i)) ih)
 
+-- TBD: Discuss.
+-- That's a bit of a change in idiom. We usually specified the `.symm`'s in
+-- terms of functions on the summands.
 @[simp]
 theorem tprodTprodEquiv_symm_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
     tprodTprodEquiv.symm (⨂ₜ[R] j : (Σ k, Tf k), f j) = (⨂ₜ[R] k, ⨂ₜ[R] i, f ⟨k, i⟩) := by
