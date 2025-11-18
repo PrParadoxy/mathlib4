@@ -237,7 +237,6 @@ def extendLinear (l : (⨂[R] i : S, s i) →ₗ[R] M) :
   (LinearEquiv.congrLeft R (M := (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂))) (tmulUnifyEquiv hsub))
     (LinearMap.rTensor _ l)
 
--- TBD: Name?
 /-- Extension of a linear map on tensors with index set `S ⊆ T` to a linear map
 on tensors with index set `T`. Bundled as a linear map. -/
 def extendLinearHom : ((⨂[R] i : S, s i) →ₗ[R] M) →ₗ[R]
