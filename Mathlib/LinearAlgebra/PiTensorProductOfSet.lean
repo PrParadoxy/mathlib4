@@ -502,7 +502,6 @@ protected def tprodTprodLastEquiv : (⨂[R] k : Fin n.succ, ⨂[R] i, s k i) ≃
   (tmulEquivDep R (fun j ↦ ⨂[R] i : Sf (finSumFinEquiv j), s (finSumFinEquiv j) i)).symm ≪≫ₗ
   (TensorProduct.congr (LinearEquiv.refl R _) (subsingletonEquivDep 0))
 
-@[simp] -- remove for local lemma?
 protected lemma tprodTprodLastEquiv_tprod (f : (k : Fin n.succ) → (i : Sf k) → s k i) :
     PiTensorProduct.tprodTprodLastEquiv (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) =
     (⨂ₜ[R] k : Fin n, ⨂ₜ[R] i, f k.castSucc i) ⊗ₜ[R] (⨂ₜ[R] i, f (last n) i) := by
@@ -518,7 +517,6 @@ protected def tprodSigmaLastEquiv : (⨂[R] j : (Σ k : Fin n.succ, Sf k), s j.1
   (reindex R (fun j : (Σ k, Sf k) ↦ s j.1 j.2) sigmaFinSumLastEquiv) ≪≫ₗ
   (tmulEquivDep R (fun i ↦ s (sigmaFinSumLastEquiv.symm i).1 (sigmaFinSumLastEquiv.symm i).2)).symm
 
-@[simp]
 protected lemma tprodSigmaLastEquiv_tprod (f : (j : Σ k : Fin n.succ, Sf k) → s j.1 j.2) :
     PiTensorProduct.tprodSigmaLastEquiv (⨂ₜ[R] j, f j) =
     ((⨂ₜ[R] j : (Σ k : Fin n, Sf k.castSucc), f ⟨j.1.castSucc, j.2⟩) ⊗ₜ[R]
