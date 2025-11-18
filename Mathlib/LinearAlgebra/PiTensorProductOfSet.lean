@@ -235,12 +235,12 @@ on tensors with index set `T`. -/
 def extendLinear (l : (⨂[R] i : S, s i) →ₗ[R] M) :
       (⨂[R] i : T, s i) →ₗ[R] (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂)) :=
   (LinearEquiv.congrLeft R (M := (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂))) (tmulUnifyEquiv hsub))
-    (TensorProduct.map l (LinearMap.id))
+    (LinearMap.rTensor _ l)
 
 -- TBD: Name?
 /-- Extension of a linear map on tensors with index set `S ⊆ T` to a linear map
 on tensors with index set `T`. Bundled as a linear map. -/
-def extendLinearAsMap : ((⨂[R] i : S, s i) →ₗ[R] M) →ₗ[R]
+def extendLinearHom : ((⨂[R] i : S, s i) →ₗ[R] M) →ₗ[R]
     ((⨂[R] i : T, s i) →ₗ[R] (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂))) where
   toFun l := extendLinear hsub l
   map_add' := by
@@ -250,31 +250,16 @@ def extendLinearAsMap : ((⨂[R] i : S, s i) →ₗ[R] M) →ₗ[R]
     intros
     simp [extendLinear, LinearEquiv.congrLeft, TensorProduct.map_smul_left]
 
-
-theorem extensionInjective [Flat R (⨂[R] (i₂ : ↑(T \ S)), s ↑i₂)]
+theorem extensionInjective [Flat R (⨂[R] (i₂ : ↑(T \ S)), s i₂)]
   (l : ((⨂[R] i : S, s i) →ₗ[R] M)) (h : Function.Injective l) :
-  Function.Injective (extendLinearAsMap (R:=R) (s:=s) (M:=M) hsub l) := by
-  simpa [extendLinearAsMap, extendLinear, LinearEquiv.congrLeft, ←LinearMap.rTensor_def]
+  Function.Injective (extendLinearHom (R:=R) (s:=s) (M:=M) hsub l) := by
+  simpa [extendLinearHom, extendLinear, LinearEquiv.congrLeft, ←LinearMap.rTensor_def]
     using Module.Flat.rTensor_preserves_injective_linearMap _ h
-
-theorem extensionInjective' [∀ i, Flat R (s i)] :
-  Function.Injective (extendLinearAsMap (R:=R) (s:=s) (M:=M) hsub) :=
-
-  -- `the goal is fun l ↦ TensorProduct.map l LinearMap.id ∘ₗ ↑(tmulUnifyEquiv hsub).symm`
-  -- `whereas the flatness proves injectivity of fun l ↦ TensorProduct.map l LinearMap.id`
-  -- Strategy:
-  -- Use `apply Module.Flat.lTensor_preserves_injective_linearMap`
-  -- For this I need that if `f, g` are injective *as linear maps*, then `f.trans g` is injective.
-  -- Trouble is that one can't use `Function.Injective.comp`, as it coerces the
-  -- linear map to a function.
-  -- Maybe use stuff in "Mathlib/Algebra/Module/Submodule/Ker.lean"??
-
-  sorry
 
 /-- Extension of an endomorphism on tensors with index set `S ⊆ T` to one on
 tensors with index set `T`. Bundled as a linear map. -/
 def extendEnd : End R (⨂[R] i : S, s i) →ₗ[R] End R (⨂[R] i : T, s i) where
-  toFun l := LinearEquiv.congrRight (tmulUnifyEquiv hsub) (extendLinearAsMap hsub l)
+  toFun l := LinearEquiv.congrRight (tmulUnifyEquiv hsub) (extendLinearHom hsub l)
   map_add' := by simp
   map_smul' := by simp
 
@@ -282,7 +267,7 @@ def extendEnd : End R (⨂[R] i : S, s i) →ₗ[R] End R (⨂[R] i : T, s i) wh
 tensors with index set `T` to tensors with index set `T \ S`. Bundled as a linear map. -/
 def partialContract :
     ((⨂[R] i : S, s i) →ₗ[R] R) →ₗ[R] (⨂[R] i : T, s i) →ₗ[R] ⨂[R] (i₂ : ↑(T \ S)), s i₂ where
-  toFun l := LinearEquiv.congrRight (TensorProduct.lid _ _) (extendLinearAsMap hsub l)
+  toFun l := LinearEquiv.congrRight (TensorProduct.lid _ _) (extendLinearHom hsub l)
   map_add' := by simp
   map_smul' := by simp
 
@@ -298,9 +283,9 @@ def partialContractDiff [(i : ι) → Decidable (i ∈ T \ S)] :
 
 @[simp]
 theorem extendLinear_tprod (l : (⨂[R] i : S, s i) →ₗ[R] M) (f : (i : T) → s i) :
-    extendLinearAsMap hsub l (⨂ₜ[R] i, f i)
+    extendLinearHom hsub l (⨂ₜ[R] i, f i)
     = l (⨂ₜ[R] i₁ : S, f ⟨i₁, by aesop⟩) ⊗ₜ[R] (⨂ₜ[R] i₂ : ↑(T \ S), f ⟨i₂, by aesop⟩) := by
-  simp [extendLinearAsMap, extendLinear, LinearEquiv.congrLeft]
+  simp [extendLinearHom, extendLinear, LinearEquiv.congrLeft]
 
 @[simp]
 theorem extendEnd_tprod (l : End _ (⨂[R] i : S, s i)) (f : (i : T) → s i) :
