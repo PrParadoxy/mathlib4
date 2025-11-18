@@ -249,11 +249,20 @@ def extendLinearAsMap : ((⨂[R] i : S, s i) →ₗ[R] M) →ₗ[R]
   map_smul' := by
     intros
     simp [extendLinear, LinearEquiv.congrLeft, TensorProduct.map_smul_left]
-#check Equiv
-#check Module.Flat.lTensor_preserves_injective_linearMap
-theorem extensionInjective [∀ i, Flat R (s i)] :
-  Function.Injective (extendLinearAsMap (R:=R) (s:=s) (M:=M) hsub) := by
+
+
+theorem extensionInjective [Flat R (⨂[R] (i₂ : ↑(T \ S)), s ↑i₂)]
+  (l : ((⨂[R] i : S, s i) →ₗ[R] M)) (h : Function.Injective l) :
+  Function.Injective (extendLinearAsMap (R:=R) (s:=s) (M:=M) hsub l) := by
   simp [extendLinearAsMap, extendLinear, LinearEquiv.congrLeft]
+  simp_intro a b h
+  simp [←LinearMap.rTensor_def] at h
+  revert h a b
+  exact Module.Flat.rTensor_preserves_injective_linearMap _ h
+
+theorem extensionInjective' [∀ i, Flat R (s i)] :
+  Function.Injective (extendLinearAsMap (R:=R) (s:=s) (M:=M) hsub) :=
+
   -- `the goal is fun l ↦ TensorProduct.map l LinearMap.id ∘ₗ ↑(tmulUnifyEquiv hsub).symm`
   -- `whereas the flatness proves injectivity of fun l ↦ TensorProduct.map l LinearMap.id`
   -- Strategy:
@@ -662,3 +671,7 @@ theorem tprodFiniUnionEquiv_symm_tprod (f : (i : (Set.iUnion Sf)) → s i) :
 end TprodTprod
 
 end Fin
+#check LinearMap.rTensor_comp
+#check  LinearMap.compLeft
+#check finSumFinEquiv
+#check Equiv.sigmaNatSucc
