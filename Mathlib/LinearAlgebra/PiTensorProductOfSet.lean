@@ -502,14 +502,12 @@ protected def tprodTprodLastEquiv : (⨂[R] k : Fin n.succ, ⨂[R] i, s k i) ≃
   (tmulEquivDep R (fun j ↦ ⨂[R] i : Sf (finSumFinEquiv j), s (finSumFinEquiv j) i)).symm ≪≫ₗ
   (TensorProduct.congr (LinearEquiv.refl R _) (subsingletonEquivDep 0))
 
--- TBD: I'm too dumb. Maybe make intermediate step without the `TensorProduct.congr`?
 @[simp] -- remove for local lemma?
 protected lemma tprodTprodLastEquiv_tprod (f : (k : Fin n.succ) → (i : Sf k) → s k i) :
     PiTensorProduct.tprodTprodLastEquiv (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) =
     (⨂ₜ[R] k : Fin n, ⨂ₜ[R] i, f k.castSucc i) ⊗ₜ[R] (⨂ₜ[R] i, f (last n) i) := by
-  simp only [PiTensorProduct.tprodTprodLastEquiv, LinearEquiv.trans_apply]
-  erw [reindex_tprod finSumFinEquiv.symm, tmulEquivDep_symm_apply,
-    TensorProduct.congr_tmul, subsingletonEquivDep_tprod, LinearEquiv.refl_apply]
+  simp only [PiTensorProduct.tprodTprodLastEquiv, LinearEquiv.trans_apply, reindex_tprod]
+  erw [tmulEquivDep_symm_apply, TensorProduct.congr_tmul, subsingletonEquivDep_tprod]
   rfl
 
 -- Move one summand from sigma type into binary tensor product
@@ -572,7 +570,7 @@ theorem tprodTprodEquiv_tprod (f : (k : Fin n) → (i : Tf k) → s k i) :
     have ht : tprodTprodEquiv (R := R) =
       PiTensorProduct.tprodTprodLastEquiv ≪≫ₗ
         (TensorProduct.congr tprodTprodEquiv (LinearEquiv.refl _ _))
-          ≪≫ₗ PiTensorProduct.tprodSigmaLastEquiv (s := s).symm := by rfl
+          ≪≫ₗ (PiTensorProduct.tprodSigmaLastEquiv (s := s)).symm := by rfl
     simp only [ht, LinearEquiv.trans_apply, PiTensorProduct.tprodTprodLastEquiv_tprod,
       TensorProduct.congr_tmul, LinearEquiv.refl_apply, ← LinearEquiv.eq_symm_apply,
       LinearEquiv.symm_symm, PiTensorProduct.tprodSigmaLastEquiv_tprod]
