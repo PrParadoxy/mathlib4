@@ -484,7 +484,7 @@ def sigmaFinSumLastEquiv {n : Nat} {t : Fin n.succ → Type*} :
   (Σ k : Fin n.succ, t k) ≃ (Σ k : Fin n, t k.castSucc) ⊕ t (last n) := {
     toFun x :=
       if h : x.1 = last n then .inr (h ▸ x.2) else .inl ⟨⟨x.1, lt_last_iff_ne_last.mpr h⟩, x.2⟩
-    invFun := Sum.rec (fun val ↦ ⟨val.1.castSucc, val.2⟩) (⟨last n, ·⟩)
+    invFun := Sum.rec (fun x' ↦ ⟨x'.1.castSucc, x'.2⟩) (⟨last n, ·⟩)
     left_inv _ := by aesop
     right_inv _ := by aesop
   }
