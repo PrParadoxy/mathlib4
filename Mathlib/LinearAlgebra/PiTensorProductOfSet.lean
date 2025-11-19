@@ -244,10 +244,10 @@ def extendLinearHom : ((⨂[R] i : S, s i) →ₗ[R] M) →ₗ[R]
   toFun l := extendLinear hsub l
   map_add' := by
     intros
-    simp [extendLinear, LinearEquiv.congrLeft, TensorProduct.map_add_left, LinearMap.add_comp]
+    simp [extendLinear, LinearEquiv.congrLeft, LinearMap.add_comp]
   map_smul' := by
     intros
-    simp [extendLinear, LinearEquiv.congrLeft, TensorProduct.map_smul_left]
+    simp [extendLinear, LinearEquiv.congrLeft]
 
 -- TBD: I actually wanted `Function.Injective (extendLinearHom (R:=R) (s:=s) (M:=M) hsub)`.
 -- Note the missing `l`.
@@ -261,8 +261,16 @@ proving flatness of PiTensorProducts. -/
 theorem extensionInjective [Flat R (⨂[R] (i₂ : ↑(T \ S)), s i₂)]
   (l : ((⨂[R] i : S, s i) →ₗ[R] M)) (h : Function.Injective l) :
   Function.Injective (extendLinearHom (R:=R) (s:=s) (M:=M) hsub l) := by
-  simpa [extendLinearHom, extendLinear, LinearEquiv.congrLeft, ←LinearMap.rTensor_def]
+  simpa [extendLinearHom, extendLinear, LinearEquiv.congrLeft]
     using Module.Flat.rTensor_preserves_injective_linearMap _ h
+
+theorem extensionInjective' [∀ i, Flat R (s i)] :
+  Function.Injective (extendLinearHom (R:=R) (s:=s) (M:=M) hsub) := by
+  simp [extendLinearHom, extendLinear, LinearEquiv.congrLeft]
+  simp_intro  a b h
+  
+  -- a and b are not injective, otherwise the top theorem proves this.
+  sorry
 
 /-- Extension of an endomorphism on tensors with index set `S ⊆ T` to one on
 tensors with index set `T`. Bundled as a linear map. -/
