@@ -261,6 +261,7 @@ proving flatness of PiTensorProducts. -/
 -- Lean will synthesize the flatness assumption if `R` is a field -> `It doesn't! `
 -- `It must be a vector space, that is, AddCommGroup as well.`
 -- `See Module.Injective` and `Module.Flat.iff_characterModule_injective`
+-- OK, noted.
 theorem extensionInjective [Flat R (⨂[R] (i₂ : ↑(T \ S)), s i₂)]
   (l : ((⨂[R] i : S, s i) →ₗ[R] M)) (h : Function.Injective l) :
   Function.Injective (extendLinearHom (R:=R) (s:=s) (M:=M) hsub l) := by
