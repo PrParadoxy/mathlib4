@@ -374,10 +374,18 @@ variable {M : κ → Type*} [∀ k, AddCommMonoid (M k)] [∀ k, Module R (M k)]
 /-- Given a family `(k : κ) → Sf` of disjoint sets and a family of linear maps
 where `L k` is defined on tensors indexed by `Sf k`, construct a linear map
 defined on tensors indexed by the union of `Sf`. -/
+#check Function.update_comp_equiv
+open Classical in
 def unifyMaps (L : (k : κ) → ((⨂[R] i : Sf k, s i) →ₗ[R] (M k))) :
   (⨂[R] i : iUnion Sf, s i) →ₗ[R] (⨂[R] k, M k) := lift {
     toFun x := ⨂ₜ[R] k, (L k) (⨂ₜ[R] i : Sf k, x ⟨i, by aesop⟩)
-    map_update_add' := sorry
+    map_update_add' := by
+      intro _ f i a b
+      have : ∀ k : κ, (fun j : (Sf k) =>
+          Function.update f i (a + b) ⟨j, by aesop⟩) =
+          Function.update (fun j : Sf k => f ⟨↑j, by aesop⟩) ⟨i, sorry⟩ (a + b) := sorry
+      conv => lhs; arg 2; intro k; simp [this k]
+    
     map_update_smul' := sorry
   }
 -- TBD: prove & merge with above
