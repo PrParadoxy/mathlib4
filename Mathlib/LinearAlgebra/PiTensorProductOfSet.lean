@@ -258,6 +258,7 @@ module of tensors indexed by the complement is flat.
 Note: Lean will synthesize the flatness assumption if `R` is a field. For
 general rings, there do not currently seem to be any results in Mathlib for
 proving flatness of PiTensorProducts. -/
+-- `See Module.Injective` and `Module.Flat.iff_characterModule_injective`
 theorem extensionInjective [Flat R (⨂[R] (i₂ : ↑(T \ S)), s i₂)]
   (l : ((⨂[R] i : S, s i) →ₗ[R] M)) (h : Function.Injective l) :
   Function.Injective (extendLinearHom (R:=R) (s:=s) (M:=M) hsub l) := by
@@ -268,7 +269,7 @@ theorem extensionInjective' [∀ i, Flat R (s i)] :
   Function.Injective (extendLinearHom (R:=R) (s:=s) (M:=M) hsub) := by
   simp [extendLinearHom, extendLinear, LinearEquiv.congrLeft]
   simp_intro  a b h
-  
+
   -- a and b are not injective, otherwise the top theorem proves this.
   sorry
 
