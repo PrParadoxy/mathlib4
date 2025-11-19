@@ -374,18 +374,29 @@ variable {M : κ → Type*} [∀ k, AddCommMonoid (M k)] [∀ k, Module R (M k)]
 /-- Given a family `(k : κ) → Sf` of disjoint sets and a family of linear maps
 where `L k` is defined on tensors indexed by `Sf k`, construct a linear map
 defined on tensors indexed by the union of `Sf`. -/
-#check Function.update_comp_equiv
-open Classical in
+
+open Classical in -- for decidable instances, remove later
 def unifyMaps (L : (k : κ) → ((⨂[R] i : Sf k, s i) →ₗ[R] (M k))) :
   (⨂[R] i : iUnion Sf, s i) →ₗ[R] (⨂[R] k, M k) := lift {
     toFun x := ⨂ₜ[R] k, (L k) (⨂ₜ[R] i : Sf k, x ⟨i, by aesop⟩)
     map_update_add' := by
       intro _ f i a b
-      have : ∀ k : κ, (fun j : (Sf k) =>
-          Function.update f i (a + b) ⟨j, by aesop⟩) =
-          Function.update (fun j : Sf k => f ⟨↑j, by aesop⟩) ⟨i, sorry⟩ (a + b) := sorry
-      conv => lhs; arg 2; intro k; simp [this k]
-    
+
+      -- `Warning: hi assumption is actually false, because the sets are disjoint`
+      -- `but for demonstrating that even if the inner tensor product is broken down`
+      -- `the goal remains unprovable, it is assumed`
+      have hi : ∀ k, i.val ∈ Sf k := sorry
+      have h : ∀ k : κ, ∀ x, (fun j : (Sf k) => Function.update f i x ⟨j, by aesop⟩) =
+          Function.update (fun j : Sf k => f ⟨↑j, by aesop⟩) ⟨i, hi k⟩ x := by
+        aesop (add safe unfold Function.update)
+
+      conv => lhs; arg 2; intro k; simp [h k]
+      conv => rhs; arg 1; arg 2; intro k; simp [h k]
+      conv => rhs; arg 2; arg 2; intro k; simp [h k]
+      
+
+
+
     map_update_smul' := sorry
   }
 -- TBD: prove & merge with above
