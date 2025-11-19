@@ -6,7 +6,7 @@ Authors: Davood Tehrani, David Gross
 import Mathlib.LinearAlgebra.PiTensorProduct
 import Mathlib.LinearAlgebra.TensorProduct.Associator
 import Mathlib.LinearAlgebra.Dual.Lemmas
-import Mathlib.RingTheory.Flat.Basic -- use for extension of linear maps.
+import Mathlib.RingTheory.Flat.FaithfullyFlat.Basic -- use for extension of linear maps.
 
 /-!
 # PiTensorProducts indexed by sets
@@ -230,29 +230,62 @@ open Module
 
 variable {M : Type*} [AddCommMonoid M] [Module R M]
 
-/-- Extension of a linear map on tensors with index set `S ⊆ T` to a linear map
-on tensors with index set `T`. -/
-def extendLinear (l : (⨂[R] i : S, s i) →ₗ[R] M) :
-      (⨂[R] i : T, s i) →ₗ[R] (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂)) :=
-  (LinearEquiv.congrLeft R (M := (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂))) (tmulUnifyEquiv hsub))
-    (LinearMap.rTensor _ l)
+-- -- Three versions of `extendLinearHom` follow.
+--
+-- -- 1) Old version
+--
+-- /-- Extension of a linear map on tensors with index set `S ⊆ T` to a linear map
+-- on tensors with index set `T`. -/
+-- def extendLinear (l : (⨂[R] i : S, s i) →ₗ[R] M) :
+--       (⨂[R] i : T, s i) →ₗ[R] (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂)) :=
+--   (LinearEquiv.congrLeft R (M := (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂))) (tmulUnifyEquiv hsub))
+--     (LinearMap.rTensor _ l)
+--
+-- /-- Extension of a linear map on tensors with index set `S ⊆ T` to a linear map
+-- on tensors with index set `T`. Bundled as a linear map. -/
+-- def extendLinearHom : ((⨂[R] i : S, s i) →ₗ[R] M) →ₗ[R]
+--     ((⨂[R] i : T, s i) →ₗ[R] (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂))) where
+--   toFun l := extendLinear hsub l
+--   map_add' := by
+--     intros
+--     simp [extendLinear, LinearEquiv.congrLeft, LinearMap.add_comp]
+--   map_smul' := by
+--     intros
+--     simp [extendLinear, LinearEquiv.congrLeft]
+--
+-- -- 2) Optimized old version
+--
+-- def extendLinear (l : (⨂[R] i : S, s i) →ₗ[R] M) :
+--     (⨂[R] i : T, s i) →ₗ[R] (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂)) :=
+--   (rTensorHom _ l) ∘ₗ (tmulUnifyEquiv (R:=R) (s:=s) hsub).symm
+--
+-- /-- Extension of a linear map on tensors with index set `S ⊆ T` to a linear map
+-- on tensors with index set `T`. Bundled as a linear map. -/
+-- def extendLinearHom' : ((⨂[R] i : S, s i) →ₗ[R] M) →ₗ[R]
+--     ((⨂[R] i : T, s i) →ₗ[R] (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂))) where
+--   toFun l := extendLinear hsub l
+--   map_add' := by simp [extendLinear, LinearMap.add_comp]
+--   map_smul' := by intros; simp only [extendLinear, map_smul]; rfl
+--
+-- 3) David's new favorite version.
 
-/-- Extension of a linear map on tensors with index set `S ⊆ T` to a linear map
-on tensors with index set `T`. Bundled as a linear map. -/
+/-- Lifts a linear map on tensors with index set `S ⊆ T` to a linear map
+on tensors with index set `T`. Bundled as a homomorphism of linear maps. -/
 def extendLinearHom : ((⨂[R] i : S, s i) →ₗ[R] M) →ₗ[R]
-    ((⨂[R] i : T, s i) →ₗ[R] (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂))) where
-  toFun l := extendLinear hsub l
-  map_add' := by
-    intros
-    simp [extendLinear, LinearEquiv.congrLeft, LinearMap.add_comp]
-  map_smul' := by
-    intros
-    simp [extendLinear, LinearEquiv.congrLeft]
+    ((⨂[R] i : T, s i) →ₗ[R] (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂))) :=
+    let PiS := (⨂[R] i : S, s i); let PiTmS := ⨂[R] (i : ↑(T \ S)), s i
+  (LinearEquiv.congrLeft (M:=(M ⊗[R] PiTmS)) (M₂:=(PiS ⊗[R] PiTmS)) R (tmulUnifyEquiv hsub)).comp
+    (LinearMap.rTensorHom PiTmS)
+
+-- `extendLinearHom` is injective under certain flatness assumptions.
+-- These require `CommAddGroup`s over `CommRing`s (at least in their current
+-- Mathlib implementation), hence injectivity is stated in seperate section at
+-- the end of this file.
 
 -- TBD: I actually wanted `Function.Injective (extendLinearHom (R:=R) (s:=s) (M:=M) hsub)`.
 -- Note the missing `l`.
 -- Hm, got to think about what the proven result actually means.
-/-- Extending linear maps to tensors indexed by a superset is injective if the
+/- Extending linear maps to tensors indexed by a superset is injective if the
 module of tensors indexed by the complement is flat.
 
 Note: Lean will synthesize the flatness assumption if `R` is a field. For
@@ -262,19 +295,19 @@ proving flatness of PiTensorProducts. -/
 -- `It must be a vector space, that is, AddCommGroup as well.`
 -- `See Module.Injective` and `Module.Flat.iff_characterModule_injective`
 -- OK, noted.
-theorem extensionInjective [Flat R (⨂[R] (i₂ : ↑(T \ S)), s i₂)]
-  (l : ((⨂[R] i : S, s i) →ₗ[R] M)) (h : Function.Injective l) :
-  Function.Injective (extendLinearHom (R:=R) (s:=s) (M:=M) hsub l) := by
-  simpa [extendLinearHom, extendLinear, LinearEquiv.congrLeft]
-    using Module.Flat.rTensor_preserves_injective_linearMap _ h
-
-theorem extensionInjective' [∀ i, Flat R (s i)] :
-  Function.Injective (extendLinearHom (R:=R) (s:=s) (M:=M) hsub) := by
-  simp [extendLinearHom, extendLinear, LinearEquiv.congrLeft]
-  simp_intro  a b h
-
-  -- a and b are not injective, otherwise the top theorem proves this.
-  sorry
+-- theorem extensionInjective [Flat R (⨂[R] (i₂ : ↑(T \ S)), s i₂)]
+--   (l : ((⨂[R] i : S, s i) →ₗ[R] M)) (h : Function.Injective l) :
+--   Function.Injective (extendLinearHom (R:=R) (s:=s) (M:=M) hsub l) := by
+--   simpa [extendLinearHom, extendLinear, LinearEquiv.congrLeft]
+--     using Module.Flat.rTensor_preserves_injective_linearMap _ h
+--
+-- theorem extensionInjective' [∀ i, Flat R (s i)] :
+--   Function.Injective (extendLinearHom (R:=R) (s:=s) (M:=M) hsub) := by
+--   simp [extendLinearHom, extendLinear, LinearEquiv.congrLeft]
+--   simp_intro  a b h
+--
+--   -- a and b are not injective, otherwise the top theorem proves this.
+--   sorry
 
 /-- Extension of an endomorphism on tensors with index set `S ⊆ T` to one on
 tensors with index set `T`. Bundled as a linear map. -/
@@ -305,7 +338,7 @@ def partialContractDiff [(i : ι) → Decidable (i ∈ T \ S)] :
 theorem extendLinear_tprod (l : (⨂[R] i : S, s i) →ₗ[R] M) (f : (i : T) → s i) :
     extendLinearHom hsub l (⨂ₜ[R] i, f i)
     = l (⨂ₜ[R] i₁ : S, f ⟨i₁, by aesop⟩) ⊗ₜ[R] (⨂ₜ[R] i₂ : ↑(T \ S), f ⟨i₂, by aesop⟩) := by
-  simp [extendLinearHom, extendLinear, LinearEquiv.congrLeft]
+  simp [extendLinearHom, LinearEquiv.congrLeft]
 
 @[simp]
 theorem extendEnd_tprod (l : End _ (⨂[R] i : S, s i)) (f : (i : T) → s i) :
@@ -671,9 +704,49 @@ theorem tprodFiniUnionEquiv_symm_tprod (f : (i : (Set.iUnion Sf)) → s i) :
 
 
 end TprodTprod
-
 end Fin
-#check LinearMap.rTensor_comp
-#check  LinearMap.compLeft
-#check finSumFinEquiv
-#check Equiv.sigmaNatSucc
+
+section Ring
+
+open Module
+
+variable {R : Type*} [CommRing R]
+variable {M : Type*} [AddCommGroup M] [Module R M]
+
+variable {ι : Type*} {s : ι → Type*} [∀ i, AddCommGroup (s i)] [∀ i, Module R (s i)]
+
+variable {S T : Set ι} (hsub : S ⊆ T) [(i : ι) → Decidable (i ∈ S)]
+
+/-!
+TBD.
+-/
+theorem extendLinearInjective [∀ U : Set ι, FaithfullyFlat R (⨂[R] i : U, s i)] :
+    Function.Injective (extendLinearHom (R:=R) (s:=s) (M:=M) hsub) := by
+  apply LinearMap.ker_eq_bot.mp
+  erw [LinearMap.ker_comp]
+  simp only [LinearEquiv.ker, Submodule.comap_bot]
+  ext f
+  simp only [LinearMap.mem_ker, LinearMap.coe_rTensorHom, Submodule.mem_bot]
+  symm
+  apply Module.FaithfullyFlat.zero_iff_rTensor_zero
+
+end Ring
+
+-- Internal test: Does this work for fields?
+-- If not, it's currently unclear to me how one would use it.
+section Field
+
+open Module
+
+variable {R : Type*} [Field R]
+variable {M : Type*} [AddCommGroup M] [Module R M]
+
+variable {ι : Type*} {s : ι → Type*} [∀ i, AddCommGroup (s i)] [∀ i, Module R (s i)]
+
+variable {S T : Set ι} (hsub : S ⊆ T) [(i : ι) → Decidable (i ∈ S)]
+
+#check (fun U : Set ι => (inferInstance : Flat R (⨂[R] i : U, s i)))
+
+#check (fun U : Set ι => (inferInstance : FaithfullyFlat R (⨂[R] i : U, s i)))
+
+end Field
