@@ -724,9 +724,9 @@ theorem extendLinearInjective [∀ U : Set ι, FaithfullyFlat R (⨂[R] i : U, s
     Function.Injective (extendLinearHom (R:=R) (s:=s) (M:=M) hsub) := by
   apply LinearMap.ker_eq_bot.mp
   erw [LinearMap.ker_comp]
-  simp only [LinearEquiv.ker, Submodule.comap_bot]
   ext f
-  simp only [LinearMap.mem_ker, LinearMap.coe_rTensorHom, Submodule.mem_bot]
+  simp only [LinearEquiv.ker, Submodule.comap_bot, LinearMap.mem_ker,
+    LinearMap.coe_rTensorHom, Submodule.mem_bot]
   symm
   apply Module.FaithfullyFlat.zero_iff_rTensor_zero
 
