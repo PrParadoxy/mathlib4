@@ -666,7 +666,7 @@ def tprodTprodHom :
     map_update_add' := by
       intro _ f j a b
 
-      have hxy :
+      have tprod_update_comm :
         (fun k ↦ ⨂ₜ[R] (i_1 : Tf k), (Function.update f j (a + b)) ⟨k, i_1⟩)
         =
         Function.update
@@ -679,13 +679,13 @@ def tprodTprodHom :
           · have hneq : ∀ i1 : Tf k, ⟨k,i1⟩ ≠ j := by aesop
             simp_all
 
-      have hfu :
+      have huf :
         (∀ x, (fun i : Tf j.1  => Function.update f j x ⟨j.1, i⟩) =
           Function.update (fun i : Tf j.1 ↦ f ⟨j.1, i⟩) j.2 x):= by
         aesop (add safe unfold Function.update)
 
-      rw [hxy]
-      rw [hfu]
+      rw [tprod_update_comm]
+      rw [huf]
       simp [MultilinearMap.map_update_add]
 
       apply congrArg₂ HAdd.hAdd
