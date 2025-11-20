@@ -341,6 +341,21 @@ variable {M : κ → Type*} [∀ k, AddCommMonoid (M k)] [∀ k, Module R (M k)]
 where `L k` is defined on tensors indexed by `Sf k`, construct a linear map
 defined on tensors indexed by the union of `Sf`. -/
 
+def tmp :
+  (⨂[R] i : iUnion Sf, s i) →ₗ[R] ((⨂[R] k, ⨂[R] i : Sf k, s i)) := lift {
+    toFun x := ⨂ₜ[R] k, (⨂ₜ[R] i : Sf k, x ⟨i, by aesop⟩)
+    map_update_add' := by
+      intro _ f i a b
+
+      have k0 := Classical.choose (mem_iUnion.mp i.property)
+      have h0 := Classical.choose_spec (mem_iUnion.mp i.property)
+      have k! : ∀ k, k ≠ k0 → ¬(i.val ∈ Sf k) := sorry
+
+      sorry
+
+    map_update_smul' := sorry
+  }
+
 open Classical in -- for decidable instances, remove later
 def unifyMaps (L : (k : κ) → ((⨂[R] i : Sf k, s i) →ₗ[R] (M k))) :
   (⨂[R] i : iUnion Sf, s i) →ₗ[R] (⨂[R] k, M k) := lift {
