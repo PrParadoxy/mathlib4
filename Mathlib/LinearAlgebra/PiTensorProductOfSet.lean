@@ -341,21 +341,6 @@ variable {M : κ → Type*} [∀ k, AddCommMonoid (M k)] [∀ k, Module R (M k)]
 where `L k` is defined on tensors indexed by `Sf k`, construct a linear map
 defined on tensors indexed by the union of `Sf`. -/
 
-def tmp :
-  (⨂[R] i : iUnion Sf, s i) →ₗ[R] ((⨂[R] k, ⨂[R] i : Sf k, s i)) := lift {
-    toFun x := ⨂ₜ[R] k, (⨂ₜ[R] i : Sf k, x ⟨i, by aesop⟩)
-    map_update_add' := by
-      intro _ f i a b
-
-      have k0 := Classical.choose (mem_iUnion.mp i.property)
-      have h0 := Classical.choose_spec (mem_iUnion.mp i.property)
-      have k! : ∀ k, k ≠ k0 → ¬(i.val ∈ Sf k) := sorry
-
-      sorry
-
-    map_update_smul' := sorry
-  }
-
 open Classical in -- for decidable instances, remove later
 def unifyMaps (L : (k : κ) → ((⨂[R] i : Sf k, s i) →ₗ[R] (M k))) :
   (⨂[R] i : iUnion Sf, s i) →ₗ[R] (⨂[R] k, M k) := lift {
@@ -662,6 +647,58 @@ theorem tprodTprodEquiv_tprod (f : (k : Fin n) → (i : Tf k) → s k i) :
 theorem tprodTprodEquiv_symm_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
     tprodTprodEquiv.symm (⨂ₜ[R] j : (Σ k, Tf k), f j) = (⨂ₜ[R] k, ⨂ₜ[R] i, f ⟨k, i⟩) := by
   simp [LinearEquiv.symm_apply_eq]
+
+-- -- begin ---
+section tst
+
+variable {κ : Type*}
+variable [DecidableEq κ]
+variable {Tf : (k : κ) → Type*}
+variable [∀ k : κ, DecidableEq (Tf k)]
+variable {s : (k : κ) → (i : Tf k) → Type*}
+variable [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
+
+-- This should be an embedding.
+def tprodTprodHom :
+  (⨂[R] j : (Σ k, Tf k), s j.1 j.2) →ₗ[R] (⨂[R] k, ⨂[R] i, s k i)
+  := lift {
+    toFun x := ⨂ₜ[R] k, ⨂ₜ[R] i : Tf k, x ⟨k, i⟩
+    map_update_add' := by
+      intro _ f j a b
+
+      have hxy :
+        (fun k ↦ ⨂ₜ[R] (i_1 : Tf k), (Function.update f j (a + b)) ⟨k, i_1⟩)
+        =
+        Function.update
+        (fun k ↦ ⨂ₜ[R] (i_1 : Tf k), f ⟨k, i_1⟩)
+        j.1
+        (⨂ₜ[R] (i : Tf j.1), (Function.update f j (a + b)) ⟨j.1, i⟩) := by
+          ext k
+          by_cases heq : k = j.1
+          · aesop
+          · have hneq : ∀ i1 : Tf k, ⟨k,i1⟩ ≠ j := by aesop
+            simp_all
+
+      have hfu :
+        (∀ x, (fun i : Tf j.1  => Function.update f j x ⟨j.1, i⟩) =
+          Function.update (fun i : Tf j.1 ↦ f ⟨j.1, i⟩) j.2 x):= by
+        aesop (add safe unfold Function.update)
+
+      rw [hxy]
+      rw [hfu]
+      simp [MultilinearMap.map_update_add]
+
+      apply congrArg₂ HAdd.hAdd
+      all_goals
+        congr
+        ext k
+        by_cases h : k = j.fst <;> aesop
+
+    map_update_smul' := by
+      sorry
+
+    }
+end tst
 
 variable {ι : Type*} {s : ι → Type*} {n : Nat} {Sf : Fin n → Set ι}
   (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
