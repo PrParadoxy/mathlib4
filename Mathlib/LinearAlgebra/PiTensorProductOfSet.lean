@@ -189,15 +189,14 @@ def tmulBipartitionEquiv : (⨂[R] i₁ : S, s i₁) ⊗[R] (⨂[R] i₂ : ↥S�
 theorem tmulBipartitionEquiv_tprod (lv : (i : S) → s i) (rv : (i : ↥Sᶜ) → s i) :
     tmulBipartitionEquiv ((⨂ₜ[R] i : S, lv i) ⊗ₜ (⨂ₜ[R] i : ↥Sᶜ, rv i)) =
       ⨂ₜ[R] j, if h : j ∈ S then lv ⟨j, h⟩ else rv ⟨j, by aesop⟩ := by
-  erw [tmulBipartitionEquiv, LinearEquiv.trans_apply, tmulUnionEquiv_tprod, reindex_tprod]
+  simp only [tmulBipartitionEquiv, LinearEquiv.trans_apply, tmulUnionEquiv_tprod]
+  erw [reindex_tprod]
   rfl
 
 @[simp]
 theorem tmulBipartition_symm_tprod (f : (i : ι) → s i) :
     tmulBipartitionEquiv.symm (⨂ₜ[R] i, f i) = (⨂ₜ[R] i : S, f i) ⊗ₜ (⨂ₜ[R] i : ↥Sᶜ, f i) := by
-  simp only [LinearEquiv.symm_apply_eq, tmulBipartitionEquiv_tprod]
-  congr
-  aesop
+  rw [LinearEquiv.symm_apply_eq]; simp
 
 end tmulBipartitionEquiv
 
@@ -233,45 +232,6 @@ section LinearMap
 open Module
 
 variable {M : Type*} [AddCommMonoid M] [Module R M]
-
--- -- Three versions of `extendLinearHom` follow.
---
--- -- 1) Old version
---
--- /-- Extension of a linear map on tensors with index set `S ⊆ T` to a linear map
--- on tensors with index set `T`. -/
--- def extendLinear (l : (⨂[R] i : S, s i) →ₗ[R] M) :
---       (⨂[R] i : T, s i) →ₗ[R] (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂)) :=
---   (LinearEquiv.congrLeft R (M := (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂))) (tmulUnifyEquiv hsub))
---     (LinearMap.rTensor _ l)
---
--- /-- Extension of a linear map on tensors with index set `S ⊆ T` to a linear map
--- on tensors with index set `T`. Bundled as a linear map. -/
--- def extendLinearHom : ((⨂[R] i : S, s i) →ₗ[R] M) →ₗ[R]
---     ((⨂[R] i : T, s i) →ₗ[R] (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂))) where
---   toFun l := extendLinear hsub l
---   map_add' := by
---     intros
---     simp [extendLinear, LinearEquiv.congrLeft, LinearMap.add_comp]
---   map_smul' := by
---     intros
---     simp [extendLinear, LinearEquiv.congrLeft]
---
--- -- 2) Optimized old version
---
--- def extendLinear (l : (⨂[R] i : S, s i) →ₗ[R] M) :
---     (⨂[R] i : T, s i) →ₗ[R] (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂)) :=
---   (rTensorHom _ l) ∘ₗ (tmulUnifyEquiv (R:=R) (s:=s) hsub).symm
---
--- /-- Extension of a linear map on tensors with index set `S ⊆ T` to a linear map
--- on tensors with index set `T`. Bundled as a linear map. -/
--- def extendLinearHom' : ((⨂[R] i : S, s i) →ₗ[R] M) →ₗ[R]
---     ((⨂[R] i : T, s i) →ₗ[R] (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂))) where
---   toFun l := extendLinear hsub l
---   map_add' := by simp [extendLinear, LinearMap.add_comp]
---   map_smul' := by intros; simp only [extendLinear, map_smul]; rfl
---
--- 3) David's new favorite version.
 
 /-- Lifts a linear map on tensors with index set `S ⊆ T` to a linear map
 on tensors with index set `T`. Bundled as a homomorphism of linear maps. -/
@@ -399,7 +359,7 @@ def unifyMaps (L : (k : κ) → ((⨂[R] i : Sf k, s i) →ₗ[R] (M k))) :
       conv => lhs; arg 2; intro k; simp [h k]
       conv => rhs; arg 1; arg 2; intro k; simp [h k]
       conv => rhs; arg 2; arg 2; intro k; simp [h k]
-      
+
 
 
 
