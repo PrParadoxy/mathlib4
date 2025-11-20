@@ -658,112 +658,48 @@ variable [∀ k : κ, DecidableEq (Tf k)]
 variable {s : (k : κ) → (i : Tf k) → Type*}
 variable [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
 
+omit [(k : κ) → DecidableEq (Tf k)] in
+lemma tprod_update_comm
+  [DecidableEq ((k : κ) × Tf k)]
+  (f : (i : (k : κ) × Tf k) → s i.fst i.snd)
+  (j : (k : κ) × Tf k) (x : s j.1 j.2) :
+    (fun k ↦ ⨂ₜ[R] (i : Tf k), (Function.update f j x) ⟨k, i⟩) =
+    Function.update (fun k ↦ ⨂ₜ[R] (i : Tf k), f ⟨k, i⟩) j.1
+    (⨂ₜ[R] (i : Tf j.1), (Function.update f j x) ⟨j.1, i⟩) := by
+  ext k
+  by_cases heq : k = j.1
+  · aesop
+  · simp_all [show ∀ i1 : Tf k, ⟨k, i1⟩ ≠ j from by aesop]
+
+-- generalize this
+omit [DecidableEq κ] [(k : κ) → (i : Tf k) → AddCommMonoid (s k i)] in
+lemma update_arg
+  [DecidableEq ((k : κ) × Tf k)]
+  (f : (i : (k : κ) × Tf k) → s i.fst i.snd)
+  (j : (k : κ) × Tf k) (x : s j.1 j.2) (x : s j.fst j.snd) :
+    (fun i : Tf j.1  => Function.update f j x ⟨j.1, i⟩) =
+      Function.update (fun i : Tf j.1 ↦ f ⟨j.1, i⟩) j.2 x := by
+    aesop (add safe unfold Function.update)
+
 def tprodTprodHom : (⨂[R] j : (Σ k, Tf k), s j.1 j.2) →ₗ[R] (⨂[R] k, ⨂[R] i, s k i) := lift {
     toFun x := ⨂ₜ[R] k, ⨂ₜ[R] i : Tf k, x ⟨k, i⟩
     map_update_add' := by
       intro _ f j a b
-
-      have tprod_update_comm (x : s j.1 j.2):
-        (fun k ↦ ⨂ₜ[R] (i : Tf k), (Function.update f j x) ⟨k, i⟩) =
-        Function.update (fun k ↦ ⨂ₜ[R] (i : Tf k), f ⟨k, i⟩) j.1
-          (⨂ₜ[R] (i : Tf j.1), (Function.update f j x) ⟨j.1, i⟩) := by
-        ext k
-        by_cases heq : k = j.1
-        · aesop
-        · have hneq : ∀ i1 : Tf k, ⟨k,i1⟩ ≠ j := by aesop
-          simp_all
-      have huf :
-        (∀ x, (fun i : Tf j.1  => Function.update f j x ⟨j.1, i⟩) =
-          Function.update (fun i : Tf j.1 ↦ f ⟨j.1, i⟩) j.2 x) := by
-        aesop (add safe unfold Function.update)
-
-      rw [tprod_update_comm, huf]
-      simp [MultilinearMap.map_update_add]
+      rw [tprod_update_comm, update_arg (x := a + b)]
+      simp only [MultilinearMap.map_update_add]
       apply congrArg₂ HAdd.hAdd
       all_goals
         congr
         ext k
-        by_cases h : k = j.fst <;> aesop
-
+        by_cases h : k = j.fst <;> aesop (add safe forward update_arg)
     map_update_smul' := by
       intro _ f j c x
-
-      have tprod_update_comm (x : s j.1 j.2):
-        (fun k ↦ ⨂ₜ[R] (i : Tf k), (Function.update f j x) ⟨k, i⟩) =
-        Function.update (fun k ↦ ⨂ₜ[R] (i : Tf k), f ⟨k, i⟩) j.1
-          (⨂ₜ[R] (i : Tf j.1), (Function.update f j x) ⟨j.1, i⟩) := by
-        ext k
-        by_cases heq : k = j.1
-        · aesop
-        · have hneq : ∀ i1 : Tf k, ⟨k,i1⟩ ≠ j := by aesop
-          simp_all
-      have huf :
-        (∀ x, (fun i : Tf j.1  => Function.update f j x ⟨j.1, i⟩) =
-          Function.update (fun i : Tf j.1 ↦ f ⟨j.1, i⟩) j.2 x) := by
-        aesop (add safe unfold Function.update)
-
-      rw [tprod_update_comm, huf]
-      simp [MultilinearMap.map_update_smul]
+      rw [tprod_update_comm, update_arg (x := x)]
+      simp only [MultilinearMap.map_update_smul]
       congr
       ext k
-      by_cases h : k = j.fst <;> aesop
+      by_cases h : k = j.fst <;> aesop (add safe forward update_arg)
     }
-
--- --- Tried to move the repeated lemmas outside. No success.
--- -- This should be an embedding.
--- def tprodTprodHom :
---   (⨂[R] j : (Σ k, Tf k), s j.1 j.2) →ₗ[R] (⨂[R] k, ⨂[R] i, s k i) :=
---   let huf :
---     ∀ (j : Σ k, Tf k) (f : (i : Σ k, Tf k) → s i.1 i.2) (x : s j.1 j.2),
---       (fun i : Tf j.1 => Function.update f j x ⟨j.1, i⟩) =
---          Function.update (fun i : Tf j.1 ↦ f ⟨j.1, i⟩) j.2 x := by
---     intros j f
---     aesop (add safe unfold Function.update)
---   lift {
---     toFun x := ⨂ₜ[R] k, ⨂ₜ[R] i : Tf k, x ⟨k, i⟩
---     map_update_add' := by
---       intro _ f j a b
---
---       -- TBD: How do I make these lemmas available to both fields?
---       -- Some kinda `let`?
---       have tprod_update_comm (x : s j.1 j.2):
---         (fun k ↦ ⨂ₜ[R] (i : Tf k), (Function.update f j x) ⟨k, i⟩) =
---         Function.update (fun k ↦ ⨂ₜ[R] (i : Tf k), f ⟨k, i⟩) j.1
---           (⨂ₜ[R] (i : Tf j.1), (Function.update f j x) ⟨j.1, i⟩) := by
---         ext k
---         by_cases heq : k = j.1
---         · aesop
---         · have hneq : ∀ i1 : Tf k, ⟨k,i1⟩ ≠ j := by aesop
---           simp_all
---
---       rw [tprod_update_comm, huf]
---       simp [MultilinearMap.map_update_add]
---       apply congrArg₂ HAdd.hAdd
---       all_goals
---         congr
---         ext k
---         by_cases h : k = j.fst <;> aesop
---
---     -- TBD: I didn't think, just copied from above.
---     map_update_smul' := by
---       intro _ f j c x
---
---       have tprod_update_comm (x : s j.1 j.2):
---         (fun k ↦ ⨂ₜ[R] (i : Tf k), (Function.update f j x) ⟨k, i⟩) =
---         Function.update (fun k ↦ ⨂ₜ[R] (i : Tf k), f ⟨k, i⟩) j.1
---           (⨂ₜ[R] (i : Tf j.1), (Function.update f j x) ⟨j.1, i⟩) := by
---         ext k
---         by_cases heq : k = j.1
---         · aesop
---         · have hneq : ∀ i1 : Tf k, ⟨k,i1⟩ ≠ j := by aesop
---           simp_all
---
---       rw [tprod_update_comm, huf]
---       simp [MultilinearMap.map_update_smul]
---       congr
---       ext k
---       by_cases h : k = j.fst <;> aesop
---     }
 
 def tprodTprod_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
     tprodTprodHom (⨂ₜ[R] j, f j) = ⨂ₜ[R] k, ⨂ₜ[R] i : Tf k, f ⟨k, i⟩ := by simp [tprodTprodHom]
