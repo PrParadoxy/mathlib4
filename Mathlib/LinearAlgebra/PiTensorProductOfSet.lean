@@ -818,7 +818,10 @@ variable {M : κ → Type*} [∀ k, AddCommMonoid (M k)] [∀ k, Module R (M k)]
 
 /-- Given a family `(k : κ) → Sf` of disjoint sets and a family of linear maps
 where `L k` is defined on tensors indexed by `Sf k`, construct a linear map
-defined on tensors indexed by the union of `Sf`. -/
+defined on tensors indexed by the union of `Sf`.
+
+Note: `noncomputable` inherited from `unionEqSigmaOfDisjoint`. Could be made
+computable by the proof of `unifyMapsSigma`. -/
 noncomputable def unifyMaps' [DecidableEq κ] [∀ k : κ, DecidableEq (Sf k)]
     (L : (k : κ) → ((⨂[R] i : Sf k, s i) →ₗ[R] (M k))) :
     (⨂[R] i : iUnion Sf, s i) →ₗ[R] (⨂[R] k, M k) :=
