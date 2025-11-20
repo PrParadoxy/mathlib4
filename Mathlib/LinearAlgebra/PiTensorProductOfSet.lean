@@ -826,3 +826,15 @@ noncomputable def unifyMaps' [DecidableEq κ] [∀ k : κ, DecidableEq (Sf k)]
     (L : (k : κ) → ((⨂[R] i : Sf k, s i) →ₗ[R] (M k))) :
     (⨂[R] i : iUnion Sf, s i) →ₗ[R] (⨂[R] k, M k) :=
   (unifyMapsSigma L) ∘ₗ ((reindex R _ (Set.unionEqSigmaOfDisjoint H))).toLinearMap
+
+
+noncomputable def unifMaps_ml' [DecidableEq κ] [∀ k : κ, DecidableEq (Sf k)] :
+  MultilinearMap R
+       (fun k => (⨂[R] i : Sf k, s i) →ₗ[R] (M k))
+       ((⨂[R] i : iUnion Sf, s i) →ₗ[R] (⨂[R] k, M k)) := {
+    toFun L := unifyMaps' H L
+    map_update_add' := by
+      simp [unifyMaps', unifyMapsSigma, PiTensorProduct.map_update_add, LinearMap.add_comp]
+    map_update_smul' := by
+      simp [unifyMaps', unifyMapsSigma, PiTensorProduct.map_update_smul, LinearMap.smul_comp]
+  }
