@@ -874,3 +874,17 @@ variable {S T : Set ι} (hsub : S ⊆ T) [(i : ι) → Decidable (i ∈ S)]
 #check (fun U : Set ι => (inferInstance : FaithfullyFlat R (⨂[R] i : U, s i)))
 
 end Field
+
+
+variable {κ : Type*} {Sf : κ → Set ι} [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
+variable (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
+variable {M : κ → Type*} [∀ k, AddCommMonoid (M k)] [∀ k, Module R (M k)]
+
+/-- Given a family `(k : κ) → Sf` of disjoint sets and a family of linear maps
+where `L k` is defined on tensors indexed by `Sf k`, construct a linear map
+defined on tensors indexed by the union of `Sf`. -/
+noncomputable def unifyMaps' [DecidableEq κ] [∀ k : κ, DecidableEq (Sf k)]
+  (L : (k : κ) → ((⨂[R] i : Sf k, s i) →ₗ[R] (M k))) :
+  (⨂[R] i : iUnion Sf, s i) →ₗ[R] (⨂[R] k, M k) :=
+(unifyMapsSigma L) ∘ₗ
+  ((reindex R (fun i : iUnion Sf => s i) (Set.unionEqSigmaOfDisjoint H))).toLinearMap
