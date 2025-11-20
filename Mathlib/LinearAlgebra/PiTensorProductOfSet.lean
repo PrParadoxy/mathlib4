@@ -97,10 +97,13 @@ def subsingletonEquivDep : (⨂[R] i, s i) ≃ₗ[R] s i₀ :=
         ext k; rw [Subsingleton.elim i₀ k]; simp
       simp [h])
 
--- Note: One could base `PiTensorProduct.subsingletonEquiv` on `subsingletonEquivDep`.
 section
 variable {M : Type*} [AddCommMonoid M] [Module R M]
 
+/--
+Tensor product of `M` over a singleton set is equivalent to `M`. Use
+`subsingletonEquivDep` for dependent case.
+-/
 def subsingletonEquiv' : (⨂[R] _ : ι, M) ≃ₗ[R] M := subsingletonEquivDep i₀
 end
 
@@ -108,6 +111,7 @@ end
 theorem subsingletonEquivDep_tprod (f : (i : ι) → s i) :
     subsingletonEquivDep i₀ (⨂ₜ[R] i, f i) = f i₀ := by simp [subsingletonEquivDep]
 
+-- This exposes a quite concrete construction in the signature.
 /-- Any tensor indexed by a unique type is a pure tensor -/
 lemma subsingletonEquivDep_eq_tprod (z : ⨂[R] i, s i) :
     z = ⨂ₜ[R] i, (Pi.single i₀ (subsingletonEquivDep i₀ z)) i := by
@@ -274,7 +278,7 @@ on tensors with index set `T`. Bundled as a homomorphism of linear maps. -/
 def extendLinearHom : ((⨂[R] i : S, s i) →ₗ[R] M) →ₗ[R]
     ((⨂[R] i : T, s i) →ₗ[R] (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂))) :=
     let PiS := (⨂[R] i : S, s i); let PiTmS := ⨂[R] (i : ↑(T \ S)), s i
-  (LinearEquiv.congrLeft (M:=(M ⊗[R] PiTmS)) (M₂:=(PiS ⊗[R] PiTmS)) R (tmulUnifyEquiv hsub)).comp
+  (LinearEquiv.congrLeft (M:=(M ⊗[R] PiTmS)) (M₂:=(PiS ⊗[R] PiTmS)) R (tmulUnifyEquiv hsub)) ∘ₗ
     (LinearMap.rTensorHom PiTmS)
 
 -- `extendLinearHom` is injective under certain flatness assumptions.
@@ -308,6 +312,8 @@ proving flatness of PiTensorProducts. -/
 --
 --   -- a and b are not injective, otherwise the top theorem proves this.
 --   sorry
+
+-- TBD: Could define these directly as composition of linear maps, like `extendLinearHom`.
 
 /-- Extension of an endomorphism on tensors with index set `S ⊆ T` to one on
 tensors with index set `T`. Bundled as a linear map. -/
@@ -364,8 +370,8 @@ theorem partialContractDiff_tprod [(i : ι) → Decidable (i ∈ T \ S)]
   erw [reindex_tprod]
   rfl
 
-
--- TBD: `self` and `trans` lemmas, as for `extendTensor` below.
+-- TBD: `self` and `trans` lemmas, as for `extendTensor` below?
+-- Maybe not for now.
 
 variable {κ : Type*} {Sf : κ → Set ι} [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
 variable (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
