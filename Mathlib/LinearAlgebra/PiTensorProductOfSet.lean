@@ -719,6 +719,13 @@ def tprodTprodHom :
       ext k
       by_cases h : k = j.fst <;> aesop
     }
+
+
+variable {M : κ → Type*} [∀ k, AddCommMonoid (M k)] [∀ k, Module R (M k)]
+
+def unifyMapsSigma (L : (k : κ) → ((⨂[R] i : Tf k, s k i) →ₗ[R] (M k))) :
+  (⨂[R] j : (Σ k, Tf k), s j.1 j.2) →ₗ[R] (⨂[R] k, M k) := (map L) ∘ₗ tprodTprodHom
+
 end tst
 
 variable {ι : Type*} {s : ι → Type*} {n : Nat} {Sf : Fin n → Set ι}
