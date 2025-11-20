@@ -667,21 +667,18 @@ def tprodTprodHom :
       intro _ f j a b
 
       have tprod_update_comm :
-        (fun k ↦ ⨂ₜ[R] (i_1 : Tf k), (Function.update f j (a + b)) ⟨k, i_1⟩)
-        =
-        Function.update
-        (fun k ↦ ⨂ₜ[R] (i_1 : Tf k), f ⟨k, i_1⟩)
-        j.1
-        (⨂ₜ[R] (i : Tf j.1), (Function.update f j (a + b)) ⟨j.1, i⟩) := by
-          ext k
-          by_cases heq : k = j.1
-          · aesop
-          · have hneq : ∀ i1 : Tf k, ⟨k,i1⟩ ≠ j := by aesop
-            simp_all
+        (fun k ↦ ⨂ₜ[R] (i : Tf k), (Function.update f j (a + b)) ⟨k, i⟩) =
+        Function.update (fun k ↦ ⨂ₜ[R] (i : Tf k), f ⟨k, i⟩) j.1
+          (⨂ₜ[R] (i : Tf j.1), (Function.update f j (a + b)) ⟨j.1, i⟩) := by
+        ext k
+        by_cases heq : k = j.1
+        · aesop
+        · have hneq : ∀ i1 : Tf k, ⟨k,i1⟩ ≠ j := by aesop
+          simp_all
 
       have huf :
         (∀ x, (fun i : Tf j.1  => Function.update f j x ⟨j.1, i⟩) =
-          Function.update (fun i : Tf j.1 ↦ f ⟨j.1, i⟩) j.2 x):= by
+          Function.update (fun i : Tf j.1 ↦ f ⟨j.1, i⟩) j.2 x) := by
         aesop (add safe unfold Function.update)
 
       rw [tprod_update_comm]
@@ -694,9 +691,33 @@ def tprodTprodHom :
         ext k
         by_cases h : k = j.fst <;> aesop
 
+    -- TBD: I didn't think, just copied from above.
     map_update_smul' := by
-      sorry
+      intro _ f j c x
 
+      have tprod_update_comm :
+        (fun k ↦ ⨂ₜ[R] (i : Tf k), (Function.update f j (c • x)) ⟨k, i⟩) =
+        Function.update (fun k ↦ ⨂ₜ[R] (i : Tf k), f ⟨k, i⟩) j.1
+          (⨂ₜ[R] (i : Tf j.1), (Function.update f j (c • x)) ⟨j.1, i⟩) := by
+        ext k
+        by_cases heq : k = j.1
+        · aesop
+        · have hneq : ∀ i1 : Tf k, ⟨k,i1⟩ ≠ j := by aesop
+          simp_all
+
+      have huf :
+        (∀ x, (fun i : Tf j.1  => Function.update f j x ⟨j.1, i⟩) =
+          Function.update (fun i : Tf j.1 ↦ f ⟨j.1, i⟩) j.2 x) := by
+        aesop (add safe unfold Function.update)
+
+      rw [tprod_update_comm]
+      rw [huf]
+
+      erw [MultilinearMap.map_update_smul]
+      erw [MultilinearMap.map_update_smul]
+      congr
+      ext k
+      by_cases h : k = j.fst <;> aesop
     }
 end tst
 
