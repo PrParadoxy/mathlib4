@@ -884,7 +884,6 @@ variable {M : κ → Type*} [∀ k, AddCommMonoid (M k)] [∀ k, Module R (M k)]
 where `L k` is defined on tensors indexed by `Sf k`, construct a linear map
 defined on tensors indexed by the union of `Sf`. -/
 noncomputable def unifyMaps' [DecidableEq κ] [∀ k : κ, DecidableEq (Sf k)]
-  (L : (k : κ) → ((⨂[R] i : Sf k, s i) →ₗ[R] (M k))) :
-  (⨂[R] i : iUnion Sf, s i) →ₗ[R] (⨂[R] k, M k) :=
-(unifyMapsSigma L) ∘ₗ
-  ((reindex R (fun i : iUnion Sf => s i) (Set.unionEqSigmaOfDisjoint H))).toLinearMap
+    (L : (k : κ) → ((⨂[R] i : Sf k, s i) →ₗ[R] (M k))) :
+    (⨂[R] i : iUnion Sf, s i) →ₗ[R] (⨂[R] k, M k) :=
+  (unifyMapsSigma L) ∘ₗ ((reindex R _ (Set.unionEqSigmaOfDisjoint H))).toLinearMap
