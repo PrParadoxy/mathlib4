@@ -720,6 +720,20 @@ def tprodTprodSpan : Submodule R (⨂[R] k, ⨂[R] i, s k i) := Submodule.span R
 variable {R s}
 def tprodTprodEquiv : (⨂[R] j : (Σ k, Tf k), s j.1 j.2) ≃ₗ[R] tprodTprodSpan R s := sorry
 
+open LinearMap
+
+#check restrict
+#check codRestrict
+#check rangeRestrict
+
+def myres (M N : Type*) [AddCommMonoid M] [AddCommMonoid N] [Module R M] [Module R N]
+  (f : M →ₗ[R] N) : M →ₗ[R] (LinearMap.range f) := rangeRestrict f
+
+theorem tprodTprodHomInjective : Function.Injective (tprodTprodHom (R:=R) (s:=s)) := by
+  intros a b h
+  sorry
+-- maybe construct a left inverse on its range?
+
 --- --- /Brainstorming section ----
 
 variable {M : κ → Type*} [∀ k, AddCommMonoid (M k)] [∀ k, Module R (M k)]
@@ -811,7 +825,7 @@ variable {M : κ → Type*} [∀ k, AddCommMonoid (M k)] [∀ k, Module R (M k)]
 -- `LinearMap.ker_eq_bot` requires a `Ring`
 -- Lean doesn't really like to talk about injectivity in this semi-ring setup.
 -- Hm.
-theorem tprodTprodHomInjective : Function.Injective (tprodTprodHom (R:=R) (s:=s)) := by
+theorem tprodTprodHomInjective' : Function.Injective (tprodTprodHom (R:=R) (s:=s)) := by
   apply LinearMap.ker_eq_bot.mp
   ext f
   simp only [LinearMap.mem_ker, Submodule.mem_bot]
@@ -871,3 +885,7 @@ noncomputable def unifMaps_ml' [DecidableEq κ] [∀ k : κ, DecidableEq (Sf k)]
     map_update_smul' := by
       simp [unifyMaps', unifyMapsSigma, PiTensorProduct.map_update_smul, LinearMap.smul_comp]
   }
+
+noncomputable def unifMaps_ml'' [DecidableEq κ] [∀ k : κ, DecidableEq (Sf k)] :
+  (⨂[R] k, ((⨂[R] i : Sf k, s i) →ₗ[R] (M k))) →ₗ[R]
+       ((⨂[R] i : iUnion Sf, s i) →ₗ[R] (⨂[R] k, M k)) := lift (unifMaps_ml' H)
