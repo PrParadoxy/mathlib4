@@ -100,10 +100,8 @@ def subsingletonEquivDep : (⨂[R] i, s i) ≃ₗ[R] s i₀ :=
 section
 variable {M : Type*} [AddCommMonoid M] [Module R M]
 
-/--
-Tensor product of `M` over a singleton set is equivalent to `M`. Use
-`subsingletonEquivDep` for dependent case.
--/
+/-- Tensor product of `M` over a singleton set is equivalent to `M`. Use
+`subsingletonEquivDep` for dependent case. -/
 def subsingletonEquiv' : (⨂[R] _ : ι, M) ≃ₗ[R] M := subsingletonEquivDep i₀
 end
 
@@ -613,7 +611,7 @@ variable {s : (k : Fin n) → (i : Tf k) → Type*}
 variable [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
 
 -- TBD: Is it desirable to reformulate that as a recursive function?
--- TBD: Use `Fintype`?
+-- TBD: Use `Fintype`? Could always just use `noncomputable def Finset.equivFin`
 /-! A nested `PiTensorProduct` is equivalent to a single `PiTensorProduct` over
 a sigma type if the outer type is finite. -/
 def tprodTprodEquiv :
@@ -705,15 +703,6 @@ def tprodTprod_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
     tprodTprodHom (⨂ₜ[R] j, f j) = ⨂ₜ[R] k, ⨂ₜ[R] i : Tf k, f ⟨k, i⟩ := by simp [tprodTprodHom]
 
 
-#check LinearMap.ker_eq_bot
-
--- `LinearMap.ker_eq_bot` requires a `Ring`
--- Lean doesn't really like to talk about injectivity in this semi-ring setup.
--- Hm.
-theorem tprodTprodHomInjective : Function.Injective (tprodTprodHom (R:=R) (s:=s)) := by
-  intro x y h
-
-  sorry
 
 
 variable {M : κ → Type*} [∀ k, AddCommMonoid (M k)] [∀ k, Module R (M k)]
@@ -789,6 +778,40 @@ theorem extendLinearInjective [∀ U : Set ι, FaithfullyFlat R (⨂[R] i : U, s
     LinearMap.coe_rTensorHom, Submodule.mem_bot]
   symm
   apply Module.FaithfullyFlat.zero_iff_rTensor_zero
+
+
+section tprodTprodHom
+
+variable {κ : Type*}
+variable [DecidableEq κ]
+variable {Tf : (k : κ) → Type*}
+variable [∀ k : κ, DecidableEq (Tf k)]
+variable {s : (k : κ) → (i : Tf k) → Type*}
+variable [∀ k, ∀ i, AddCommGroup (s k i)] [∀ k, ∀ i, Module R (s k i)]
+
+variable {M : κ → Type*} [∀ k, AddCommMonoid (M k)] [∀ k, Module R (M k)]
+
+#check LinearMap.ker_eq_bot
+#check LinearMap.injective_domRestrict_iff
+
+-- `LinearMap.ker_eq_bot` requires a `Ring`
+-- Lean doesn't really like to talk about injectivity in this semi-ring setup.
+-- Hm.
+theorem tprodTprodHomInjective : Function.Injective (tprodTprodHom (R:=R) (s:=s)) := by
+  apply LinearMap.ker_eq_bot.mp
+  ext f
+  simp only [LinearMap.mem_ker, Submodule.mem_bot]
+  constructor
+  .
+    simp [tprodTprodHom]
+    sorry
+  . intro hz
+    rw [hz]
+    simp
+
+  sorry
+
+end tprodTprodHom
 
 end Ring
 
