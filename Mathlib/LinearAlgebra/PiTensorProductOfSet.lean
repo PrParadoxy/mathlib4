@@ -887,5 +887,9 @@ noncomputable def unifMaps_ml' [DecidableEq κ] [∀ k : κ, DecidableEq (Sf k)]
   }
 
 noncomputable def unifMaps_ml'' [DecidableEq κ] [∀ k : κ, DecidableEq (Sf k)] :
-  (⨂[R] k, ((⨂[R] i : Sf k, s i) →ₗ[R] (M k))) →ₗ[R]
+  (⨂[R] k, (⨂[R] i : Sf k, s i) →ₗ[R] (M k)) →ₗ[R]
        ((⨂[R] i : iUnion Sf, s i) →ₗ[R] (⨂[R] k, M k)) := lift (unifMaps_ml' H)
+
+end Set
+
+end PiTensorProduct
