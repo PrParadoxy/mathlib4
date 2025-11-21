@@ -719,12 +719,9 @@ variable {ι : Type*} {s : ι → Type*} {n : Nat} {Sf : Fin n → Set ι}
 
 def iUnionSigmaEquiv : (Σ k, Sf k) ≃ iUnion Sf where
   toFun s := ⟨s.2, by aesop⟩
-  invFun s :=
-    have h := mem_iUnion.mp s.prop
-    have hg : (Fin.find (fun i => s.val ∈ Sf i)).isSome :=
-      Fin.isSome_find_iff.mpr ⟨h.choose, h.choose_spec⟩
-    ⟨(Fin.find (fun i => s.val ∈ Sf i)).get hg,
-      ⟨s.val, by simp [Fin.find_spec (fun i => s.val ∈ Sf i)]⟩⟩
+  invFun s := ⟨(Fin.find (↑s ∈ Sf ·)).get
+        (Fin.isSome_find_iff.mpr ⟨_, (mem_iUnion.mp s.prop).choose_spec⟩),
+      ⟨s, by simp [Fin.find_spec (↑s ∈ Sf ·)]⟩⟩
   left_inv := by
     simp_intro s
     generalize_proofs _ h
@@ -805,10 +802,7 @@ theorem tprodTprodHomInjective : Function.Injective (tprodTprodHom (R:=R) (s:=s)
   .
     simp [tprodTprodHom]
     sorry
-  . intro hz
-    rw [hz]
-    simp
-
+  . simp_intro hz
   sorry
 
 end tprodTprodHom
