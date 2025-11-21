@@ -616,7 +616,7 @@ variable [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
 -- TBD: Use `Fintype`? Could always just use `noncomputable def Finset.equivFin`
 /-! A nested `PiTensorProduct` is equivalent to a single `PiTensorProduct` over
 a sigma type if the outer type is finite. -/
-def tprodTprodEquiv :
+def trpodFinTprodEquiv :
   (⨂[R] k, ⨂[R] i, s k i) ≃ₗ[R] (⨂[R] j : (Σ k, Tf k), s j.1 j.2) := by
   induction n with
   | zero => exact (isEmptyEquiv _) ≪≫ₗ (isEmptyEquiv _).symm
@@ -624,19 +624,19 @@ def tprodTprodEquiv :
       (TensorProduct.congr ih (LinearEquiv.refl _ _)) ≪≫ₗ PiTensorProduct.tprodSigmaLastEquiv.symm
 
 @[simp]
-theorem tprodTprodEquiv_tprod (f : (k : Fin n) → (i : Tf k) → s k i) :
-    tprodTprodEquiv (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) = ⨂ₜ[R] j : (Σ k, Tf k), f j.1 j.2 := by
+theorem trpodFinTprodEquiv_tprod (f : (k : Fin n) → (i : Tf k) → s k i) :
+    trpodFinTprodEquiv (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) = ⨂ₜ[R] j : (Σ k, Tf k), f j.1 j.2 := by
   induction n with
   | zero =>
-    simp only [tprodTprodEquiv, Nat.succ_eq_add_one, Nat.rec_zero, LinearEquiv.trans_apply]
+    simp only [trpodFinTprodEquiv, Nat.succ_eq_add_one, Nat.rec_zero, LinearEquiv.trans_apply]
     rw [LinearEquiv.symm_apply_eq]
     simp
   | succ m ih =>
     replace ih := @ih (fun i => Tf i.castSucc) (fun i j => s i.castSucc j) _ _
       (fun i j => f i.castSucc j)
-    have ht : tprodTprodEquiv (R := R) =
+    have ht : trpodFinTprodEquiv (R := R) =
       PiTensorProduct.tprodTprodLastEquiv ≪≫ₗ
-        (TensorProduct.congr tprodTprodEquiv (LinearEquiv.refl _ _))
+        (TensorProduct.congr trpodFinTprodEquiv (LinearEquiv.refl _ _))
           ≪≫ₗ (PiTensorProduct.tprodSigmaLastEquiv (s := s)).symm := by rfl
     simp only [ht, LinearEquiv.trans_apply, PiTensorProduct.tprodTprodLastEquiv_tprod,
       TensorProduct.congr_tmul, LinearEquiv.refl_apply, ←LinearEquiv.eq_symm_apply,
@@ -644,8 +644,8 @@ theorem tprodTprodEquiv_tprod (f : (k : Fin n) → (i : Tf k) → s k i) :
     exact (congr_arg (· ⊗ₜ[R] (⨂ₜ[R] i : Tf (last m), f (last m) i)) ih)
 
 @[simp]
-theorem tprodTprodEquiv_symm_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
-    tprodTprodEquiv.symm (⨂ₜ[R] j : (Σ k, Tf k), f j) = (⨂ₜ[R] k, ⨂ₜ[R] i, f ⟨k, i⟩) := by
+theorem trpodFinTprodEquiv_symm_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
+    trpodFinTprodEquiv.symm (⨂ₜ[R] j : (Σ k, Tf k), f j) = (⨂ₜ[R] k, ⨂ₜ[R] i, f ⟨k, i⟩) := by
   simp [LinearEquiv.symm_apply_eq]
 
 -- -- begin ---
@@ -716,14 +716,8 @@ variable (R s)
 def totallyPureSpan : Submodule R (⨂[R] k, ⨂[R] i, s k i) := Submodule.span R
     (Set.range fun (f : (k : κ) → (i : Tf k) → s k i) ↦ ⨂ₜ[R] k, ⨂ₜ[R] i : Tf k, f k i)
 
--- I think it is an equivalence.
 variable {R s}
-def tprodTprodHom' : (⨂[R] j : (Σ k, Tf k), s j.1 j.2) →ₗ[R] totallyPureSpan R s :=
-  lift {
-    toFun x := ⨂ₜ[R] k, ⨂ₜ[R] i : Tf k, x ⟨k, i⟩
-    map_update_add' := sorry
-    map_update_smul' := sorry
-    }
+def trpodTprodEquiv : (⨂[R] j : (Σ k, Tf k), s j.1 j.2) ≃ₗ[R] totallyPureSpan R s := sorry
 
 
 variable {M : κ → Type*} [∀ k, AddCommMonoid (M k)] [∀ k, Module R (M k)]
@@ -753,13 +747,13 @@ def iUnionSigmaEquiv : (Σ k, Sf k) ≃ iUnion Sf where
 
 def tprodFiniUnionEquiv :
     (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : (Set.iUnion Sf), s i) :=
-  (tprodTprodEquiv ≪≫ₗ reindex R _ (iUnionSigmaEquiv H))
+  (trpodFinTprodEquiv ≪≫ₗ reindex R _ (iUnionSigmaEquiv H))
 
 @[simp]
 theorem tprodFiniUnionEquiv_tprod (f : (k : Fin n) → (i : Sf k) → s i) :
     tprodFiniUnionEquiv H (⨂ₜ[R] k, ⨂ₜ[R] i, f k i)
     = ⨂ₜ[R] i, f ((iUnionSigmaEquiv H).symm i).fst ((iUnionSigmaEquiv H).symm i).snd := by
-  simp only [tprodFiniUnionEquiv, LinearEquiv.trans_apply, tprodTprodEquiv_tprod]
+  simp only [tprodFiniUnionEquiv, LinearEquiv.trans_apply, trpodFinTprodEquiv_tprod]
   erw [reindex_tprod]
 
 @[simp]
