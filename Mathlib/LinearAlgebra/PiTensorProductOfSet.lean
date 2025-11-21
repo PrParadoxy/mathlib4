@@ -707,11 +707,16 @@ def tprodTprod_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
     tprodTprodHom (⨂ₜ[R] j, f j) = ⨂ₜ[R] k, ⨂ₜ[R] i : Tf k, f ⟨k, i⟩ := by simp [tprodTprodHom]
 
 -- TBD: Say something about the span of totally pure tensors.
--- (Which is the entire space assuming `[Fintype κ]`)
+-- (Which is the entire space assuming `[Fintype κ]`, but not in general)
+-- TBD: Convincing pen-and-paper argument that the tensor product of infinitely
+-- many non-pure tensors is *not* in that span? It will boil down to some form
+-- of "the tensor rank is infinite", but that's not literally true, because in
+-- `PiTensorProduct`, we cannot even talk about infinite tensor rank.
 variable (R s)
 def totallyPureSpan : Submodule R (⨂[R] k, ⨂[R] i, s k i) := Submodule.span R
-    (Set.range fun (f : (j : (Σ k, Tf k)) → s j.1 j.2) ↦ ⨂ₜ[R] k, ⨂ₜ[R] i : Tf k, f ⟨k, i⟩)
+    (Set.range fun (f : (k : κ) → (i : Tf k) → s k i) ↦ ⨂ₜ[R] k, ⨂ₜ[R] i : Tf k, f k i)
 
+-- I think it is an equivalence.
 variable {R s}
 def tprodTprodHom' : (⨂[R] j : (Σ k, Tf k), s j.1 j.2) →ₗ[R] totallyPureSpan R s :=
   lift {
