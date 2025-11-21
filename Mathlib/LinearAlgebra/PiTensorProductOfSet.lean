@@ -229,6 +229,8 @@ section LinearMap
 
 open Module
 
+-- TBD: Unify with `map` section of "PiTensorProduct.lean"
+
 variable {M : Type*} [AddCommMonoid M] [Module R M]
 
 /-- Lifts a linear map on tensors with index set `S ⊆ T` to a linear map
@@ -679,7 +681,8 @@ lemma update_arg
       Function.update (fun i : Tf j.1 ↦ f ⟨j.1, i⟩) j.2 x := by
     aesop (add safe unfold Function.update)
 
-def tprodTprodHom : (⨂[R] j : (Σ k, Tf k), s j.1 j.2) →ₗ[R] (⨂[R] k, ⨂[R] i, s k i) := lift {
+def tprodTprodHom : (⨂[R] j : (Σ k, Tf k), s j.1 j.2) →ₗ[R] (⨂[R] k, ⨂[R] i, s k i) :=
+  lift {
     toFun x := ⨂ₜ[R] k, ⨂ₜ[R] i : Tf k, x ⟨k, i⟩
     map_update_add' := by
       intro _ f j a b
@@ -799,11 +802,10 @@ theorem tprodTprodHomInjective : Function.Injective (tprodTprodHom (R:=R) (s:=s)
   ext f
   simp only [LinearMap.mem_ker, Submodule.mem_bot]
   constructor
-  .
+  ·
     simp [tprodTprodHom]
     sorry
-  . simp_intro hz
-  sorry
+  · simp_intro hz
 
 end tprodTprodHom
 
