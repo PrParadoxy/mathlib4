@@ -713,11 +713,11 @@ def tprodTprod_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
 -- of "the tensor rank is infinite", but that's not literally true, because in
 -- `PiTensorProduct`, we cannot even talk about infinite tensor rank.
 variable (R s)
-def totallyPureSpan : Submodule R (⨂[R] k, ⨂[R] i, s k i) := Submodule.span R
+def tprodTprodSpan : Submodule R (⨂[R] k, ⨂[R] i, s k i) := Submodule.span R
     (Set.range fun (f : (k : κ) → (i : Tf k) → s k i) ↦ ⨂ₜ[R] k, ⨂ₜ[R] i : Tf k, f k i)
 
 variable {R s}
-def trpodTprodEquiv : (⨂[R] j : (Σ k, Tf k), s j.1 j.2) ≃ₗ[R] totallyPureSpan R s := sorry
+def tprodTprodEquiv : (⨂[R] j : (Σ k, Tf k), s j.1 j.2) ≃ₗ[R] tprodTprodSpan R s := sorry
 
 
 variable {M : κ → Type*} [∀ k, AddCommMonoid (M k)] [∀ k, Module R (M k)]
