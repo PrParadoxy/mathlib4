@@ -706,6 +706,7 @@ def tprodTprodHom : (⨂[R] j : (Σ k, Tf k), s j.1 j.2) →ₗ[R] (⨂[R] k, �
 def tprodTprod_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
     tprodTprodHom (⨂ₜ[R] j, f j) = ⨂ₜ[R] k, ⨂ₜ[R] i : Tf k, f ⟨k, i⟩ := by simp [tprodTprodHom]
 
+--- --- Brainstorming section -----
 -- TBD: Say something about the span of totally pure tensors.
 -- (Which is the entire space assuming `[Fintype κ]`, but not in general)
 -- TBD: Convincing pen-and-paper argument that the tensor product of infinitely
@@ -719,6 +720,7 @@ def tprodTprodSpan : Submodule R (⨂[R] k, ⨂[R] i, s k i) := Submodule.span R
 variable {R s}
 def tprodTprodEquiv : (⨂[R] j : (Σ k, Tf k), s j.1 j.2) ≃ₗ[R] tprodTprodSpan R s := sorry
 
+--- --- /Brainstorming section ----
 
 variable {M : κ → Type*} [∀ k, AddCommMonoid (M k)] [∀ k, Module R (M k)]
 
