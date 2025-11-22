@@ -325,6 +325,8 @@ theorem tmulInsertRightEquiv_symm_tprod (f : (i : ↥(S ∪ {i₀})) → s i) :
 end InsertRight
 end tmulInsertEquiv
 
+
+
 section Perm
 
 variable {S : Set ι}
@@ -345,6 +347,7 @@ theorem permSetEquiv_symm_tprod (f : (e '' S) → M) :
   (permSetEquiv e).symm (⨂ₜ[R] i, f i) = ⨂ₜ[R] i, f ((Equiv.image e S) i) := by simp [permSetEquiv]
 
 end Perm
+
 
 
 section Finset
@@ -368,15 +371,15 @@ theorem tmulFinsetInsertEquiv_tprod (x : s i₀) (f : (i : F) → s i) :
 theorem tmulFinsetInsertEquiv_symm_tprod (f : (i : ↥(insert i₀ F)) → s i) :
     (tmulFinsetInsertEquiv h₀).symm (⨂ₜ[R] i, f i) =
     (f ⟨i₀, by simp⟩) ⊗ₜ[R](⨂ₜ[R] i : F, f ⟨i, by simp⟩) := by
-  erw [tmulFinsetInsertEquiv, LinearEquiv.trans_symm, LinearEquiv.trans_apply,
-    LinearEquiv.symm_apply_eq, LinearEquiv.symm_apply_eq, tmulFinsetInsertEquiv_tprod h₀]
-  congr with _
+  rw [LinearEquiv.symm_apply_eq, tmulFinsetInsertEquiv_tprod]
+  congr with i
   simp only [mem_singleton_iff, SetLike.eta, right_eq_dite_iff]
   intro _
   generalize_proofs _ _
   aesop
 
 end Finset
+
 
 
 theorem induction_on_set_finite
