@@ -812,8 +812,8 @@ def subsingletonEquivDep : (⨂[R] i : ι, s i) ≃ₗ[R] s i₀ :=
         map_update_add' := by aesop (add safe forward Subsingleton.allEq)
         map_update_smul' := by aesop (add safe forward Subsingleton.allEq) })
     ({ toFun x := tprod R (Pi.single i₀ x)
-       map_add' x y := by simp [Pi.single]
-       map_smul' x y := by simp [Pi.single] })
+       map_add' := by simp [Pi.single]
+       map_smul' := by simp [Pi.single] })
     (by ext _; simp)
     (by
       ext f
