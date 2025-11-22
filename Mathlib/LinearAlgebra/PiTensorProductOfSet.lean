@@ -775,13 +775,13 @@ variable {S T : Set ι} (hsub : S ⊆ T) [(i : ι) → Decidable (i ∈ S)]
 /-!
 TBD.
 -/
+
 theorem extendLinearInjective [∀ U : Set ι, FaithfullyFlat R (⨂[R] i : U, s i)] :
     Function.Injective (extendLinearHom (R:=R) (s:=s) (M:=M) hsub) := by
   apply LinearMap.ker_eq_bot.mp
-  erw? [LinearMap.ker_comp]
+  simp only [extendLinearHom, LinearEquiv.ker_comp]
   ext f
-  simp only [LinearEquiv.ker, Submodule.comap_bot, LinearMap.mem_ker,
-    LinearMap.coe_rTensorHom, Submodule.mem_bot]
+  simp only [LinearMap.mem_ker, LinearMap.coe_rTensorHom, Submodule.mem_bot]
   symm
   apply Module.FaithfullyFlat.zero_iff_rTensor_zero
 
