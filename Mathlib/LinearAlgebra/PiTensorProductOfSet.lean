@@ -156,8 +156,8 @@ def tmulUnionEquiv :
 theorem tmulUnionEquiv_tprod (lv : (i : S₁) → s i) (rv : (i : S₂) → s i) :
     (tmulUnionEquiv hdisj) ((⨂ₜ[R] i : S₁, lv i) ⊗ₜ (⨂ₜ[R] i : S₂, rv i)) =
       ⨂ₜ[R] j : ↥(S₁ ∪ S₂), if h : j.val ∈ S₁ then lv ⟨j, h⟩ else rv ⟨j, by aesop⟩ := by
-  erw [tmulUnionEquiv, LinearEquiv.trans_apply,
-    LinearEquiv.symm_apply_eq, reindex_tprod, tmulEquivDep_apply]
+  rw [tmulUnionEquiv, LinearEquiv.trans_apply, LinearEquiv.symm_apply_eq, reindex_tprod]
+  erw [tmulEquivDep_apply]
   congr with x
   match x with
   | Sum.inl x => simp_all
@@ -188,8 +188,7 @@ theorem tmulBipartitionEquiv_tprod (lv : (i : S) → s i) (rv : (i : ↥Sᶜ) �
     tmulBipartitionEquiv ((⨂ₜ[R] i : S, lv i) ⊗ₜ (⨂ₜ[R] i : ↥Sᶜ, rv i)) =
       ⨂ₜ[R] j, if h : j ∈ S then lv ⟨j, h⟩ else rv ⟨j, by aesop⟩ := by
   simp only [tmulBipartitionEquiv, LinearEquiv.trans_apply, tmulUnionEquiv_tprod]
-  erw [reindex_tprod]
-  rfl
+  apply reindex_tprod
 
 @[simp]
 theorem tmulBipartition_symm_tprod (f : (i : ι) → s i) :
@@ -214,8 +213,8 @@ def tmulUnifyEquiv :
 theorem tmulUnifyEquiv_tprod (lv : (i : S) → s i) (rv : (i : ↑(T \ S)) → s i) :
     tmulUnifyEquiv hsub ((⨂ₜ[R] i, lv i) ⊗ₜ (⨂ₜ[R] i, rv i)) =
       ⨂ₜ[R] i : T, if h : ↑i ∈ S then lv ⟨↑i, by aesop⟩ else rv ⟨↑i, by aesop⟩ := by
-  erw [tmulUnifyEquiv, LinearEquiv.trans_apply, tmulUnionEquiv_tprod, reindex_tprod]
-  rfl
+  rw [tmulUnifyEquiv, LinearEquiv.trans_apply, tmulUnionEquiv_tprod]
+  apply reindex_tprod
 
 @[simp]
 theorem tmulUnifyEquiv_tprod_symm (av : (i : T) → s i) :
@@ -319,16 +318,16 @@ theorem partialContract_tprod (l : (⨂[R] i : S, s i) →ₗ[R] R) (f : (i : T)
     = (l (⨂ₜ[R] i : S, f ⟨i, by aesop⟩)) • ⨂ₜ[R] i : ↑(T \ S), f ⟨i, by aesop⟩ := by
   simp [partialContract, LinearEquiv.congrRight]
 
-omit [(i : ι) → Decidable (i ∈ S)] in
-@[simp]
-theorem partialContractDiff_tprod [(i : ι) → Decidable (i ∈ T \ S)]
-    (l : (⨂[R] i : ↑(T \ S), s i) →ₗ[R] R) (f : (i : T) → s i) :
-    partialContractDiff hsub l (⨂ₜ[R] i, f i)
-    = (l (⨂ₜ[R] i : ↑(T \ S), f ⟨i, by aesop⟩)) • ⨂ₜ[R] i : S, f ⟨i, by aesop⟩ := by
-  simp only [partialContractDiff, Equiv.setCongr_symm_apply, LinearMap.coe_mk, AddHom.coe_mk,
-    LinearMap.llcomp_apply, partialContract_tprod, map_smul, LinearEquiv.coe_coe]
-  erw [reindex_tprod]
-  rfl
+-- omit [(i : ι) → Decidable (i ∈ S)] in
+-- @[simp]
+-- theorem partialContractDiff_tprod [(i : ι) → Decidable (i ∈ T \ S)]
+--     (l : (⨂[R] i : ↑(T \ S), s i) →ₗ[R] R) (f : (i : T) → s i) :
+--     partialContractDiff hsub l (⨂ₜ[R] i, f i)
+--     = (l (⨂ₜ[R] i : ↑(T \ S), f ⟨i, by aesop⟩)) • ⨂ₜ[R] i : S, f ⟨i, by aesop⟩ := by
+--   simp only [partialContractDiff, Equiv.setCongr_symm_apply, LinearMap.coe_mk, AddHom.coe_mk,
+--     LinearMap.llcomp_apply, partialContract_tprod, map_smul, LinearEquiv.coe_coe]
+--   erw [reindex_tprod]
+--   rfl
 
 -- TBD: `self` and `trans` lemmas, as for `extendTensor` below?
 -- Maybe not for now.
@@ -436,6 +435,7 @@ def tmulInsertEquiv :
   (TensorProduct.congr (singletonEquiv i₀).symm (LinearEquiv.refl _ _)) ≪≫ₗ
   (tmulUnionEquiv (Set.disjoint_singleton_left.mpr h₀))
 
+@[simp]
 theorem tmulInsertEquiv_tprod (x : s i₀) (f : (i : S) → s i) :
     (tmulInsertEquiv h₀) (x ⊗ₜ[R] (⨂ₜ[R] i, f i)) = ⨂ₜ[R] i : ↥(insert i₀ S),
       if h : i.val ∈ ({i₀} : Set ι) then cast (by aesop) x else f ⟨i, by aesop⟩ := by
@@ -447,9 +447,8 @@ theorem tmulInsertEquiv_tprod (x : s i₀) (f : (i : S) → s i) :
 theorem tmulInsertEquiv_symm_tprod (f : (i : ↥(insert i₀ S)) → s i) :
     (tmulInsertEquiv h₀).symm (⨂ₜ[R] i, f i) =
     (f ⟨i₀, by simp⟩) ⊗ₜ[R](⨂ₜ[R] i : S, f ⟨i, by simp⟩) := by
-  rw [tmulInsertEquiv, LinearEquiv.trans_symm, LinearEquiv.trans_apply]
-  erw [tmulUnionEquiv_symm_tprod]
-  simp
+  rw [LinearEquiv.symm_apply_eq, tmulInsertEquiv_tprod]
+  grind
 
 end InsertLeft
 
@@ -551,7 +550,9 @@ protected lemma tprodTprodLastEquiv_tprod (f : (k : Fin n.succ) → (i : Sf k) �
     PiTensorProduct.tprodTprodLastEquiv (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) =
     (⨂ₜ[R] k : Fin n, ⨂ₜ[R] i, f k.castSucc i) ⊗ₜ[R] (⨂ₜ[R] i, f (last n) i) := by
   simp only [PiTensorProduct.tprodTprodLastEquiv, LinearEquiv.trans_apply, reindex_tprod]
-  erw [tmulEquivDep_symm_apply, TensorProduct.congr_tmul, subsingletonEquivDep_tprod]
+  erw [tmulEquivDep_symm_apply]
+  rw [TensorProduct.congr_tmul]
+  erw [subsingletonEquivDep_tprod]
   rfl
 
 -- Move one summand from sigma type into binary tensor product
@@ -746,7 +747,7 @@ theorem tprodFiniUnionEquiv_tprod (f : (k : Fin n) → (i : Sf k) → s i) :
     tprodFiniUnionEquiv H (⨂ₜ[R] k, ⨂ₜ[R] i, f k i)
     = ⨂ₜ[R] i, f ((iUnionSigmaEquiv H).symm i).fst ((iUnionSigmaEquiv H).symm i).snd := by
   simp only [tprodFiniUnionEquiv, LinearEquiv.trans_apply, trpodFinTprodEquiv_tprod]
-  erw [reindex_tprod]
+  apply reindex_tprod
 
 @[simp]
 theorem tprodFiniUnionEquiv_symm_tprod (f : (i : (Set.iUnion Sf)) → s i) :
@@ -776,7 +777,7 @@ TBD.
 theorem extendLinearInjective [∀ U : Set ι, FaithfullyFlat R (⨂[R] i : U, s i)] :
     Function.Injective (extendLinearHom (R:=R) (s:=s) (M:=M) hsub) := by
   apply LinearMap.ker_eq_bot.mp
-  erw [LinearMap.ker_comp]
+  erw? [LinearMap.ker_comp]
   ext f
   simp only [LinearEquiv.ker, Submodule.comap_bot, LinearMap.mem_ker,
     LinearMap.coe_rTensorHom, Submodule.mem_bot]
