@@ -318,16 +318,16 @@ theorem partialContract_tprod (l : (⨂[R] i : S, s i) →ₗ[R] R) (f : (i : T)
     = (l (⨂ₜ[R] i : S, f ⟨i, by aesop⟩)) • ⨂ₜ[R] i : ↑(T \ S), f ⟨i, by aesop⟩ := by
   simp [partialContract, LinearEquiv.congrRight]
 
--- omit [(i : ι) → Decidable (i ∈ S)] in
--- @[simp]
--- theorem partialContractDiff_tprod [(i : ι) → Decidable (i ∈ T \ S)]
---     (l : (⨂[R] i : ↑(T \ S), s i) →ₗ[R] R) (f : (i : T) → s i) :
---     partialContractDiff hsub l (⨂ₜ[R] i, f i)
---     = (l (⨂ₜ[R] i : ↑(T \ S), f ⟨i, by aesop⟩)) • ⨂ₜ[R] i : S, f ⟨i, by aesop⟩ := by
---   simp only [partialContractDiff, Equiv.setCongr_symm_apply, LinearMap.coe_mk, AddHom.coe_mk,
---     LinearMap.llcomp_apply, partialContract_tprod, map_smul, LinearEquiv.coe_coe]
---   erw [reindex_tprod]
---   rfl
+omit [(i : ι) → Decidable (i ∈ S)] in
+@[simp]
+theorem partialContractDiff_tprod [(i : ι) → Decidable (i ∈ T \ S)]
+    (l : (⨂[R] i : ↑(T \ S), s i) →ₗ[R] R) (f : (i : T) → s i) :
+    partialContractDiff hsub l (⨂ₜ[R] i, f i)
+    = (l (⨂ₜ[R] i : ↑(T \ S), f ⟨i, by aesop⟩)) • ⨂ₜ[R] i : S, f ⟨i, by aesop⟩ := by
+  simp only [partialContractDiff, Equiv.setCongr_symm_apply, LinearMap.coe_mk, AddHom.coe_mk,
+    LinearMap.llcomp_apply, partialContract_tprod, map_smul, LinearEquiv.coe_coe]
+  conv => lhs; arg 2; apply reindex_tprod
+  simp
 
 -- TBD: `self` and `trans` lemmas, as for `extendTensor` below?
 -- Maybe not for now.
@@ -550,10 +550,11 @@ protected lemma tprodTprodLastEquiv_tprod (f : (k : Fin n.succ) → (i : Sf k) �
     PiTensorProduct.tprodTprodLastEquiv (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) =
     (⨂ₜ[R] k : Fin n, ⨂ₜ[R] i, f k.castSucc i) ⊗ₜ[R] (⨂ₜ[R] i, f (last n) i) := by
   simp only [PiTensorProduct.tprodTprodLastEquiv, LinearEquiv.trans_apply, reindex_tprod]
-  erw [tmulEquivDep_symm_apply]
+  conv => arg 1; arg 2; apply tmulEquivDep_symm_apply
   rw [TensorProduct.congr_tmul]
-  erw [subsingletonEquivDep_tprod]
+  conv => lhs; arg 3; apply subsingletonEquivDep_tprod
   rfl
+
 
 -- Move one summand from sigma type into binary tensor product
 
@@ -569,8 +570,8 @@ protected lemma tprodSigmaLastEquiv_tprod (f : (j : Σ k : Fin n.succ, Sf k) →
     (⨂ₜ[R] i, f ⟨(last n), i⟩)) := by
   simp only [PiTensorProduct.tprodSigmaLastEquiv, Nat.succ_eq_add_one,
     LinearEquiv.trans_apply, reindex_tprod]
-  erw [tmulEquivDep_symm_apply]
-  simp [sigmaFinSumLastEquiv]
+  apply tmulEquivDep_symm_apply
+
 
 -- @[simp] -- remove for local lemma?
 -- protected lemma tprodSigmaLastEquiv_symm_tprod
