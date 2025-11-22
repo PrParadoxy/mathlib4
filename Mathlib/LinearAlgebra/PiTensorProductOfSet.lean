@@ -341,16 +341,16 @@ where `L k` is defined on tensors indexed by `Sf k`, construct a linear map
 defined on tensors indexed by the union of `Sf`. -/
 
 -- TBD: prove & merge with above
-/-- Given a family `(k : κ) → Sf` of disjoint sets, there is a multilinear map
+/- Given a family `(k : κ) → Sf` of disjoint sets, there is a multilinear map
 from maps on tensors indexed by `Sf k` to tensors indexed by the union of `Sf`. -/
-def unifMaps_ml :
-  MultilinearMap R
-       (fun k => (⨂[R] i : Sf k, s i) →ₗ[R] (M k))
-       ((⨂[R] i : iUnion Sf, s i) →ₗ[R] (⨂[R] k, M k)) := {
-    toFun L := unifyMaps L
-    map_update_add' := sorry
-    map_update_smul' := sorry
-  }
+-- def unifMaps_ml :
+--   MultilinearMap R
+--        (fun k => (⨂[R] i : Sf k, s i) →ₗ[R] (M k))
+--        ((⨂[R] i : iUnion Sf, s i) →ₗ[R] (⨂[R] k, M k)) := {
+--     toFun L := unifyMaps L
+--     map_update_add' := sorry
+--     map_update_smul' := sorry
+--   }
 
 end LinearMap
 
@@ -832,7 +832,7 @@ variable {S T : Set ι} (hsub : S ⊆ T) [(i : ι) → Decidable (i ∈ S)]
 
 #check (fun U : Set ι => (inferInstance : Flat R (⨂[R] i : U, s i)))
 
-#check (fun U : Set ι => (inferInstance : FaithfullyFlat R (⨂[R] i : U, s i)))
+-- #check (fun U : Set ι => (inferInstance : FaithfullyFlat R (⨂[R] i : U, s i)))
 
 end Field
 
