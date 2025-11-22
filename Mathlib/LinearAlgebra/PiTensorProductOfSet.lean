@@ -157,7 +157,7 @@ theorem tmulUnionEquiv_tprod (lv : (i : S₁) → s i) (rv : (i : S₂) → s i)
     (tmulUnionEquiv hdisj) ((⨂ₜ[R] i : S₁, lv i) ⊗ₜ (⨂ₜ[R] i : S₂, rv i)) =
       ⨂ₜ[R] j : ↥(S₁ ∪ S₂), if h : j.val ∈ S₁ then lv ⟨j, h⟩ else rv ⟨j, by aesop⟩ := by
   rw [tmulUnionEquiv, LinearEquiv.trans_apply, LinearEquiv.symm_apply_eq, reindex_tprod]
-  erw [tmulEquivDep_apply]
+  simp only [Equiv.Set.union, Equiv.Set.union', Equiv.coe_fn_symm_mk, tmulEquivDep_apply]
   congr with x
   match x with
   | Sum.inl x => simp_all
