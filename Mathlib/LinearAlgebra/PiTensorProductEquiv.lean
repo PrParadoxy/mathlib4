@@ -5,8 +5,8 @@ Authors: Davood Tehrani, David Gross
 -/
 import Mathlib.LinearAlgebra.PiTensorProduct
 import Mathlib.LinearAlgebra.TensorProduct.Associator
-
-
+import mathlib.LinearAlgebra.TensorAlgebra.ToTensorPower
+#check setOf
 /-!
 # PiTensorProducts indexed by sets
 
@@ -96,14 +96,6 @@ def subsingletonEquivDep : (⨂[R] i, s i) ≃ₗ[R] s i₀ :=
         ext k; rw [Subsingleton.elim i₀ k]; simp
       simp [h])
 
-section
-variable {M : Type*} [AddCommMonoid M] [Module R M]
-
-/-- Tensor product of `M` over a singleton set is equivalent to `M`. Use
-`subsingletonEquivDep` for dependent case. -/
-def subsingletonEquiv' : (⨂[R] _ : ι, M) ≃ₗ[R] M := subsingletonEquivDep i₀
-end
-
 @[simp]
 theorem subsingletonEquivDep_tprod (f : (i : ι) → s i) :
     subsingletonEquivDep i₀ (⨂ₜ[R] i, f i) = f i₀ := by simp [subsingletonEquivDep]
@@ -114,6 +106,27 @@ lemma subsingletonEquivDep_eq_tprod (z : ⨂[R] i, s i) :
     z = ⨂ₜ[R] i, (Pi.single i₀ (subsingletonEquivDep i₀ z)) i := by
   induction z using PiTensorProduct.induction_on
   all_goals rw [←subsingletonEquivDep_symm_apply, LinearEquiv.symm_apply_apply]
+
+
+section
+variable {M : Type*} [AddCommMonoid M] [Module R M]
+
+/-- Tensor product of `M` over a singleton set is equivalent to `M`. Use
+`subsingletonEquivDep` for dependent case. -/
+def subsingletonEquiv' : (⨂[R] _ : ι, M) ≃ₗ[R] M := subsingletonEquivDep i₀
+
+@[simp]
+theorem subsingletonEquiv'_tprod' (f : (i : ι) → M) :
+    subsingletonEquiv' i₀ (⨂ₜ[R] _, f i₀) = f i₀ := by
+  simp [subsingletonEquiv']
+
+@[simp]
+theorem subsingletonEquiv'_symm' (x : M) :
+    (subsingletonEquiv' i₀).symm x = (⨂ₜ[R] _, x) := by
+  simp [LinearEquiv.symm_apply_eq, subsingletonEquiv'_tprod' i₀ (fun _ => x)]
+
+end
+
 
 end subsingletonEquivDep
 
@@ -405,3 +418,18 @@ theorem induction_on_finset
   induction S using Finset.induction with
   | empty => simpa [LinearEquiv.symm_apply_apply] using empty (isEmptyEquiv (∅ : Finset ι) z)
   | insert i₀ S hi₀ hm => exact insert i₀ S hi₀ hm z
+
+
+open scoped DirectSum TensorProduct
+variable {R M : Type*} [CommSemiring R] [AddCommMonoid M] [Module R M]
+
+def toDirectSum' : TensorAlgebra R M →ₐ[R] ⨁ n, ⨂[R]^n M :=
+  TensorAlgebra.lift R <|
+    DirectSum.lof R ℕ (fun n => ⨂[R]^n M) _ ∘ₗ
+      (LinearEquiv.symm <| subsingletonEquiv' (0 : Fin 1) : M ≃ₗ[R] _).toLinearMap
+
+@[simp]
+theorem toDirectSum_ι' (x : M) :
+    toDirectSum' (TensorAlgebra.ι R x) =
+      DirectSum.of (fun n => ⨂[R]^n M) _ (PiTensorProduct.tprod R fun _ : Fin 1 => x) := by
+  simp [toDirectSum', TensorAlgebra.lift_ι_apply, DirectSum.lof_eq_of]
