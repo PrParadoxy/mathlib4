@@ -811,14 +811,14 @@ def subsingletonEquivDep : (⨂[R] i : ι, s i) ≃ₗ[R] s i₀ :=
       { toFun f := f i₀
         map_update_add' := by aesop (add safe forward Subsingleton.allEq)
         map_update_smul' := by aesop (add safe forward Subsingleton.allEq) })
-    ({ toFun x := tprod R (Pi.single i₀ x)
-       map_add' := by simp [Pi.single]
-       map_smul' := by simp [Pi.single] })
+    ({ toFun x := tprod R (update ↑0 i₀ x)
+       map_add' := by simp
+       map_smul' := by simp })
     (by ext _; simp)
     (by
       ext f
-      have h : Pi.single i₀ (f i₀) = f := by
-        ext k; rw [Subsingleton.elim i₀ k]; simp
+      have h : update ↑0 i₀ (f i₀) = f := by
+        ext j; cases Subsingleton.elim j i₀; rfl
       simp [h])
 
 @[simp]
@@ -827,8 +827,7 @@ theorem subsingletonEquivDep_apply_tprod (f : (i : ι) → s i) :
 
 @[simp]
 theorem subsingletonEquivDep_symm_apply (x : s i₀) :
-    (subsingletonEquivDep i₀).symm x = (⨂ₜ[R] i, if h : i = i₀ then h ▸ x else 0) := by
-  simp [LinearEquiv.symm_apply_eq]
+    (subsingletonEquivDep i₀).symm x = (⨂ₜ[R] i, update ↑0 i₀ x i) := rfl
 
 /-- Tensor product of `M` over a singleton type is equivalent to `M`.
 Use `subsingletonEquivDep` for dependent case. -/
