@@ -16,28 +16,32 @@ where `S : Set ι`.
 
 ## Main definitions
 
-We establish a number of linear equivalences.
-* `unionEquiv`: Tensors indexed by `ι` are isomorphic to tensors indexed by `univ : Set ι`
-* `tmulUnionEquiv`: Tensors indexed by a set `S₁` times tensors indexed by a disjoint set `S₂`
-are isomorphic to tensors indexed by the union `S₁ ∪ S₂`
-* `tmulBipartitionEquiv`: Tensors indexed by a set `S` times tensors indexed by its complement `Sᶜ`
-are isomorphic to the space of all tensors
-* `tmulUnifyEquiv`: For sets `S ⊆ T`, tensors indexed by `S` times tensors indexed by `T \ S`
-are isomorphic to tensors indexed by `T`
-* `singletonEquiv`: Tensors indexed by a singleton set `{i₀}` are equivalent to vectors in `s i₀`
-between tensors indexed by a singleton set `{i₀}` and the module `s i₀`
-* `tmulInsertEquiv`: Vectors in `s i₀` times tensors indexed by `S` are equivalent to tensors
-indexed by `insert i₀ S`, assuming `i₀ ∉ S`
+* Equivalences for `PiTensorproduct`s over sets:
 
-Given sets `S ⊆ T`, various objects can be extended from tensors with index set `S` to
-tensors with index set `T`.
-* `extendLinear` converts a linear map defined on tensors with index set `S` to tensors with
-  index set `T`.
-* `extendEnd` and `partialContract` are special cases for endomorphisms and linear functionals,
-  respectively.
-* `extendTensor`: Given a family of distinguished elements `s₀ : (i : ι) → s i`, map a tensor
-  with index set `S` to a tensor with index set `T`, by padding with the vectors provided by `s₀`
-  on `T \ S`.
+Definition...           ...pertains to
+`univEquiv`             `univ : Set ι`
+`singletonEquiv`        `{i₀}`
+
+* Equivalences relating binary tensor products to union of sets:
+
+Definition...           ...pertains to
+`tmulUnionEquiv`        `S₁ ∪ S₂`
+`tmulBipartitionEquiv`  `S ∪ Sᶜ`
+`tmulUnifyEquiv`        `S ∪ (T \ S)`
+`tmulInsertEquiv`       `{i₀} ∪ S`
+
+
+* Given sets `S ⊆ T`, linear functions defined on tensors indexed by `S` can be
+extended to tensors indexed by `T`, by acting trivially on `T \ S`:
+
+Definition...           ...pertains to
+`extendLinear`          `⨂ S → M`
+`extendEnd`             `⨂ S → ⨂ S`
+`extendFunctional`      `⨂ S → R`
+
+* `extendTensor`: Given a family of distinguished elements `s₀ : (i : ι) → s i`,
+a tensor with index set `S` can be extended to a tensor with index set `T`, by
+padding with the vectors provided by `s₀` on `T \ S`.
 
 ## Implementation notes
 
