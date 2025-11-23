@@ -6,7 +6,6 @@ Authors: Davood Tehrani, David Gross
 import Mathlib.LinearAlgebra.PiTensorProduct
 import Mathlib.LinearAlgebra.TensorProduct.Associator
 import mathlib.LinearAlgebra.TensorAlgebra.ToTensorPower
-#check setOf
 /-!
 # PiTensorProducts indexed by sets
 
