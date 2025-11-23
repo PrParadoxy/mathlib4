@@ -1,7 +1,7 @@
 module
 
-public import Mathlib.LinearAlgebra.PiTensorProduct.OfSet
-import Mathlib.RingTheory.Flat.FaithfullyFlat.Basic
+public import Mathlib.LinearAlgebra.PiTensorProduct.IndexSets
+public import Mathlib.RingTheory.Flat.FaithfullyFlat.Basic
 
 /-!
 
@@ -82,8 +82,8 @@ protected def tprodSigmaLastEquiv : (⨂[R] j : (Σ k : Fin n.succ, Sf k), s j.1
 
 protected lemma tprodSigmaLastEquiv_tprod (f : (j : Σ k : Fin n.succ, Sf k) → s j.1 j.2) :
     PiTensorProduct.tprodSigmaLastEquiv (⨂ₜ[R] j, f j) =
-    ((⨂ₜ[R] j : (Σ k : Fin n, Sf k.castSucc), f ⟨j.1.castSucc, j.2⟩) ⊗ₜ[R]
-    (⨂ₜ[R] i, f ⟨(last n), i⟩)) := by
+    (⨂ₜ[R] j : (Σ k : Fin n, Sf k.castSucc), f ⟨j.1.castSucc, j.2⟩) ⊗ₜ[R]
+    (⨂ₜ[R] i, f ⟨(last n), i⟩) := by
   simp only [PiTensorProduct.tprodSigmaLastEquiv, Nat.succ_eq_add_one,
     LinearEquiv.trans_apply, reindex_tprod]
   apply tmulEquivDep_symm_apply

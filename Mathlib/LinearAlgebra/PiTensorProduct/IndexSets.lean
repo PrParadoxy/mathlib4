@@ -11,8 +11,8 @@ public import Mathlib.LinearAlgebra.TensorProduct.Associator
 /-!
 # PiTensorProducts indexed by sets
 
-Given a family of modules `s : ι → Type*`, we consider tensor products of type
-`⨂ (i : S), s i`, where `S : Set ι`.
+Given a family of modules `s : ι → Type*`, we consider tensors of type `⨂ (i : S), s i`,
+where `S : Set ι`.
 
 ## Main definitions
 
@@ -166,21 +166,17 @@ section LinearMap
 
 open Module
 
--- TBD: Unify with `map` section of "PiTensorProduct.lean"
--- TBD: And with `TensorProduct.map` section, including notation.
--- TBD: What's up with left / right asymmetry?
-
 variable {M : Type*} [AddCommMonoid M] [Module R M]
 
-/-- Lifts a linear map on tensors with index set `S ⊆ T` to a linear map
+/-- A linear map on tensors with index set `S ⊆ T` extends to a linear map
 on tensors with index set `T`. Bundled as a homomorphism of linear maps. -/
 def extendLinearHom : ((⨂[R] i : S, s i) →ₗ[R] M) →ₗ[R]
     ((⨂[R] i : T, s i) →ₗ[R] (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂))) :=
   let TmS := ⨂[R] (i : ↑(T \ S)), s i
   ((tmulUnifyEquiv hsub).congrLeft (M:=M ⊗[R] TmS) R).toLinearMap ∘ₗ LinearMap.rTensorHom TmS
 
-/-- Extension of an endomorphism on tensors with index set `S ⊆ T` to one on
-tensors with index set `T`. Bundled as a homomorphism of endomorphisms. -/
+/-- An endomorphism on tensors with index set `S ⊆ T` extends to an endomorphism
+on tensors with index set `T`. Bundled as a homomorphism of linear maps. -/
 def extendEnd : End R (⨂[R] i : S, s i) →ₗ[R] End R (⨂[R] i : T, s i) :=
   (tmulUnifyEquiv hsub).congrRight.toLinearMap ∘ₗ extendLinearHom hsub
 
@@ -208,6 +204,8 @@ theorem partialContract_tprod (l : (⨂[R] i : S, s i) →ₗ[R] R) (f : (i : T)
     partialContract hsub l (⨂ₜ[R] i, f i)
     = (l (⨂ₜ[R] i : S, f ⟨i, by aesop⟩)) • ⨂ₜ[R] i : ↑(T \ S), f ⟨i, by aesop⟩ := by
   simp [partialContract, LinearEquiv.congrRight]
+
+-- TBD: Injectivity lemmas
 
 end LinearMap
 

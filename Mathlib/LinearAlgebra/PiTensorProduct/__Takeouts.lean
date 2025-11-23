@@ -1,6 +1,6 @@
 module
 
-public import Mathlib.LinearAlgebra.PiTensorProduct.OfSet
+public import Mathlib.LinearAlgebra.PiTensorProduct.IndexSets
 
 /-!
 
@@ -53,6 +53,16 @@ and actual invocation in Mathlib.Logic.Equiv.Defs
 variable {ι : Type*} {R : Type*} {s : ι → Type*}
 variable [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
 
+
+-- TBD: Why are the signatures so different?
+#check LinearEquiv.congrLeft
+#check LinearEquiv.congrRight
+
+/-
+
+# Removed code
+
+-/
 
 section subsingletonEquivDep
 
