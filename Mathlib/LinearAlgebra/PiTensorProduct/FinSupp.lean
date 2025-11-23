@@ -3,7 +3,7 @@ Copyright (c) 2025 Davood Tehrani, David Gross. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Davood Tehrani, David Gross
 -/
-import Mathlib.LinearAlgebra.PiTensorProductOfSet
+import Mathlib.LinearAlgebra.PiTensorProduct.IndexSets
 import Mathlib.Algebra.Colimit.Module
 
 /-!
@@ -79,7 +79,7 @@ instance Finsupp.directedSystem : DirectedSystem
     intro U T S h1 h2 f
     rw [←Function.comp_apply (f := extendTensor h2 s₀)]
     apply congrFun
-    erw [←LinearMap.coe_comp, DFunLike.coe_fn_eq]
+    simp [←LinearMap.coe_comp]
     exact extendTensor_trans h1 h2
 
 /-- Tensors with finite support -/
