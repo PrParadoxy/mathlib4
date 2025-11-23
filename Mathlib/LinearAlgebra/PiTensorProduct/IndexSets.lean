@@ -17,18 +17,19 @@ where `S : Set ι`.
 ## Main definitions
 
 We establish a number of linear equivalences.
-* `unionEquiv` between tensors with index type `ι` and tensors with index type `univ : Set ι`.
-* `tmulUnionEquiv` between products of tensors indexed by two disjoint sets `S₁`, `S₂` and
-  tensors indexed by the union `S₁ ∪ S₂`.
-* `tmulBipartitionEquiv` between products of tensors indexed by `S`, `Sᶜ` and tensors with
-  index type `ι`.
-* `tmulUnifyEquiv`: Given sets `S ⊆ T`, a linear equivalence between product of tensors indexed
-  by `S` and `T \ S`, and tensors indexed by `T`.
-* `singletonEquiv` between tensors indexed by a singleton set `{i₀}` and the module `s i₀`.
-* `tmulInsertEquiv` between the product of vectors in `s i₀` with a tensor indexed by `S`,
-  and tensors indexed by `insert i₀ S`.
+* `unionEquiv`: Tensors indexed by `ι` are isomorphic to tensors indexed by `univ : Set ι`
+* `tmulUnionEquiv`: Tensors indexed by a set `S₁` times tensors indexed by a disjoint set `S₂`
+are isomorphic to tensors indexed by the union `S₁ ∪ S₂`
+* `tmulBipartitionEquiv`: Tensors indexed by a set `S` times tensors indexed by its complement `Sᶜ`
+are isomorphic to the space of all tensors
+* `tmulUnifyEquiv`: For sets `S ⊆ T`, tensors indexed by `S` times tensors indexed by `T \ S`
+are isomorphic to tensors indexed by `T`
+* `singletonEquiv`: Tensors indexed by a singleton set `{i₀}` are equivalent to vectors in `s i₀`
+between tensors indexed by a singleton set `{i₀}` and the module `s i₀`
+* `tmulInsertEquiv`: Vectors in `s i₀` times tensors indexed by `S` are equivalent to tensors
+indexed by `insert i₀ S`, assuming `i₀ ∉ S`
 
-Given sets `S ⊆ T`, various objects can be "extended" from tensors with index set `S` to
+Given sets `S ⊆ T`, various objects can be extended from tensors with index set `S` to
 tensors with index set `T`.
 * `extendLinear` converts a linear map defined on tensors with index set `S` to tensors with
   index set `T`.
@@ -40,21 +41,22 @@ tensors with index set `T`.
 
 ## Implementation notes
 
-This file was motivated by the goal to implement a type of "tensors with finite support", see
-`PiTensorFinSupp.lean`, and also by this TBD item from `PiTensorProduct.lean`:
+Our goal was to enable the implementation of a type of "tensors that agree with
+a default element on all but finitely many indices", a concept used e.g. to
+define "infinite tensor products" in the theory of C^* algebras. These can
+now be constructed as inductive limits using the properties of `extendTensor` proven
+in this file. (This theory is WIP.)
 
-  * API for the various ways `ι` can be split into subsets; connect this with the binary
-    tensor product.
-
-The fist `section` contains a dependent version of `PiTensorProduct.subsingletonEquiv`,
-which is not direct part of the `Set` API.
+The "set point of view" to tensor indices is also natural in contexts where the
+index type has an independent meaning. In quantum mechanics, e.g., `ι` would be
+the type of distinguishable degrees of freedom of a system.
 
 ## TODO
 
-*This file is work in progress.*
-
 * Seek feedback
-* Implement nested PiTensorProducts
+* Injectivity lemmas for the extensions. These are easy for vector spaces over
+fields, but can become quite subtle for `AddCommMonoid`s.
+* Nested `PiTensorProducts`. We provide a preliminary theory in a subsequent PR.
 
 -/
 
@@ -104,7 +106,7 @@ theorem tmulUnionEquiv_symm_tprod (f : (i : ↥(S₁ ∪ S₂)) → s i) :
 theorem tmulUnionEquiv_tprod (lv : (i : S₁) → s i) (rv : (i : S₂) → s i) :
     (tmulUnionEquiv hdisj) ((⨂ₜ[R] i : S₁, lv i) ⊗ₜ (⨂ₜ[R] i : S₂, rv i)) =
       ⨂ₜ[R] j : ↥(S₁ ∪ S₂), if h : ↑j ∈ S₁ then lv ⟨j, h⟩ else rv ⟨j, by aesop⟩ := by
-  rw [<-LinearEquiv.eq_symm_apply, tmulUnionEquiv_symm_tprod]
+  rw [←LinearEquiv.eq_symm_apply, tmulUnionEquiv_symm_tprod]
   congr with i
   · simp
   · simp [disjoint_right.mp hdisj i.property]
@@ -161,6 +163,81 @@ theorem tmulUnifyEquiv_tprod_symm (av : (i : T) → s i) :
   rw [LinearEquiv.symm_apply_eq, tmulUnifyEquiv_tprod]
   congr
   aesop
+
+end tmulUnifyEquiv
+
+section singletonSetEquiv
+
+variable (i₀ : ι)
+
+/-- Tensors indexed by a singleton set `{i₀}` are equivalent to vectors in `s i₀`. -/
+def singletonSetEquiv : (⨂[R] i : ({i₀} : Set ι), s i) ≃ₗ[R] s i₀ :=
+  subsingletonEquivDep (⟨i₀, by simp⟩ : ({i₀} : Set ι))
+
+@[simp]
+theorem singletonEquiv_tprod (f : (i : ({i₀} : Set ι)) → s i) :
+    singletonSetEquiv i₀ (⨂ₜ[R] i, f i) = f ⟨i₀, by simp⟩ := by simp [singletonSetEquiv]
+
+@[simp]
+theorem singletonEquiv_symm_tprod (x : s i₀) :
+    (singletonSetEquiv i₀).symm x = (⨂ₜ[R] i : ({i₀} : Set ι), cast (by aesop) x) := by
+  rw [LinearEquiv.symm_apply_eq, singletonEquiv_tprod, cast_eq]
+
+end singletonSetEquiv
+
+section tmulInsertEquiv
+
+variable {S : Set ι} {i₀} (h₀ : i₀ ∉ S)
+variable [DecidableEq ι]
+
+/-- Vectors in `s i₀` times tensors indexed by `S` are equivalent to tensors
+indexed by `insert i₀ S`, assuming `i₀ ∉ S`. -/
+def tmulInsertEquiv :
+    ((s i₀) ⊗[R] (⨂[R] i₁ : S, s i₁)) ≃ₗ[R] (⨂[R] i₁ : ↥(insert i₀ S), s i₁) :=
+  (TensorProduct.congr (singletonSetEquiv i₀).symm (LinearEquiv.refl _ _)) ≪≫ₗ
+  (tmulUnionEquiv (Set.disjoint_singleton_left.mpr h₀))
+
+@[simp]
+theorem tmulInsertEquiv_tprod (x : s i₀) (f : (i : S) → s i) :
+    (tmulInsertEquiv h₀) (x ⊗ₜ[R] (⨂ₜ[R] i, f i)) = ⨂ₜ[R] i : ↥(insert i₀ S),
+      if h : i.val ∈ ({i₀} : Set ι) then cast (by aesop) x else f ⟨i, by aesop⟩ := by
+  rw [tmulInsertEquiv, LinearEquiv.trans_apply,
+    TensorProduct.congr_tmul, singletonEquiv_symm_tprod]
+  apply tmulUnionEquiv_tprod
+
+@[simp]
+theorem tmulInsertEquiv_symm_tprod (f : (i : ↥(insert i₀ S)) → s i) :
+    (tmulInsertEquiv h₀).symm (⨂ₜ[R] i, f i) =
+    (f ⟨i₀, by simp⟩) ⊗ₜ[R](⨂ₜ[R] i : S, f ⟨i, by simp⟩) := by
+  rw [LinearEquiv.symm_apply_eq, tmulInsertEquiv_tprod]
+  grind
+
+end tmulInsertEquiv
+
+section Perm
+
+variable {S : Set ι}
+variable {M : Type*} [AddCommMonoid M] [Module R M]
+variable (e : Equiv.Perm ι)
+
+/-- An equivalence `e : Equiv.Perm ι` maps tensors indexed by a set `S` to
+tensors indexed by `e '' S` -/
+def permSetEquiv : (⨂[R] _ : S, M) ≃ₗ[R] ⨂[R] _ : (e '' S), M :=
+  reindex R (fun _ ↦ M) (Equiv.image e S)
+
+@[simp]
+theorem permSetEquiv_tprod (f : S → M) :
+  (permSetEquiv e) (⨂ₜ[R] i, f i) = ⨂ₜ[R] i, f ((Equiv.image e S).symm i) := by simp [permSetEquiv]
+
+@[simp]
+theorem permSetEquiv_symm_tprod (f : (e '' S) → M) :
+  (permSetEquiv e).symm (⨂ₜ[R] i, f i) = ⨂ₜ[R] i, f ((Equiv.image e S) i) := by simp [permSetEquiv]
+
+end Perm
+
+section Extensions
+
+variable {S T : Set ι} (hsub : S ⊆ T) [(i : ι) → Decidable (i ∈ S)]
 
 section LinearMap
 
@@ -242,75 +319,7 @@ theorem extendTensor_trans [(i : ι) → Decidable (i ∈ T)] {U : Set ι} (hsub
   split_ifs <;> tauto
 
 end ExtendTensor
-end tmulUnifyEquiv
 
-section singletonSetEquiv
-
-variable (i₀ : ι)
-
-/-- Tensors indexed by a singleton set `{i₀}` are equivalent to vectors in `s i₀`. -/
-def singletonSetEquiv : (⨂[R] i : ({i₀} : Set ι), s i) ≃ₗ[R] s i₀ :=
-  subsingletonEquivDep (⟨i₀, by simp⟩ : ({i₀} : Set ι))
-
-@[simp]
-theorem singletonEquiv_tprod (f : (i : ({i₀} : Set ι)) → s i) :
-    singletonSetEquiv i₀ (⨂ₜ[R] i, f i) = f ⟨i₀, by simp⟩ := by simp [singletonSetEquiv]
-
-@[simp]
-theorem singletonEquiv_symm_tprod (x : s i₀) :
-    (singletonSetEquiv i₀).symm x = (⨂ₜ[R] i : ({i₀} : Set ι), cast (by aesop) x) := by
-  rw [LinearEquiv.symm_apply_eq, singletonEquiv_tprod, cast_eq]
-
-end singletonSetEquiv
-
-section tmulInsertEquiv
-
-variable {S : Set ι} {i₀} (h₀ : i₀ ∉ S)
-variable [DecidableEq ι]
-
-/-- Vectors in `s i₀` times tensors indexed by `S` are equivalent to tensors
-indexed by `insert i₀ S`, assuming `i₀ ∉ S`. -/
-def tmulInsertEquiv :
-    ((s i₀) ⊗[R] (⨂[R] i₁ : S, s i₁)) ≃ₗ[R] (⨂[R] i₁ : ↥(insert i₀ S), s i₁) :=
-  (TensorProduct.congr (singletonSetEquiv i₀).symm (LinearEquiv.refl _ _)) ≪≫ₗ
-  (tmulUnionEquiv (Set.disjoint_singleton_left.mpr h₀))
-
-@[simp]
-theorem tmulInsertEquiv_tprod (x : s i₀) (f : (i : S) → s i) :
-    (tmulInsertEquiv h₀) (x ⊗ₜ[R] (⨂ₜ[R] i, f i)) = ⨂ₜ[R] i : ↥(insert i₀ S),
-      if h : i.val ∈ ({i₀} : Set ι) then cast (by aesop) x else f ⟨i, by aesop⟩ := by
-  rw [tmulInsertEquiv, LinearEquiv.trans_apply,
-    TensorProduct.congr_tmul, singletonEquiv_symm_tprod]
-  apply tmulUnionEquiv_tprod
-
-@[simp]
-theorem tmulInsertEquiv_symm_tprod (f : (i : ↥(insert i₀ S)) → s i) :
-    (tmulInsertEquiv h₀).symm (⨂ₜ[R] i, f i) =
-    (f ⟨i₀, by simp⟩) ⊗ₜ[R](⨂ₜ[R] i : S, f ⟨i, by simp⟩) := by
-  rw [LinearEquiv.symm_apply_eq, tmulInsertEquiv_tprod]
-  grind
-
-end tmulInsertEquiv
-
-section Perm
-
-variable {S : Set ι}
-variable {M : Type*} [AddCommMonoid M] [Module R M]
-variable (e : Equiv.Perm ι)
-
-/-- An equivalence `e : Equiv.Perm ι` maps tensors indexed by a set `S` to
-tensors indexed by `e '' S` -/
-def permSetEquiv : (⨂[R] _ : S, M) ≃ₗ[R] ⨂[R] _ : (e '' S), M :=
-  reindex R (fun _ ↦ M) (Equiv.image e S)
-
-@[simp]
-theorem permSetEquiv_tprod (f : S → M) :
-  (permSetEquiv e) (⨂ₜ[R] i, f i) = ⨂ₜ[R] i, f ((Equiv.image e S).symm i) := by simp [permSetEquiv]
-
-@[simp]
-theorem permSetEquiv_symm_tprod (f : (e '' S) → M) :
-  (permSetEquiv e).symm (⨂ₜ[R] i, f i) = ⨂ₜ[R] i, f ((Equiv.image e S) i) := by simp [permSetEquiv]
-
-end Perm
+end Extensions
 
 end PiTensorProduct
