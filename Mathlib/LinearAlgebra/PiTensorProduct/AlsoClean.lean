@@ -38,7 +38,7 @@ protected lemma tprodTprodLastEquiv_tprod (f : (k : Fin n.succ) → (i : Sf k) �
     PiTensorProduct.tprodTprodLastEquiv (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) =
     (⨂ₜ[R] k : Fin n, ⨂ₜ[R] i, f k.castSucc i) ⊗ₜ[R] (⨂ₜ[R] i, f (last n) i) := by
   simp only [PiTensorProduct.tprodTprodLastEquiv, LinearEquiv.trans_apply, reindex_tprod]
-  conv => arg 1; arg 2; apply tmulEquivDep_symm_apply
+  conv => lhs; arg 2; apply tmulEquivDep_symm_apply
   rw [TensorProduct.congr_tmul]
   conv => lhs; arg 3; apply subsingletonEquivDep_apply_tprod
   rfl
@@ -81,8 +81,8 @@ theorem tprodFinTprodEquiv_tprod (f : (k : Fin n) → (i : Tf k) → s k i) :
     simp only [tprodFinTprodEquiv, Nat.rec_zero, LinearEquiv.trans_apply,
       LinearEquiv.symm_apply_eq, isEmptyEquiv_apply_tprod]
   | succ m ih =>
-    replace ih := @ih (fun i => Tf i.castSucc) (fun i j => s i.castSucc j) _ _
-      (fun i j => f i.castSucc j)
+    replace ih := @ih (fun k ↦ Tf k.castSucc) (fun k i ↦ s k.castSucc i) _ _
+      (fun k i ↦ f k.castSucc i)
     simp only [tprodFinTprodEquiv, LinearEquiv.trans_apply,
       PiTensorProduct.tprodTprodLastEquiv_tprod, TensorProduct.congr_tmul,
       LinearEquiv.refl_apply, ←LinearEquiv.eq_symm_apply, LinearEquiv.symm_symm,
