@@ -3,58 +3,9 @@ Copyright (c) 2025 Davood Tehrani, David Gross. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Davood Tehrani, David Gross
 -/
-import Mathlib.LinearAlgebra.PiTensorProduct
+import Mathlib.LinearAlgebra.PiTensorProduct.Set
 import Mathlib.LinearAlgebra.TensorProduct.Associator
 import mathlib.LinearAlgebra.TensorAlgebra.ToTensorPower
-/-!
-# PiTensorProducts indexed by sets
-
-Given a family of modules `s : ι → Type*`, we consider tensor products of type
-`⨂ (i : S), s i`, where `S : Set ι`.
-
-## Main definitions
-
-We establish a number of linear equivalences.
-* `unionEquiv` between tensors with index type `ι` and tensors with index type `univ : Set ι`.
-* `tmulUnionEquiv` between products of tensors indexed by two disjoint sets `S₁`, `S₂` and
-  tensors indexed by the union `S₁ ∪ S₂`.
-* `tmulBipartitionEquiv` between products of tensors indexed by `S`, `Sᶜ` and tensors with
-  index type `ι`.
-* `tmulUnifyEquiv`: Given sets `S ⊆ T`, a linear equivalence between product of tensors indexed
-  by `S` and `T \ S`, and tensors indexed by `T`.
-* `singletonEquiv` between tensors indexed by a singleton set `{i₀}` and the module `s i₀`.
-* `tmulInsertEquiv` between the product of vectors in `s i₀` with a tensor indexed by `S`,
-  and tensors indexed by `insert i₀ S`.
-
-Given sets `S ⊆ T`, various objects can be "extended" from tensors with index set `S` to
-tensors with index set `T`.
-* `extendLinear` converts a linear map defined on tensors with index set `S` to tensors with
-  index set `T`.
-* `extendEnd` and `partialContract` are special cases for endomorphisms and linear functionals,
-  respectively.
-* `extendTensor`: Given a family of distinguished elements `s₀ : (i : ι) → s i`, map a tensor
-  with index set `S` to a tensor with index set `T`, by padding with the vectors provided by `s₀`
-  on `T \ S`.
-
-## Implementation notes
-
-This file was motivated by the goal to implement a type of "tensors with finite support", see
-`PiTensorFinSupp.lean`, and also by this TBD item from `PiTensorProduct.lean`:
-
-  * API for the various ways `ι` can be split into subsets; connect this with the binary
-    tensor product.
-
-The fist `section` contains a dependent version of `PiTensorProduct.subsingletonEquiv`,
-which is not direct part of the `Set` API.
-
-## TODO
-
-*This file is work in progress.*
-
-* Seek feedback
-* Implement nested PiTensorProducts
-
--/
 
 open PiTensorProduct
 open scoped TensorProduct
