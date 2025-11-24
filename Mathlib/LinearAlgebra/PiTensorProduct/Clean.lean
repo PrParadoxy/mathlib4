@@ -128,17 +128,16 @@ theorem trpodFinTprodEquiv_symm_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
   simp [LinearEquiv.symm_apply_eq]
 
 
-variable {n : Nat} {ι : Type*} [Fintype ι] {Tf : ι → Type*}
+variable {ι : Type*} [Fintype ι] {Tf : ι → Type*}
 variable {R : Type*} {s : (k : ι) → (i : Tf k) → Type*}
   [CommSemiring R] [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
 
 noncomputable def sigmaFinTypeEquiv :
-  (Σ k : Fin (Fintype.card ι), Tf ((Fintype.equivFin ι).symm k)) ≃ (Σ k, Tf k) :=
+    (Σ k : Fin (Fintype.card ι), Tf ((Fintype.equivFin ι).symm k)) ≃ (Σ k, Tf k) :=
   Equiv.sigmaCongrLeft (Fintype.equivFin ι).symm
 
 noncomputable def trpodFintypeTprodEquiv :
     (⨂[R] k, ⨂[R] i, s k i) ≃ₗ[R] (⨂[R] j : (Σ k, Tf k), s j.1 j.2) := by
-  apply reindex _ _ (Fintype.equivFin ι) ≪≫ₗ trpodFinTprodEquiv ≪≫ₗ ?_
-  symm
-  apply (reindex _ _ sigmaFinTypeEquiv.symm ≪≫ₗ
-    (PiTensorProduct.congr fun i => LinearEquiv.refl _ _))
+  apply reindex _ _ (Fintype.equivFin ι) ≪≫ₗ trpodFinTprodEquiv ≪≫ₗ
+    ((PiTensorProduct.congr fun i => LinearEquiv.refl _ _).symm ≪≫ₗ
+    (reindex _ _ sigmaFinTypeEquiv.symm).symm)
