@@ -109,13 +109,12 @@ theorem tprodFinTprodEquiv_tprod (f : (k : Fin n) → (i : Tf k) → s k i) :
     rw [LinearEquiv.symm_apply_eq]
     simp
   | succ m ih =>
-    replace ih := @ih (fun i => Tf i.castSucc) (fun i j => s i.castSucc j) _ _
-      (fun i j => f i.castSucc j)
     simp only [tprodFinTprodEquiv, LinearEquiv.trans_apply, tmulFinSucc_symm,
       TensorProduct.congr_tmul, LinearEquiv.refl_apply, ← LinearEquiv.eq_symm_apply,
       LinearEquiv.symm_symm, reindex_tprod]
     conv_rhs => apply tmulEquivDep_symm_apply
-    exact (congr_arg (· ⊗ₜ[R] (⨂ₜ[R] i : Tf (last m), f (last m) i)) ih)
+    exact (congr_arg (· ⊗ₜ[R] (⨂ₜ[R] i : Tf (last m), f (last m) i))
+      (ih (fun i j => f i.castSucc j)))
 
 @[simp]
 theorem tprodFinTprodEquiv_symm_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
