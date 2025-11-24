@@ -64,11 +64,12 @@ fields, but can become quite subtle for `AddCommMonoid`s.
 
 -/
 
-@[expose] public section
+
 
 open PiTensorProduct
 open scoped TensorProduct
 
+public section
 namespace PiTensorProduct
 
 variable {ι : Type*} {R : Type*} {s : ι → Type*}
