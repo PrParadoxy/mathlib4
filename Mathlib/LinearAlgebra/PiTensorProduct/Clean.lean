@@ -138,6 +138,7 @@ noncomputable def sigmaFinTypeEquiv :
 
 noncomputable def trpodFintypeTprodEquiv :
     (⨂[R] k, ⨂[R] i, s k i) ≃ₗ[R] (⨂[R] j : (Σ k, Tf k), s j.1 j.2) := by
-  apply reindex R _ (Fintype.equivFin ι) ≪≫ₗ
-    trpodFinTprodEquiv ≪≫ₗ reindex R _ sigmaFinTypeEquiv ≪≫ₗ (PiTensorProduct.congr (fun i => ?_))
-  --todo after breakfast
+  apply reindex _ _ (Fintype.equivFin ι) ≪≫ₗ trpodFinTprodEquiv ≪≫ₗ ?_
+  symm
+  apply (reindex _ _ sigmaFinTypeEquiv.symm ≪≫ₗ
+    (PiTensorProduct.congr fun i => LinearEquiv.refl _ _))
