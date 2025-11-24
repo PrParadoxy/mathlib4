@@ -1,6 +1,5 @@
 import Mathlib.LinearAlgebra.PiTensorProduct.Set
 
-
 section Fin
 
 open Fin PiTensorProduct
@@ -93,7 +92,7 @@ variable {R : Type*} {s : (k : Fin n) → (i : Tf k) → Type*}
 
 /-! A nested `PiTensorProduct` is equivalent to a single `PiTensorProduct` over
 a sigma type if the outer type is finite. -/
-def trpodFinTprodEquiv :
+def tprodFinTprodEquiv :
     (⨂[R] k, ⨂[R] i, s k i) ≃ₗ[R] (⨂[R] j : (Σ k, Tf k), s j.1 j.2) := by
   induction n with
   | zero => exact (isEmptyEquiv _) ≪≫ₗ (isEmptyEquiv _).symm
@@ -102,29 +101,25 @@ def trpodFinTprodEquiv :
       ≪≫ₗ (reindex R (fun j => s j.fst j.snd) sigmaFinSuccEquiv).symm
 
 @[simp]
-theorem trpodFinTprodEquiv_tprod (f : (k : Fin n) → (i : Tf k) → s k i) :
-    trpodFinTprodEquiv (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) = ⨂ₜ[R] j : (Σ k, Tf k), f j.1 j.2 := by
+theorem tprodFinTprodEquiv_tprod (f : (k : Fin n) → (i : Tf k) → s k i) :
+    tprodFinTprodEquiv (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) = ⨂ₜ[R] j : (Σ k, Tf k), f j.1 j.2 := by
   induction n with
   | zero =>
-    simp only [trpodFinTprodEquiv, Nat.succ_eq_add_one, Nat.rec_zero, LinearEquiv.trans_apply]
+    simp only [tprodFinTprodEquiv, Nat.succ_eq_add_one, Nat.rec_zero, LinearEquiv.trans_apply]
     rw [LinearEquiv.symm_apply_eq]
     simp
   | succ m ih =>
     replace ih := @ih (fun i => Tf i.castSucc) (fun i j => s i.castSucc j) _ _
       (fun i j => f i.castSucc j)
-    have ht : trpodFinTprodEquiv = tmulFinSucc.symm ≪≫ₗ
-      TensorProduct.congr trpodFinTprodEquiv (LinearEquiv.refl _ _) ≪≫ₗ
-      (tmulEquivDep R (fun j => s (sigmaFinSuccEquiv.symm j).1 (sigmaFinSuccEquiv.symm j).2))
-      ≪≫ₗ (reindex _ _ sigmaFinSuccEquiv).symm := by rfl
-    simp only [ht, LinearEquiv.trans_apply, tmulFinSucc_symm,
+    simp only [tprodFinTprodEquiv, LinearEquiv.trans_apply, tmulFinSucc_symm,
       TensorProduct.congr_tmul, LinearEquiv.refl_apply, ← LinearEquiv.eq_symm_apply,
       LinearEquiv.symm_symm, reindex_tprod]
     conv_rhs => apply tmulEquivDep_symm_apply
     exact (congr_arg (· ⊗ₜ[R] (⨂ₜ[R] i : Tf (last m), f (last m) i)) ih)
 
 @[simp]
-theorem trpodFinTprodEquiv_symm_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
-    trpodFinTprodEquiv.symm (⨂ₜ[R] j : (Σ k, Tf k), f j) = (⨂ₜ[R] k, ⨂ₜ[R] i, f ⟨k, i⟩) := by
+theorem tprodFinTprodEquiv_symm_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
+    tprodFinTprodEquiv.symm (⨂ₜ[R] j : (Σ k, Tf k), f j) = (⨂ₜ[R] k, ⨂ₜ[R] i, f ⟨k, i⟩) := by
   simp [LinearEquiv.symm_apply_eq]
 
 
@@ -151,13 +146,13 @@ def iUnionSigmaEquiv : (Σ k, Sf k) ≃ iUnion Sf where
 
 def tprodFiniUnionEquiv :
     (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : (Set.iUnion Sf), s i) :=
-  (trpodFinTprodEquiv ≪≫ₗ reindex R _ (iUnionSigmaEquiv H))
+  (tprodFinTprodEquiv ≪≫ₗ reindex R _ (iUnionSigmaEquiv H))
 
 @[simp]
 theorem tprodFiniUnionEquiv_tprod (f : (k : Fin n) → (i : Sf k) → s i) :
     tprodFiniUnionEquiv H (⨂ₜ[R] k, ⨂ₜ[R] i, f k i)
     = ⨂ₜ[R] i, f ((iUnionSigmaEquiv H).symm i).fst ((iUnionSigmaEquiv H).symm i).snd := by
-  simp only [tprodFiniUnionEquiv, LinearEquiv.trans_apply, trpodFinTprodEquiv_tprod]
+  simp only [tprodFiniUnionEquiv, LinearEquiv.trans_apply, tprodFinTprodEquiv_tprod]
   apply reindex_tprod
 
 @[simp]
@@ -167,7 +162,7 @@ theorem tprodFiniUnionEquiv_symm_tprod (f : (i : (Set.iUnion Sf)) → s i) :
 
 end iUnion
 
-section trpodFintypeTprodEquiv
+section tprodFintypeTprodEquiv
 
 variable {ι : Type*} [Fintype ι] {Tf : ι → Type*}
 variable {R : Type*} {s : (k : ι) → (i : Tf k) → Type*}
@@ -177,27 +172,26 @@ noncomputable def sigmaFintypeEquiv :
     (Σ k : Fin (Fintype.card ι), Tf ((Fintype.equivFin ι).symm k)) ≃ (Σ k, Tf k) :=
   Equiv.sigmaCongrLeft (Fintype.equivFin ι).symm
 
-noncomputable def trpodFintypeTprodEquiv :
+noncomputable def tprodFintypeTprodEquiv :
     (⨂[R] k, ⨂[R] i, s k i) ≃ₗ[R] (⨂[R] j : (Σ k, Tf k), s j.1 j.2) := by
-  apply reindex _ _ (Fintype.equivFin ι) ≪≫ₗ trpodFinTprodEquiv ≪≫ₗ
+  apply reindex _ _ (Fintype.equivFin ι) ≪≫ₗ tprodFinTprodEquiv ≪≫ₗ
     ((PiTensorProduct.congr fun i => LinearEquiv.refl _ _) ≪≫ₗ
       (reindex _ _ sigmaFintypeEquiv.symm).symm)
 
 @[simp]
-theorem trpodFintypeTprodEquiv_tprod (f : (k : ι) → (i : Tf k) → s k i) :
-    trpodFintypeTprodEquiv (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) = ⨂ₜ[R] j : (Σ k, Tf k), f j.1 j.2 := by
-  have ht : trpodFintypeTprodEquiv (s := s)
-    = reindex R _ (Fintype.equivFin ι) ≪≫ₗ trpodFinTprodEquiv ≪≫ₗ
-    ((PiTensorProduct.congr fun i => LinearEquiv.refl _ _) ≪≫ₗ
-      (reindex _ _ sigmaFintypeEquiv.symm).symm) := by rfl
-  simp only [ht, Equiv.symm_symm, LinearEquiv.trans_apply, reindex_tprod, LinearEquiv.symm_apply_eq]
+theorem tprodFintypeTprodEquiv_tprod (f : (k : ι) → (i : Tf k) → s k i) :
+    tprodFintypeTprodEquiv (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) = ⨂ₜ[R] j : (Σ k, Tf k), f j.1 j.2 := by
+  simp only [tprodFintypeTprodEquiv, Equiv.symm_symm, LinearEquiv.trans_apply,
+    reindex_tprod, LinearEquiv.symm_apply_eq]
   conv_rhs => apply reindex_tprod
-  conv_lhs => arg 2; apply trpodFinTprodEquiv_tprod
+  conv_lhs => arg 2; apply tprodFinTprodEquiv_tprod
   apply congr_tprod
 
 @[simp]
-theorem trpodFintypeTprodEquiv_symm_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
-    trpodFintypeTprodEquiv.symm (⨂ₜ[R] j : (Σ k, Tf k), f j) = (⨂ₜ[R] k, ⨂ₜ[R] i, f ⟨k, i⟩) := by
+theorem tprodFintypeTprodEquiv_symm_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
+    tprodFintypeTprodEquiv.symm (⨂ₜ[R] j : (Σ k, Tf k), f j) = (⨂ₜ[R] k, ⨂ₜ[R] i, f ⟨k, i⟩) := by
   simp [LinearEquiv.symm_apply_eq]
-  
-end trpodFintypeTprodEquiv
+
+end tprodFintypeTprodEquiv
+
+end Fin

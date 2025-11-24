@@ -1,6 +1,6 @@
 module
 
-public import Mathlib.LinearAlgebra.PiTensorProduct.IndexSets
+public import Mathlib.LinearAlgebra.PiTensorProduct.Set
 public import Mathlib.RingTheory.Flat.FaithfullyFlat.Basic
 
 /-!
