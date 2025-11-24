@@ -139,5 +139,22 @@ noncomputable def sigmaFinTypeEquiv :
 noncomputable def trpodFintypeTprodEquiv :
     (⨂[R] k, ⨂[R] i, s k i) ≃ₗ[R] (⨂[R] j : (Σ k, Tf k), s j.1 j.2) := by
   apply reindex _ _ (Fintype.equivFin ι) ≪≫ₗ trpodFinTprodEquiv ≪≫ₗ
-    ((PiTensorProduct.congr fun i => LinearEquiv.refl _ _).symm ≪≫ₗ
-    (reindex _ _ sigmaFinTypeEquiv.symm).symm)
+    ((PiTensorProduct.congr fun i => LinearEquiv.refl _ _) ≪≫ₗ
+      (reindex _ _ sigmaFinTypeEquiv.symm).symm)
+
+@[simp]
+theorem trpodFintypeTprodEquiv_tprod (f : (k : ι) → (i : Tf k) → s k i) :
+    trpodFintypeTprodEquiv (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) = ⨂ₜ[R] j : (Σ k, Tf k), f j.1 j.2 := by
+  have ht : trpodFintypeTprodEquiv (s := s)
+    = reindex R _ (Fintype.equivFin ι) ≪≫ₗ trpodFinTprodEquiv ≪≫ₗ
+    ((PiTensorProduct.congr fun i => LinearEquiv.refl _ _) ≪≫ₗ
+      (reindex _ _ sigmaFinTypeEquiv.symm).symm) := by rfl
+  simp only [ht, Equiv.symm_symm, LinearEquiv.trans_apply, reindex_tprod, LinearEquiv.symm_apply_eq]
+  conv_rhs => apply reindex_tprod
+  conv_lhs => arg 2; apply trpodFinTprodEquiv_tprod
+  apply congr_tprod
+
+@[simp]
+theorem trpodFintypeTprodEquiv_symm_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
+    trpodFintypeTprodEquiv.symm (⨂ₜ[R] j : (Σ k, Tf k), f j) = (⨂ₜ[R] k, ⨂ₜ[R] i, f ⟨k, i⟩) := by
+  simp [LinearEquiv.symm_apply_eq]
