@@ -1,5 +1,20 @@
 import Mathlib.LinearAlgebra.PiTensorProduct.Set
 
+/-!
+
+# Nested PiTensorProducts
+
+For a family `s : (k : κ) → (i : T k) → Type*` of modules, we analyze the type
+
+ `⨂ k : κ, ⨂ i : T i, s k i`
+
+of nested PiTensorProducts, and its relation to "tensors with a double index"
+modelled as sigma types:
+
+ `⨂ j : Σ (k : κ), T k, s j.fst j.snd`.
+
+-/
+
 /-
 ## RFCs
 
