@@ -190,7 +190,7 @@ theorem span_tprodFintypeTprod_eq_top :
 @[elab_as_elim]
 protected theorem nested_induction_on
     {motive : (⨂[R] k, ⨂[R] i, s k i) → Prop}
-    (smul_tprod_tprod : ∀ (r : R) (g : ∀ k, ∀ i, s k i), motive (r • ⨂ₜ[R] k, ⨂ₜ[R] i, (g k i)))
+    (smul_tprod_tprod : ∀ (r : R) (f : ∀ k, ∀ i, s k i), motive (r • ⨂ₜ[R] k, ⨂ₜ[R] i, (f k i)))
     (add : ∀ (x y), motive x → motive y → motive (x + y))
     (z : ⨂[R] k, ⨂[R] i, s k i) : motive z := by
   have h := span_tprodFintypeTprod_eq_top (s := s) (R := R) ▸ Submodule.mem_top (x := z)
@@ -209,7 +209,6 @@ protected theorem nested_induction_on
     simpa [←smul_assoc] using hx (r' • r)
   | zero => simpa [p] using smul_tprod_tprod 0 0
   | add => simp_all [p]
-
 
 end tprodFintypeTprodEquiv
 end PiTensorProduct
