@@ -169,8 +169,8 @@ theorem tprodFintypeTprodEquiv_symm_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2)
 theorem span_tprodFintypeTprod_eq_top :
   (Submodule.span R
     (Set.range
-    (fun (f : (k : ι) → (i : Tf k) → s k i) => (⨂ₜ[R] k, ⨂ₜ[R] i, f k i)))) =
-    (⊤ : Submodule R (⨂[R] k, ⨂[R] i : Tf k, s k i)) := by
+    (fun (f : (k : ι) → (i : Tf k) → s k i) => (⨂ₜ[R] k, ⨂ₜ[R] i, f k i))))
+      = (⊤ : Submodule R (⨂[R] k, ⨂[R] i : Tf k, s k i)) := by
   rw [← tprodFintypeTprodEquiv (R := R) (s := s).symm.range,
     LinearMap.range_eq_map, ← span_tprod_eq_top, ← Submodule.span_image]
   congr with f
@@ -194,7 +194,7 @@ theorem induction_on_tprod_tprod
   have h := span_tprodFintypeTprod_eq_top (s := s) (R := R) ▸ Submodule.mem_top (x := z)
   let p := fun z =>
     fun (_ : z ∈ Submodule.span R (Set.range
-      fun f : (k : ι) → (i : Tf k) → s k i ↦ ⨂ₜ[R] k, ⨂ₜ[R] (i : Tf k), f k i)) =>
+      fun f : (k : ι) → (i : Tf k) → s k i ↦ ⨂ₜ[R] k, ⨂ₜ[R] i, f k i)) =>
         ∀ r : R, motive (r • z)
   suffices hp : p z h by simpa [p] using hp 1
   induction h using Submodule.span_induction with
