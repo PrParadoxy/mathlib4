@@ -37,11 +37,12 @@ def tprodFinTprodEquiv :
       (reindex _ _ finSumFinEquiv.symm) ≪≫ₗ
       -- Split off last summand:
       (tmulEquivDep _ _).symm ≪≫ₗ
-      -- Use induction hypothesis on the left; remove outer PiTP on the right
+      -- Use induction hypothesis on the left.
+      -- Remove outer PiTP on the right. This exposes the inner PiTP...
       (TensorProduct.congr ih (subsingletonEquivDep ↑0)) ≪≫ₗ
-      -- Re-assemble as direct sum. Small hack: The right hand term is still a PiTP!
+      -- ...meaning we still have a binary TP of PiTPs. Turn into direct sum:
       (tmulEquivDep R (fun j => s (sigmaFinSuccEquiv.symm j).1 (sigmaFinSuccEquiv.symm j).2)) ≪≫ₗ
-      -- Convert to sigma type:
+      -- Convert to sigma type
       (reindex R (fun j => s j.fst j.snd) sigmaFinSuccEquiv).symm
 
 @[simp]
