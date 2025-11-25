@@ -1,27 +1,38 @@
 import Mathlib.LinearAlgebra.PiTensorProduct.Set
 
--- ## RFC
---
--- In `tprodFinTprodEquiv`, we combine six equivalences. These requires some
--- care to unpack in the first `simp` lemma. Alternatively, one could introduce
--- intermediate equivalences and prove `simp` lemmas for those.
---
--- Trade-offs for the alternative approach:
--- * Pro -- Slightly more transparent proof; More Truths for Mathlib
--- * Con -- Proliferation of fairly minor equivalences.
---
--- What's the preferred way of handling this?
---
--- If #2, one could collect equivalences in a PiTensorProduct/Equiv.lean.
+/-
+## RFCs
+
+### Minor equivalences: Yep or nope?
+
+In `tprodFinTprodEquiv`, we combine six equivalences. These requires some
+care to unpack in the first `simp` lemma. Alternatively, one could introduce
+intermediate equivalences and prove `simp` lemmas for those.
+
+Trade-offs for the alternative approach:
+* Pro -- Slightly more transparent proof; More Truths for Mathlib
+* Con -- Proliferation of fairly minor equivalences.
+
+What's the preferred way of handling this?
+
+If #2, one could collect equivalences in a PiTensorProduct/Equiv.lean.
+
+
+### Type equivalence
+
+The equivalence `sigmaFinSuccEquiv` has nothing to do `PiTensorProduct`s. It is
+related to `finSumFinEquiv` and `Equiv.sumSigmaDistrib`, but doesn't seem to
+follow easily from those.
+
+Replace by other construction? Keep here? Mark `protected`? Move to `Equiv.Fin / Equiv.Sum`?
+Restructure entirely?
+-/
 
 section Fin
 
 open Fin PiTensorProduct
 open scoped TensorProduct
 
--- RFC: This equivalence has nothing to do `PiTensorProduct`s. Related to
--- `finSumFinEquiv` and `Equiv.sumSigmaDistrib`, but doesn't seem to follow
--- easily from those.
 /-- Split off last summand of a sigma type over `Fin n.succ` -/
 def sigmaFinSuccEquiv {n : Nat} {t : Fin n.succ → Type*} :
   (Σ k : Fin n.succ, t k) ≃ (Σ k : Fin n, t k.castSucc) ⊕ t (last n) := {
