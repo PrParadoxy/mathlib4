@@ -26,8 +26,22 @@ variable {n : Nat} {Tf : Fin n → Type*}
 variable {R : Type*} {s : (k : Fin n) → (i : Tf k) → Type*}
   [CommSemiring R] [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
 
+-- ## RFC
+--
+-- In the body of the recursive definition, we combine six equivalences, which
+-- require some care to unpack in the `simp` lemma below. Alternatively, one
+-- could introduce intermediate equivalences and prove `simp` lemmas for those.
+--
+-- Trade-offs involved by the alternative approach:
+-- * Pro -- Slightly more transparent proof and More Truths for Mathlib
+-- * Con -- Proliferation of fairly minor equivalences.
+--
+-- What's the preferred way of handling this?
+--
+-- If #2: Could collect these in a PiTensorProduct/Equiv.lean.
+
 /-! A nested `PiTensorProduct` is equivalent to a single `PiTensorProduct` over
-a sigma type if the outer type is finite. -/
+a sigma type, assuming that  the outer type is finite. -/
 def tprodFinTprodEquiv :
     (⨂[R] k, ⨂[R] i, s k i) ≃ₗ[R] (⨂[R] j : (Σ k, Tf k), s j.1 j.2) := by
   induction n with
