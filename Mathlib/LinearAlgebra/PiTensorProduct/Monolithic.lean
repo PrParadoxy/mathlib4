@@ -1,47 +1,46 @@
 import Mathlib.LinearAlgebra.PiTensorProduct.Set
 
+-- ## RFC
+--
+-- In `tprodFinTprodEquiv`, we combine six equivalences. These requires some
+-- care to unpack in the first `simp` lemma. Alternatively, one could introduce
+-- intermediate equivalences and prove `simp` lemmas for those.
+--
+-- Trade-offs for the alternative approach:
+-- * Pro -- Slightly more transparent proof; More Truths for Mathlib
+-- * Con -- Proliferation of fairly minor equivalences.
+--
+-- What's the preferred way of handling this?
+--
+-- If #2, one could collect equivalences in a PiTensorProduct/Equiv.lean.
+
+
 section Fin
 
 open Fin PiTensorProduct
 open scoped TensorProduct
 
-section tmulFinSuccEquiv
-
-variable {n : Nat} {R : Type*} {s : Fin (n + 1) → Type*}
-variable [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
-
-end tmulFinSuccEquiv
-
-/-! Split off last summand of a sigma type over `Fin n.succ` -/
+-- RFC: This equivalence has nothing to do `PiTensorProduct`s. Related to
+-- `finSumFinEquiv` and `Equiv.sumSigmaDistrib`, but doesn't seem to follow
+-- easily from those.
+/-- Split off last summand of a sigma type over `Fin n.succ` -/
 def sigmaFinSuccEquiv {n : Nat} {t : Fin n.succ → Type*} :
   (Σ k : Fin n.succ, t k) ≃ (Σ k : Fin n, t k.castSucc) ⊕ t (last n) := {
     toFun x :=
       if h : x.1 = last n then .inr (h ▸ x.2) else .inl ⟨⟨x.1, lt_last_iff_ne_last.mpr h⟩, x.2⟩
-    invFun := Sum.rec (fun x' ↦ ⟨x'.1.castSucc, x'.2⟩) (⟨last n, ·⟩)
+    invFun := Sum.rec (fun y ↦ ⟨y.1.castSucc, y.2⟩) (⟨last n, ·⟩)
     left_inv _ := by aesop
     right_inv _ := by aesop
   }
+
+section TprodFinTrodEquiv
 
 variable {n : Nat} {Tf : Fin n → Type*}
 variable {R : Type*} {s : (k : Fin n) → (i : Tf k) → Type*}
   [CommSemiring R] [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
 
--- ## RFC
---
--- In the body of the recursive definition, we combine six equivalences, which
--- require some care to unpack in the `simp` lemma below. Alternatively, one
--- could introduce intermediate equivalences and prove `simp` lemmas for those.
---
--- Trade-offs involved by the alternative approach:
--- * Pro -- Slightly more transparent proof and More Truths for Mathlib
--- * Con -- Proliferation of fairly minor equivalences.
---
--- What's the preferred way of handling this?
---
--- If #2: Could collect these in a PiTensorProduct/Equiv.lean.
-
-/-! A nested `PiTensorProduct` is equivalent to a single `PiTensorProduct` over
-a sigma type, assuming that  the outer type is finite. -/
+/-- A nested `PiTensorProduct` is equivalent to a single `PiTensorProduct` over
+a sigma type, assuming that the outer type is finite. -/
 def tprodFinTprodEquiv :
     (⨂[R] k, ⨂[R] i, s k i) ≃ₗ[R] (⨂[R] j : (Σ k, Tf k), s j.1 j.2) := by
   induction n with
@@ -49,48 +48,78 @@ def tprodFinTprodEquiv :
   | succ m ih => exact
       -- Write index as sum; split off last summand as binary TP:
       (reindex _ _ finSumFinEquiv.symm) ≪≫ₗ (tmulEquivDep _ _).symm ≪≫ₗ
-      -- Use `hi` on lhs; remove outer PiTP on rhs, thus exposing inner PiTP:
+      -- Use `ih` on lhs; remove outer PiTP on rhs, thereby exposing inner PiTP:
       (TensorProduct.congr ih (subsingletonEquivDep ↑0)) ≪≫ₗ
       -- Convert to single PiTP:
       (tmulEquivDep R (fun j => s (sigmaFinSuccEquiv.symm j).1 (sigmaFinSuccEquiv.symm j).2)) ≪≫ₗ
       (reindex R (fun j => s j.fst j.snd) sigmaFinSuccEquiv).symm
 
+-- Proof strategy: Repeatedly move equivalences around to obtain the form
+-- `(complicated terms) = aSingleEquiv tprod`, then simp away `aSingleEquiv`.
+open LinearEquiv in
 @[simp]
 theorem tprodFinTprodEquiv_tprod (f : (k : Fin n) → (i : Tf k) → s k i) :
     tprodFinTprodEquiv (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) = ⨂ₜ[R] j : (Σ k, Tf k), f j.1 j.2 := by
   induction n with
   | zero =>
-    simp only [tprodFinTprodEquiv, Nat.rec_zero, LinearEquiv.trans_apply,
-      LinearEquiv.symm_apply_eq, isEmptyEquiv_apply_tprod]
+    simp only [tprodFinTprodEquiv, Nat.rec_zero, trans_apply,
+      symm_apply_eq, isEmptyEquiv_apply_tprod]
   | succ m ih =>
-    simp only [tprodFinTprodEquiv, Equiv.symm_symm, finSumFinEquiv_apply_left,
-      finSumFinEquiv_apply_right, LinearEquiv.trans_apply]
+    simp only [tprodFinTprodEquiv, Equiv.symm_symm, finSumFinEquiv_apply_left, trans_apply]
 
     -- Final reindex & tmulEquivDep
-    rw [LinearEquiv.symm_apply_eq, reindex_tprod, ←LinearEquiv.eq_symm_apply]
+    rw [symm_apply_eq, reindex_tprod, ←eq_symm_apply]
     conv_rhs => apply tmulEquivDep_symm_apply
 
     -- Initial reindex & tmulEquivDep
-    rw [←LinearEquiv.eq_symm_apply, ←LinearEquiv.eq_symm_apply]
+    rw [←eq_symm_apply, ←eq_symm_apply]
     conv_lhs => apply reindex_tprod
-    rw [←LinearEquiv.symm_apply_eq]
-    conv_lhs =>  apply tmulEquivDep_symm_apply
+    rw [←symm_apply_eq]
+    conv_lhs => apply tmulEquivDep_symm_apply
 
-    -- Middle ongruence & subsingletonEquivDep
-    simp only [LinearEquiv.eq_symm_apply, finSumFinEquiv_apply_left,
-      finSumFinEquiv_apply_right, TensorProduct.congr_tmul,
-      subsingletonEquivDep_apply_tprod]
+    -- Middle congruence & subsingletonEquivDep
+    simp only [eq_symm_apply, finSumFinEquiv_apply_left, finSumFinEquiv_apply_right,
+      TensorProduct.congr_tmul, subsingletonEquivDep_apply_tprod]
 
-    -- Close goal using induction hypothesis
     replace ih := @ih (fun k ↦ Tf k.castSucc) (fun k i ↦ s k.castSucc i) _ _
       (fun k i ↦ f k.castSucc i)
     exact (congr_arg (· ⊗ₜ[R] (⨂ₜ[R] i : Tf (last m), f (last m) i)) ih)
-
 
 @[simp]
 theorem tprodFinTprodEquiv_symm_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
     tprodFinTprodEquiv.symm (⨂ₜ[R] j : (Σ k, Tf k), f j) = (⨂ₜ[R] k, ⨂ₜ[R] i, f ⟨k, i⟩) := by
   simp [LinearEquiv.symm_apply_eq]
+
+theorem span_tprodFinTprod_eq_top:
+  (Submodule.span R
+    (Set.range
+    (fun (f : (k : Fin n) → (i : Tf k) → s k i) ↦ (⨂ₜ[R] k, ⨂ₜ[R] i, f k i)))) =
+    (⊤ : Submodule R (⨂[R] k, ⨂[R] i : Tf k, s k i)) := by
+      have h1 := span_tprod_eq_top (R := R) (s := fun (j : (Σ k, Tf k)) ↦ s j.1 j.2)
+
+      refine Submodule.map_span (tprodFinTprodEquiv (R:=R) (s:=s)).symm ?_
+
+      sorry
+
+#check Submodule.map_span
+
+section xxx_finite
+variable {κ : Type*} {Tf : κ → Type*}
+variable {R : Type*} {s : (k : κ) → (i : Tf k) → Type*}
+  [CommSemiring R] [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
+
+/-- Assuming that the outer index type is finite, a nested `PiTensorproduct` is
+spanned by the totally pure tensors.  -/
+theorem span_tprodFinTprod_eq_top [Finite κ]:
+    Submodule.span R (Set.range (tprod R)) = (⊤ : Submodule R (⨂[R] i, s i)) :=
+  Submodule.eq_top_iff'.mpr fun t ↦ t.induction_on
+    (fun _ _ ↦ Submodule.smul_mem _ _
+      (Submodule.subset_span (by simp only [Set.mem_range, exists_apply_eq_apply])))
+    (fun _ _ hx hy ↦ Submodule.add_mem _ hx hy)
+end xxx_finite
+
+end TprodFinTrodEquiv
+
 
 
 section iUnion
