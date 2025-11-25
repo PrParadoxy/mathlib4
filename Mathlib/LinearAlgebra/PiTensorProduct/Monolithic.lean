@@ -147,15 +147,11 @@ variable {ι : Type*} [Fintype ι] {Tf : ι → Type*}
 variable {R : Type*} {s : (k : ι) → (i : Tf k) → Type*}
   [CommSemiring R] [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
 
-noncomputable def sigmaFintypeEquiv :
-    (Σ k : Fin (Fintype.card ι), Tf ((Fintype.equivFin ι).symm k)) ≃ (Σ k, Tf k) :=
-  Equiv.sigmaCongrLeft (Fintype.equivFin ι).symm
-
 noncomputable def tprodFintypeTprodEquiv :
     (⨂[R] k, ⨂[R] i, s k i) ≃ₗ[R] (⨂[R] j : (Σ k, Tf k), s j.1 j.2) := by
   apply reindex _ _ (Fintype.equivFin ι) ≪≫ₗ tprodFinTprodEquiv ≪≫ₗ
     ((PiTensorProduct.congr fun i => LinearEquiv.refl _ _) ≪≫ₗ
-      (reindex _ _ sigmaFintypeEquiv.symm).symm)
+      (reindex _ _ (Equiv.sigmaCongrLeft (Fintype.equivFin ι).symm).symm).symm)
 
 @[simp]
 theorem tprodFintypeTprodEquiv_tprod (f : (k : ι) → (i : Tf k) → s k i) :
@@ -171,39 +167,24 @@ theorem tprodFintypeTprodEquiv_symm_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2)
     tprodFintypeTprodEquiv.symm (⨂ₜ[R] j : (Σ k, Tf k), f j) = (⨂ₜ[R] k, ⨂ₜ[R] i, f ⟨k, i⟩) := by
   simp [LinearEquiv.symm_apply_eq]
 
+theorem span_tprodFintypeTprod_eq_top :
+  (Submodule.span R
+    (Set.range
+    (fun (f : (k : ι) → (i : Tf k) → s k i) => (⨂ₜ[R] k, ⨂ₜ[R] i, f k i)))) =
+    (⊤ : Submodule R (⨂[R] k, ⨂[R] i : Tf k, s k i)) := by
+  rw [← tprodFintypeTprodEquiv (R := R) (s := s).symm.range,
+    LinearMap.range_eq_map, ← span_tprod_eq_top, ← Submodule.span_image]
+  congr with f
+  simp only [Set.mem_range, LinearEquiv.coe_coe, Set.mem_image, exists_exists_eq_and,
+    tprodFintypeTprodEquiv_symm_tprod]
+  constructor
+  · intro ⟨y, hy⟩
+    rw [←hy]
+    use (fun j => y j.1 j.2)
+  · intro ⟨y, hy⟩
+    rw [←hy]
+    use (fun j k => y ⟨j, k⟩)
+
 end tprodFintypeTprodEquiv
 
 end Fin
-
---# Todo
-
--- theorem span_tprodFinTprod_eq_top:
---   (Submodule.span R
---     (Set.range
---     (fun (f : (k : Fin n) → (i : Tf k) → s k i) ↦ (⨂ₜ[R] k, ⨂ₜ[R] i, f k i)))) =
---     (⊤ : Submodule R (⨂[R] k, ⨂[R] i : Tf k, s k i)) := by
---       have h1 := span_tprod_eq_top (R := R) (s := fun (j : (Σ k, Tf k)) ↦ s j.1 j.2)
-
---       have h2 := Submodule.map_span (tprodFinTprodEquiv (R:=R) (s:=s)).symm
---         (Set.range fun (g : (j : Σ k, Tf k) → s j.1 j.2) ↦ (⨂ₜ[R] j : (Σ k, Tf k), g j))
-
---       sorry
-
--- #check Submodule.map_span
-
--- section xxx_finite
--- variable {κ : Type*} {Tf : κ → Type*}
--- variable {R : Type*} {s : (k : κ) → (i : Tf k) → Type*}
---   [CommSemiring R] [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
-
--- -- /-- Assuming that the outer index type is finite, a nested `PiTensorproduct` is
--- -- spanned by the totally pure tensors.  -/
--- -- theorem span_tprodFinTprod_eq_top [Finite κ]:
--- --     Submodule.span R (Set.range (tprod R)) = (⊤ : Submodule R (⨂[R] i, s i)) :=
--- --   Submodule.eq_top_iff'.mpr fun t ↦ t.induction_on
--- --     (fun _ _ ↦ Submodule.smul_mem _ _
--- --       (Submodule.subset_span (by simp only [Set.mem_range, exists_apply_eq_apply])))
--- --     (fun _ _ hx hy ↦ Submodule.add_mem _ hx hy)
--- -- end xxx_finite
-
--- end TprodFinTrodEquiv
