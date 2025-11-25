@@ -196,17 +196,17 @@ theorem induction_on_tprod_tprod
     fun (_ : z ∈ Submodule.span R (Set.range
       fun f : (k : ι) → (i : Tf k) → s k i ↦ ⨂ₜ[R] k, ⨂ₜ[R] (i : Tf k), f k i)) =>
         ∀ r : R, motive (r • z)
-  suffices hp : p z h from by simpa [p] using hp 1
+  suffices hp : p z h by simpa [p] using hp 1
   induction h using Submodule.span_induction with
   | mem x h =>
     intro r
     obtain ⟨y, hy⟩ := Set.mem_range.mp h
     simpa [hy] using smul_tprod_tprod r y
-  | smul r x _ hx =>
+  | smul r _ _ hx =>
     intro r'
     simpa [←smul_assoc] using hx (r' • r)
   | zero => simpa [p] using smul_tprod_tprod 0 0
-  | add x y _ _ hx hy => simp_all [p]
+  | add => simp_all [p]
 
 
 end tprodFintypeTprodEquiv
