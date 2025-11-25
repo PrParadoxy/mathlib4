@@ -14,7 +14,6 @@ import Mathlib.LinearAlgebra.PiTensorProduct.Set
 --
 -- If #2, one could collect equivalences in a PiTensorProduct/Equiv.lean.
 
-
 section Fin
 
 open Fin PiTensorProduct
@@ -78,7 +77,7 @@ theorem tprodFinTprodEquiv_tprod (f : (k : Fin n) → (i : Tf k) → s k i) :
     conv_lhs => apply tmulEquivDep_symm_apply
 
     -- Middle congruence & subsingletonEquivDep
-    simp only [eq_symm_apply, finSumFinEquiv_apply_left, finSumFinEquiv_apply_right,
+    simp only [eq_symm_apply, finSumFinEquiv_apply_left,
       TensorProduct.congr_tmul, subsingletonEquivDep_apply_tprod]
 
     replace ih := @ih (fun k ↦ Tf k.castSucc) (fun k i ↦ s k.castSucc i) _ _
@@ -97,7 +96,8 @@ theorem span_tprodFinTprod_eq_top:
     (⊤ : Submodule R (⨂[R] k, ⨂[R] i : Tf k, s k i)) := by
       have h1 := span_tprod_eq_top (R := R) (s := fun (j : (Σ k, Tf k)) ↦ s j.1 j.2)
 
-      refine Submodule.map_span (tprodFinTprodEquiv (R:=R) (s:=s)).symm ?_
+      have h2 := Submodule.map_span (tprodFinTprodEquiv (R:=R) (s:=s)).symm
+        (Set.range fun (g : (j : Σ k, Tf k) → s j.1 j.2) ↦ (⨂ₜ[R] j : (Σ k, Tf k), g j))
 
       sorry
 
@@ -235,3 +235,31 @@ end Fin
 --   congr
 --   . sorry
 --   . sorry
+
+-- -- At some point, I'd like to see this manually written as a recursion, just to
+-- -- see whether the term is easer to handle in simp lemma.
+-- def tprodFinTprodEquiv' :
+--    (⨂[R] k, ⨂[R] i, s k i) ≃ₗ[R] (⨂[R] j : (Σ k, Tf k), s j.1 j.2) := fun n =>
+--  match n with
+--  | Nat.zero =>
+--    have h : n = 0 := rfl
+--    have he : IsEmpty (Fin n) := h ▸ (inferInstance : (IsEmpty (Fin 0)))
+--    isEmptyEquiv (Fin 0) ≪≫ₗ (isEmptyEquiv ((k : Fin 0) × Tf k)).symm
+--  | Nat.succ m =>
+--    (reindex _ _ finSumFinEquiv.symm) ≪≫ₗ (tmulEquivDep _ _).symm ≪≫ₗ
+--    (TensorProduct.congr (tprodFinTprodEquiv) (subsingletonEquivDep ↑0)) ≪≫ₗ
+--    (tmulEquivDep R (fun j => s (sigmaFinSuccEquiv.symm j).1 (sigmaFinSuccEquiv.symm j).2)) ≪≫ₗ
+--    (reindex R (fun j => s j.fst j.snd) sigmaFinSuccEquiv).symm
+--
+-- def tprodFinTprodEquiv'' :
+--     (⨂[R] k, ⨂[R] i, s k i) ≃ₗ[R] (⨂[R] j : (Σ k, Tf k), s j.1 j.2) := fun n =>
+--   cases h : n
+--   | Nat.zero =>
+--     have h : n = 0 := rfl
+--     have he : IsEmpty (Fin n) := h ▸ (inferInstance : (IsEmpty (Fin 0)))
+--     (isEmptyEquiv _) ≪≫ₗ (isEmptyEquiv _).symm
+--   | Nat.succ m =>
+--     (reindex _ _ finSumFinEquiv.symm) ≪≫ₗ (tmulEquivDep _ _).symm ≪≫ₗ
+--     (TensorProduct.congr (tprodFinTprodEquiv) (subsingletonEquivDep ↑0)) ≪≫ₗ
+--     (tmulEquivDep R (fun j => s (sigmaFinSuccEquiv.symm j).1 (sigmaFinSuccEquiv.symm j).2)) ≪≫ₗ
+--     (reindex R (fun j => s j.fst j.snd) sigmaFinSuccEquiv).symm
