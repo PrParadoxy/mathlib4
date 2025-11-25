@@ -33,16 +33,12 @@ def tprodFinTprodEquiv :
   induction n with
   | zero => exact (isEmptyEquiv _) ≪≫ₗ (isEmptyEquiv _).symm
   | succ m ih => exact
-      -- Write index as direct sum:
-      (reindex _ _ finSumFinEquiv.symm) ≪≫ₗ
-      -- Split off last summand:
-      (tmulEquivDep _ _).symm ≪≫ₗ
-      -- Use induction hypothesis on the left.
-      -- Remove outer PiTP on the right. This exposes the inner PiTP...
+      -- Write index as sum; split off last summand as binary TP:
+      (reindex _ _ finSumFinEquiv.symm) ≪≫ₗ (tmulEquivDep _ _).symm ≪≫ₗ
+      -- Use `hi` on lhs; remove outer PiTP on rhs, thus exposing inner PiTP:
       (TensorProduct.congr ih (subsingletonEquivDep ↑0)) ≪≫ₗ
-      -- ...meaning we still have a binary TP of PiTPs. Turn into direct sum:
+      -- Convert to single PiTP:
       (tmulEquivDep R (fun j => s (sigmaFinSuccEquiv.symm j).1 (sigmaFinSuccEquiv.symm j).2)) ≪≫ₗ
-      -- Convert to sigma type
       (reindex R (fun j => s j.fst j.snd) sigmaFinSuccEquiv).symm
 
 @[simp]
@@ -56,28 +52,24 @@ theorem tprodFinTprodEquiv_tprod (f : (k : Fin n) → (i : Tf k) → s k i) :
     simp only [tprodFinTprodEquiv, Equiv.symm_symm, finSumFinEquiv_apply_left,
       finSumFinEquiv_apply_right, LinearEquiv.trans_apply]
 
-    -- Take care of final reindex / tmulEquivDep
-    rw [LinearEquiv.symm_apply_eq]
-    simp only [reindex_tprod]
-    rw [<-LinearEquiv.eq_symm_apply]
+    -- Final reindex & tmulEquivDep
+    rw [LinearEquiv.symm_apply_eq, reindex_tprod, ←LinearEquiv.eq_symm_apply]
     conv_rhs => apply tmulEquivDep_symm_apply
 
-    -- Take care of first reindex / tmulEquivDep
-    rw [<-LinearEquiv.eq_symm_apply]
-    rw [<-LinearEquiv.eq_symm_apply]
+    -- Initial reindex & tmulEquivDep
+    rw [←LinearEquiv.eq_symm_apply, ←LinearEquiv.eq_symm_apply]
     conv_lhs => apply reindex_tprod
-    rw [<-LinearEquiv.symm_apply_eq]
+    rw [←LinearEquiv.symm_apply_eq]
     conv_lhs =>  apply tmulEquivDep_symm_apply
 
-    -- Take care of congruence / subsingletonEquivDep
+    -- Middle ongruence & subsingletonEquivDep
     simp only [LinearEquiv.eq_symm_apply, finSumFinEquiv_apply_left,
       finSumFinEquiv_apply_right, TensorProduct.congr_tmul,
       subsingletonEquivDep_apply_tprod]
 
-    -- Use induction hypothesis
+    -- Close goal using induction hypothesis
     replace ih := @ih (fun k ↦ Tf k.castSucc) (fun k i ↦ s k.castSucc i) _ _
       (fun k i ↦ f k.castSucc i)
-
     exact (congr_arg (· ⊗ₜ[R] (⨂ₜ[R] i : Tf (last m), f (last m) i)) ih)
 
 
