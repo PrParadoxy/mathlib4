@@ -91,9 +91,8 @@ theorem tprodFinTprodEquiv_tprod (f : (k : Fin n) → (i : Tf k) → s k i) :
     simp only [eq_symm_apply, finSumFinEquiv_apply_left,
       TensorProduct.congr_tmul, subsingletonEquivDep_apply_tprod]
 
-    replace ih := @ih (fun k ↦ Tf k.castSucc) (fun k i ↦ s k.castSucc i) _ _
-      (fun k i ↦ f k.castSucc i)
-    exact (congr_arg (· ⊗ₜ[R] (⨂ₜ[R] i : Tf (last m), f (last m) i)) ih)
+    exact (congr_arg (· ⊗ₜ[R] (⨂ₜ[R] i : Tf (last m), f (last m) i))
+      (ih (fun k i ↦ f k.castSucc i)))
 
 @[simp]
 theorem tprodFinTprodEquiv_symm_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
