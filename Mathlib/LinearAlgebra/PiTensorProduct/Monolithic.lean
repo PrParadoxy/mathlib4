@@ -28,7 +28,7 @@ Replace by other construction? Keep here? Mark `protected`? Move to `Equiv.Fin /
 Restructure entirely?
 -/
 
-open Fin PiTensorProduct
+open Fin
 open scoped TensorProduct
 
 section Fin
@@ -42,6 +42,8 @@ def sigmaFinSuccEquiv {n : Nat} {t : Fin n.succ → Type*} :
     left_inv _ := by aesop
     right_inv _ := by aesop
   }
+
+namespace PiTensorProduct
 
 section TprodFinTrodEquiv
 
@@ -109,6 +111,7 @@ variable {ι : Type*} {s : ι → Type*} {R : Type*} {n : Nat} {Sf : Fin n → S
   [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
   [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
 
+--# TODO: either move it out, or make it a Private def
 def iUnionSigmaEquiv : (Σ k, Sf k) ≃ iUnion Sf where
   toFun s := ⟨s.2, by aesop⟩
   invFun s := ⟨(Fin.find (↑s ∈ Sf ·)).get
@@ -184,7 +187,8 @@ theorem span_tprodFintypeTprod_eq_top :
     rw [←hy]
     use (fun j k => y ⟨j, k⟩)
 
-theorem induction_on_tprod_tprod
+@[elab_as_elim]
+protected theorem induction_on_tprod_tprod
     {motive : (⨂[R] k, ⨂[R] i, s k i) → Prop}
     (smul_tprod_tprod : ∀ (r : R) (g : ∀ k, ∀ i, s k i),
       motive (r • ⨂ₜ[R] k, ⨂ₜ[R] i, (g k i)))
@@ -210,5 +214,5 @@ theorem induction_on_tprod_tprod
 
 
 end tprodFintypeTprodEquiv
-
+end PiTensorProduct
 end Fin
