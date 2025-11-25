@@ -188,12 +188,10 @@ theorem span_tprodFintypeTprod_eq_top :
     use (fun j k => y ⟨j, k⟩)
 
 @[elab_as_elim]
-protected theorem induction_on_tprod_tprod
+protected theorem nested_induction_on
     {motive : (⨂[R] k, ⨂[R] i, s k i) → Prop}
-    (smul_tprod_tprod : ∀ (r : R) (g : ∀ k, ∀ i, s k i),
-      motive (r • ⨂ₜ[R] k, ⨂ₜ[R] i, (g k i)))
-    (add : ∀ (x y : ⨂[R] k, ⨂[R] i, s k i),
-      motive x → motive y → motive (x + y))
+    (smul_tprod_tprod : ∀ (r : R) (g : ∀ k, ∀ i, s k i), motive (r • ⨂ₜ[R] k, ⨂ₜ[R] i, (g k i)))
+    (add : ∀ (x y), motive x → motive y → motive (x + y))
     (z : ⨂[R] k, ⨂[R] i, s k i) : motive z := by
   have h := span_tprodFintypeTprod_eq_top (s := s) (R := R) ▸ Submodule.mem_top (x := z)
   let p := fun z =>
