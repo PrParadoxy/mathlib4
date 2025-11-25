@@ -28,10 +28,10 @@ Replace by other construction? Keep here? Mark `protected`? Move to `Equiv.Fin /
 Restructure entirely?
 -/
 
-section Fin
-
 open Fin PiTensorProduct
 open scoped TensorProduct
+
+section Fin
 
 /-- Split off last summand of a sigma type over `Fin n.succ` -/
 def sigmaFinSuccEquiv {n : Nat} {t : Fin n.succ → Type*} :
@@ -100,45 +100,14 @@ theorem tprodFinTprodEquiv_symm_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
     tprodFinTprodEquiv.symm (⨂ₜ[R] j : (Σ k, Tf k), f j) = (⨂ₜ[R] k, ⨂ₜ[R] i, f ⟨k, i⟩) := by
   simp [LinearEquiv.symm_apply_eq]
 
-theorem span_tprodFinTprod_eq_top:
-  (Submodule.span R
-    (Set.range
-    (fun (f : (k : Fin n) → (i : Tf k) → s k i) ↦ (⨂ₜ[R] k, ⨂ₜ[R] i, f k i)))) =
-    (⊤ : Submodule R (⨂[R] k, ⨂[R] i : Tf k, s k i)) := by
-      have h1 := span_tprod_eq_top (R := R) (s := fun (j : (Σ k, Tf k)) ↦ s j.1 j.2)
-
-      have h2 := Submodule.map_span (tprodFinTprodEquiv (R:=R) (s:=s)).symm
-        (Set.range fun (g : (j : Σ k, Tf k) → s j.1 j.2) ↦ (⨂ₜ[R] j : (Σ k, Tf k), g j))
-
-      sorry
-
-#check Submodule.map_span
-
-section xxx_finite
-variable {κ : Type*} {Tf : κ → Type*}
-variable {R : Type*} {s : (k : κ) → (i : Tf k) → Type*}
-  [CommSemiring R] [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
-
-/-- Assuming that the outer index type is finite, a nested `PiTensorproduct` is
-spanned by the totally pure tensors.  -/
-theorem span_tprodFinTprod_eq_top [Finite κ]:
-    Submodule.span R (Set.range (tprod R)) = (⊤ : Submodule R (⨂[R] i, s i)) :=
-  Submodule.eq_top_iff'.mpr fun t ↦ t.induction_on
-    (fun _ _ ↦ Submodule.smul_mem _ _
-      (Submodule.subset_span (by simp only [Set.mem_range, exists_apply_eq_apply])))
-    (fun _ _ hx hy ↦ Submodule.add_mem _ hx hy)
-end xxx_finite
-
 end TprodFinTrodEquiv
-
-
 
 section iUnion
 open Set
 
-variable {ι : Type*} {s : ι → Type*} {n : Nat} {Sf : Fin n → Set ι}
+variable {ι : Type*} {s : ι → Type*} {R : Type*} {n : Nat} {Sf : Fin n → Set ι}
   (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
-  [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
+  [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
   [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
 
 def iUnionSigmaEquiv : (Σ k, Sf k) ≃ iUnion Sf where
@@ -206,71 +175,35 @@ end tprodFintypeTprodEquiv
 
 end Fin
 
--- #check ⨂[R] i : Fin n.succ, s i
---
--- def tmulFinSumEquiv_1 :
---     ((⨂[R] (i₁ : Fin n), s (castAdd 1 i₁)) ⊗[R] (⨂[R] (i₂ : Fin 1), s (natAdd n i₂)))
---       ≃ₗ[R] ⨂[R] (i : Fin (n + 1)), s i :=
---   (tmulEquivDep R (fun i => s (finSumFinEquiv i))).trans
---     (reindex R (fun i => s i) (finSumFinEquiv.symm)).symm
---
--- def tmulFinSumEquiv_2 :
---       (⨂[R] (i : Fin (n + 1)), s i)
---       ≃ₗ[R]
---       ((⨂[R] (i₁ : Fin n), s (castAdd 1 i₁)) ⊗[R] (⨂[R] (i₂ : Fin 1), s (natAdd n i₂)))
---       :=
---   (reindex R (fun i => s i) (finSumFinEquiv.symm)) ≪≫ₗ
---   (tmulEquivDep R (fun i => s (finSumFinEquiv i))).symm
---
--- def tmulFinSumEquiv_3 :
---       (⨂[R] (i : Fin (n + 1)), s i)
---       ≃ₗ[R]
---       ((⨂[R] (i₁ : Fin n), s (castAdd 1 i₁)) ⊗[R] (s (last n))) :=
---   (reindex R (fun i => s i) (finSumFinEquiv.symm)) ≪≫ₗ
---   (tmulEquivDep R (fun i => s (finSumFinEquiv i))).symm ≪≫ₗ
---   (TensorProduct.congr (LinearEquiv.refl R _) (subsingletonEquivDep 0))
---
---
---   def tmulFinSucc : (⨂[R] i : Fin n.succ, s i) ≃ₗ[R]
---   ⨂[R] i : Fin n, s (castSucc i) ⊗[R] s (last n) :=
---   (reindex R (fun i => s i) (finSumFinEquiv.symm)) ≪≫ₗ
---   (tmulEquivDep R (fun j ↦ s (finSumFinEquiv j))).symm ≪≫ₗ
---   (TensorProduct.congr (N:= ⨂[R] i : Fin 1, s (finSumFinEquiv i)) (LinearEquiv.refl R _) (subsingletonEquivDep (0 : Fin 1)))
+--# Todo
 
--- @[simp]
--- theorem tmulFinSucc_symm_tprod (f : (i : Fin n) → s (castSucc i)) (x : s (last n)) :
---     tmulFinSucc.symm ((⨂ₜ[R] i, f i) ⊗ₜ[R] x)
---     = ⨂ₜ[R] (i : Fin (n + 1)), addCases f (Function.update 0 0 x) i := by
---   rw [LinearEquiv.symm_apply_eq]
---   simp
---   congr
---   . sorry
---   . sorry
+-- theorem span_tprodFinTprod_eq_top:
+--   (Submodule.span R
+--     (Set.range
+--     (fun (f : (k : Fin n) → (i : Tf k) → s k i) ↦ (⨂ₜ[R] k, ⨂ₜ[R] i, f k i)))) =
+--     (⊤ : Submodule R (⨂[R] k, ⨂[R] i : Tf k, s k i)) := by
+--       have h1 := span_tprod_eq_top (R := R) (s := fun (j : (Σ k, Tf k)) ↦ s j.1 j.2)
 
--- -- At some point, I'd like to see this manually written as a recursion, just to
--- -- see whether the term is easer to handle in simp lemma.
--- def tprodFinTprodEquiv' :
---    (⨂[R] k, ⨂[R] i, s k i) ≃ₗ[R] (⨂[R] j : (Σ k, Tf k), s j.1 j.2) := fun n =>
---  match n with
---  | Nat.zero =>
---    have h : n = 0 := rfl
---    have he : IsEmpty (Fin n) := h ▸ (inferInstance : (IsEmpty (Fin 0)))
---    isEmptyEquiv (Fin 0) ≪≫ₗ (isEmptyEquiv ((k : Fin 0) × Tf k)).symm
---  | Nat.succ m =>
---    (reindex _ _ finSumFinEquiv.symm) ≪≫ₗ (tmulEquivDep _ _).symm ≪≫ₗ
---    (TensorProduct.congr (tprodFinTprodEquiv) (subsingletonEquivDep ↑0)) ≪≫ₗ
---    (tmulEquivDep R (fun j => s (sigmaFinSuccEquiv.symm j).1 (sigmaFinSuccEquiv.symm j).2)) ≪≫ₗ
---    (reindex R (fun j => s j.fst j.snd) sigmaFinSuccEquiv).symm
---
--- def tprodFinTprodEquiv'' :
---     (⨂[R] k, ⨂[R] i, s k i) ≃ₗ[R] (⨂[R] j : (Σ k, Tf k), s j.1 j.2) := fun n =>
---   cases h : n
---   | Nat.zero =>
---     have h : n = 0 := rfl
---     have he : IsEmpty (Fin n) := h ▸ (inferInstance : (IsEmpty (Fin 0)))
---     (isEmptyEquiv _) ≪≫ₗ (isEmptyEquiv _).symm
---   | Nat.succ m =>
---     (reindex _ _ finSumFinEquiv.symm) ≪≫ₗ (tmulEquivDep _ _).symm ≪≫ₗ
---     (TensorProduct.congr (tprodFinTprodEquiv) (subsingletonEquivDep ↑0)) ≪≫ₗ
---     (tmulEquivDep R (fun j => s (sigmaFinSuccEquiv.symm j).1 (sigmaFinSuccEquiv.symm j).2)) ≪≫ₗ
---     (reindex R (fun j => s j.fst j.snd) sigmaFinSuccEquiv).symm
+--       have h2 := Submodule.map_span (tprodFinTprodEquiv (R:=R) (s:=s)).symm
+--         (Set.range fun (g : (j : Σ k, Tf k) → s j.1 j.2) ↦ (⨂ₜ[R] j : (Σ k, Tf k), g j))
+
+--       sorry
+
+-- #check Submodule.map_span
+
+-- section xxx_finite
+-- variable {κ : Type*} {Tf : κ → Type*}
+-- variable {R : Type*} {s : (k : κ) → (i : Tf k) → Type*}
+--   [CommSemiring R] [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
+
+-- -- /-- Assuming that the outer index type is finite, a nested `PiTensorproduct` is
+-- -- spanned by the totally pure tensors.  -/
+-- -- theorem span_tprodFinTprod_eq_top [Finite κ]:
+-- --     Submodule.span R (Set.range (tprod R)) = (⊤ : Submodule R (⨂[R] i, s i)) :=
+-- --   Submodule.eq_top_iff'.mpr fun t ↦ t.induction_on
+-- --     (fun _ _ ↦ Submodule.smul_mem _ _
+-- --       (Submodule.subset_span (by simp only [Set.mem_range, exists_apply_eq_apply])))
+-- --     (fun _ _ hx hy ↦ Submodule.add_mem _ hx hy)
+-- -- end xxx_finite
+
+-- end TprodFinTrodEquiv
