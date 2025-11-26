@@ -43,7 +43,7 @@ Replace by other construction? Keep here? Mark `protected`? Move to `Equiv.Fin /
 Restructure entirely?
 -/
 
-open Fin
+open Fin Set Submodule
 open scoped TensorProduct
 
 section Fin
@@ -119,7 +119,6 @@ theorem tprodFinTprodEquiv_symm_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
 end TprodFinTrodEquiv
 
 section iUnion
-open Set
 
 variable {ι : Type*} {s : ι → Type*} {R : Type*} {n : Nat} {Sf : Fin n → Set ι}
   (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
@@ -141,7 +140,7 @@ def iUnionSigmaEquiv : (Σ k, Sf k) ≃ iUnion Sf where
   right_inv := by simp [Function.RightInverse, Function.LeftInverse]
 
 def tprodFiniUnionEquiv :
-    (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : (Set.iUnion Sf), s i) :=
+    (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : (iUnion Sf), s i) :=
   (tprodFinTprodEquiv ≪≫ₗ reindex R _ (iUnionSigmaEquiv H))
 
 @[simp]
@@ -152,7 +151,7 @@ theorem tprodFiniUnionEquiv_tprod (f : (k : Fin n) → (i : Sf k) → s i) :
   apply reindex_tprod
 
 @[simp]
-theorem tprodFiniUnionEquiv_symm_tprod (f : (i : (Set.iUnion Sf)) → s i) :
+theorem tprodFiniUnionEquiv_symm_tprod (f : (i : (iUnion Sf)) → s i) :
     (tprodFiniUnionEquiv H).symm (⨂ₜ[R] i, f i) = ⨂ₜ[R] k, ⨂ₜ[R] i : Sf k, f ⟨i, by aesop⟩ := by
   simp [LinearEquiv.symm_apply_eq, iUnionSigmaEquiv]
 
@@ -186,15 +185,13 @@ theorem tprodFiniteTprodEquiv_symm_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) 
     tprodFiniteTprodEquiv.symm (⨂ₜ[R] j : (Σ k, Tf k), f j) = (⨂ₜ[R] k, ⨂ₜ[R] i, f ⟨k, i⟩) := by
   simp [LinearEquiv.symm_apply_eq]
 
-theorem span_tprodFintypeTprod_eq_top :
-  (Submodule.span R
-    (Set.range
-    (fun (f : (k : ι) → (i : Tf k) → s k i) => (⨂ₜ[R] k, ⨂ₜ[R] i, f k i))))
-      = (⊤ : Submodule R (⨂[R] k, ⨂[R] i : Tf k, s k i)) := by
+theorem span_tprodFiniteTprod_eq_top :
+  (span R (range (fun (f : (k : ι) → (i : Tf k) → s k i) => (⨂ₜ[R] k, ⨂ₜ[R] i, f k i))))
+    = (⊤ : Submodule R (⨂[R] k, ⨂[R] i : Tf k, s k i)) := by
   rw [← tprodFiniteTprodEquiv (R := R) (s := s).symm.range,
-    LinearMap.range_eq_map, ← span_tprod_eq_top, ← Submodule.span_image]
+    LinearMap.range_eq_map, ← span_tprod_eq_top, ← span_image]
   congr with f
-  simp only [Set.mem_range, LinearEquiv.coe_coe, Set.mem_image, exists_exists_eq_and,
+  simp only [mem_range, LinearEquiv.coe_coe, mem_image, exists_exists_eq_and,
     tprodFiniteTprodEquiv_symm_tprod]
   constructor
   · intro ⟨y, hy⟩
@@ -210,16 +207,16 @@ protected theorem nested_induction_on
     (smul_tprod_tprod : ∀ (r : R) (f : ∀ k, ∀ i, s k i), motive (r • ⨂ₜ[R] k, ⨂ₜ[R] i, (f k i)))
     (add : ∀ (x y), motive x → motive y → motive (x + y))
     (z : ⨂[R] k, ⨂[R] i, s k i) : motive z := by
-  have h := span_tprodFintypeTprod_eq_top (s := s) (R := R) ▸ Submodule.mem_top (x := z)
+  have h := span_tprodFiniteTprod_eq_top (s := s) (R := R) ▸ mem_top (x := z)
   let p := fun z =>
-    fun (_ : z ∈ Submodule.span R (Set.range
+    fun (_ : z ∈ span R (range
       fun f : (k : ι) → (i : Tf k) → s k i ↦ ⨂ₜ[R] k, ⨂ₜ[R] i, f k i)) =>
         ∀ r : R, motive (r • z)
   suffices hp : p z h by simpa [p] using hp 1
-  induction h using Submodule.span_induction with
+  induction h using span_induction with
   | mem x h =>
     intro r
-    obtain ⟨y, hy⟩ := Set.mem_range.mp h
+    obtain ⟨y, hy⟩ := mem_range.mp h
     simpa [hy] using smul_tprod_tprod r y
   | smul r _ _ hx =>
     intro r'
@@ -286,7 +283,6 @@ def tprodTprod_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
 end tprodTprodHom
 
 section unifyMaps
-open Set
 
 variable {ι : Type*} {κ : Type*} {R : Type*} {s : ι → Type*} {Sf : κ → Set ι} {M : κ → Type*}
 variable (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
