@@ -4,12 +4,13 @@ import Mathlib.LinearAlgebra.PiTensorProduct.Set
 
 # Nested PiTensorProducts
 
-For a family `s : (k : κ) → (i : T k) → Type*` of modules, we analyze the type
+Let `T : (k : κ) → Type*` be a family of types. Given a "double-indexed family"
+`s : (k : κ) → (i : T k) → Type*` of modules, we analyze the type
 
  `⨂ k : κ, ⨂ i : T i, s k i`
 
-of nested PiTensorProducts, and its relation to "tensors with a double index"
-modelled as sigma types:
+of nested PiTensorProducts. In particular, we relate it to "tensors with a
+double index", i.e. `PiTensorProducts` indexed by a sigma type:
 
  `⨂ j : Σ (k : κ), T k, s j.fst j.snd`.
 
@@ -39,8 +40,8 @@ The equivalence `sigmaFinSuccEquiv` has nothing to do `PiTensorProduct`s. It is
 related to `finSumFinEquiv` and `Equiv.sumSigmaDistrib`, but doesn't seem to
 follow easily from those.
 
-Replace by other construction? Keep here? Mark `protected`? Move to `Equiv.Fin / Equiv.Sum`?
-Restructure entirely?
+Replace by other construction? Keep here? Mark `protected`? Add "_aux" to name?
+Move to `Equiv.Fin /Equiv.Sum`?  Restructure entirely?
 -/
 
 open Fin Set Submodule
@@ -66,8 +67,8 @@ variable {n : Nat} {Tf : Fin n → Type*}
 variable {R : Type*} {s : (k : Fin n) → (i : Tf k) → Type*}
   [CommSemiring R] [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
 
-/-- A nested `PiTensorProduct` is equivalent to a single `PiTensorProduct` over
-a sigma type, assuming that the outer type is finite. -/
+/-- A nested `PiTensorProduct` with outer index of type `Fin n` is equivalent to
+a single `PiTensorProduct` over a sigma type. -/
 def tprodFinTprodEquiv :
     (⨂[R] k, ⨂[R] i, s k i) ≃ₗ[R] (⨂[R] j : (Σ k, Tf k), s j.1 j.2) := by
   induction n with
@@ -81,8 +82,6 @@ def tprodFinTprodEquiv :
       (tmulEquivDep R (fun j => s (sigmaFinSuccEquiv.symm j).1 (sigmaFinSuccEquiv.symm j).2)) ≪≫ₗ
       (reindex R (fun j => s j.fst j.snd) sigmaFinSuccEquiv).symm
 
--- Proof strategy: Repeatedly move equivalences around to obtain the form
--- `(complicated terms) = aSingleEquiv tprod`, then simp away `aSingleEquiv`.
 open LinearEquiv in
 @[simp]
 theorem tprodFinTprodEquiv_tprod (f : (k : Fin n) → (i : Tf k) → s k i) :
@@ -92,6 +91,9 @@ theorem tprodFinTprodEquiv_tprod (f : (k : Fin n) → (i : Tf k) → s k i) :
     simp only [tprodFinTprodEquiv, Nat.rec_zero, trans_apply,
       symm_apply_eq, isEmptyEquiv_apply_tprod]
   | succ m ih =>
+    -- Strategy: Repeatedly move equivalences around to obtain the form
+    -- `(complicated terms) = aSingleEquiv tprod`, then simp away `aSingleEquiv`.
+
     simp only [tprodFinTprodEquiv, Equiv.symm_symm, finSumFinEquiv_apply_left, trans_apply]
 
     -- Final reindex & tmulEquivDep
