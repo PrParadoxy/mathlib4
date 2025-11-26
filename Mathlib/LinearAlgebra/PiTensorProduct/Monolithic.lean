@@ -228,3 +228,77 @@ protected theorem nested_induction_on
   | add => simp_all [p]
 
 end tprodFiniteTprodEquiv
+
+
+section tprodTprodHom
+
+variable {κ : Type*} {R : Type*} {Tf : (k : κ) → Type*} {s : (k : κ) → (i : Tf k) → Type*}
+  [DecidableEq κ] [CommSemiring R] [∀ k : κ, DecidableEq (Tf k)]
+  [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
+
+omit [(k : κ) → DecidableEq (Tf k)] in
+lemma tprod_update_comm
+  [DecidableEq ((k : κ) × Tf k)]
+  (f : (i : (k : κ) × Tf k) → s i.fst i.snd)
+  (j : (k : κ) × Tf k) (x : s j.1 j.2) :
+    (fun k ↦ ⨂ₜ[R] (i : Tf k), (Function.update f j x) ⟨k, i⟩) =
+    Function.update (fun k ↦ ⨂ₜ[R] (i : Tf k), f ⟨k, i⟩) j.1
+    (⨂ₜ[R] (i : Tf j.1), (Function.update f j x) ⟨j.1, i⟩) := by
+  ext k
+  by_cases heq : k = j.1
+  · aesop
+  · simp_all [show ∀ i1 : Tf k, ⟨k, i1⟩ ≠ j from by aesop]
+
+omit [DecidableEq κ] [(k : κ) → (i : Tf k) → AddCommMonoid (s k i)] in
+lemma update_arg
+  [DecidableEq ((k : κ) × Tf k)]
+  (f : (i : (k : κ) × Tf k) → s i.fst i.snd)
+  (j : (k : κ) × Tf k) (x : s j.1 j.2) (x : s j.fst j.snd) :
+    (fun i : Tf j.1  => Function.update f j x ⟨j.1, i⟩) =
+      Function.update (fun i : Tf j.1 ↦ f ⟨j.1, i⟩) j.2 x := by
+    aesop (add safe unfold Function.update)
+
+def tprodTprodHom : (⨂[R] j : (Σ k, Tf k), s j.1 j.2) →ₗ[R] (⨂[R] k, ⨂[R] i, s k i) :=
+  lift {
+    toFun x := ⨂ₜ[R] k, ⨂ₜ[R] i : Tf k, x ⟨k, i⟩
+    map_update_add' := by
+      intro _ f j a b
+      rw [tprod_update_comm, update_arg (x := a + b)]
+      simp only [MultilinearMap.map_update_add]
+      apply congrArg₂ HAdd.hAdd
+      all_goals
+        congr
+        ext k
+        by_cases h : k = j.fst <;> aesop (add safe forward update_arg)
+    map_update_smul' := by
+      intro _ f j c x
+      rw [tprod_update_comm, update_arg (x := x)]
+      simp only [MultilinearMap.map_update_smul]
+      congr
+      ext k
+      by_cases h : k = j.fst <;> aesop (add safe forward update_arg)
+    }
+
+def tprodTprod_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
+    tprodTprodHom (⨂ₜ[R] j, f j) = ⨂ₜ[R] k, ⨂ₜ[R] i : Tf k, f ⟨k, i⟩ := by
+  simp [tprodTprodHom]
+
+end tprodTprodHom
+
+section unifyMaps
+open Set
+
+variable {ι : Type*} {κ : Type*} {R : Type*} {s : ι → Type*} {Sf : κ → Set ι} {M : κ → Type*}
+variable (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
+  [∀ k, AddCommMonoid (M k)] [CommSemiring R] [∀ k, Module R (M k)] [∀ i, AddCommGroup (s i)]
+  [∀ i, Module R (s i)] [DecidableEq κ] [(k : κ) → DecidableEq ↑(Sf k)]
+
+noncomputable def unifyMaps :
+    (⨂[R] k, (⨂[R] i : Sf k, s i) →ₗ[R] (M k)) →ₗ[R]
+      ((⨂[R] i : iUnion Sf, s i) →ₗ[R] (⨂[R] k, M k)) := lift {
+    toFun L := ((map L) ∘ₗ tprodTprodHom) ∘ₗ ((reindex R _ (unionEqSigmaOfDisjoint H))).toLinearMap
+    map_update_add' := by simp [PiTensorProduct.map_update_add, LinearMap.add_comp]
+    map_update_smul' := by simp [PiTensorProduct.map_update_smul, LinearMap.smul_comp]
+  }
+
+end unifyMaps
