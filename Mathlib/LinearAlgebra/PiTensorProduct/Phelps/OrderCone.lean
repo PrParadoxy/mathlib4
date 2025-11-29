@@ -1,7 +1,8 @@
 import Mathlib.LinearAlgebra.PiTensorProduct.Phelps.Equiv
 import Mathlib.Data.Real.Sqrt
 import Mathlib.Analysis.Convex.Cone.Basic
-import Mathlib.LinearAlgebra.Dual.Lemmas
+import Mathlib.LinearAlgebra.PiTensorProduct.Phelps.Dual
+import Mathlib.Analysis.Normed.Order.Lattice
 
 
 /-!
@@ -118,5 +119,16 @@ variable (o : OrderCone W) {o' : OrderCone W}
 
 def separating : Prop := ∀ ⦃w⦄, w ≠ 0 → ∃ f ∈ PosDual o, f w ≠ 0
 
+theorem convex : Convex ℝ (PosDual o) := by
+  apply Convex.inter
+  · exact fun _ hv _ hu _ _ ha hb hab => by
+      simpa using fun q hq => add_nonneg (smul_nonneg ha (hv q hq)) (smul_nonneg hb (hu q hq))
+  · exact Convex.linear_preimage (convex_singleton 1) (((dualPairing ℝ W).flip o.ref))
 
-#leansearch "geometric_hahn_banach_point_closed."
+theorem isClosed : IsClosed (PosDual o) := by
+  apply IsClosed.inter
+  · simpa only [Set.setOf_forall] using (isClosed_biInter fun v hv =>
+      IsClosed.preimage (dual_eval_continuous v) isClosed_nonneg)
+  · exact IsClosed.preimage (dual_eval_continuous o.ref) isClosed_singleton
+
+
