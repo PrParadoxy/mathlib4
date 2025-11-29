@@ -115,7 +115,7 @@ instance : LinearMapClass (AlgWeakDual V) ℝ V ℝ where
   map_smulₛₗ f := f.map_smul'
 
 /-- Forgets linear structure of `AlgWeakDual V` for tychonoff's theorem. -/
-abbrev dualembed : AlgWeakDual V → (V → ℝ) := DFunLike.coe
+def dualembed : AlgWeakDual V → (V → ℝ) := DFunLike.coe
 
 theorem dualembed_isclosed_embedding :
     IsClosedEmbedding (dualembed (V := V)) :=
@@ -146,7 +146,7 @@ namespace PosDual
 variable (o : OrderCone V) {o' : OrderCone V}
 
 /-- `SeparatingDual` but with no topology on the vector space. -/
-abbrev separating : Prop :=
+def separating : Prop :=
   ∀ ⦃v⦄, v ≠ 0 → ∃ f ∈ PosDual o, f v ≠ 0
 
 theorem convex : Convex ℝ (PosDual o) := by
@@ -235,7 +235,7 @@ variable {ι : Type*} {S : Set ι} (S' : Set ι) {s : ι → Type*}
   [∀ i, AddCommGroup (s i)] [∀ i, Module ℝ (s i)] (O : ∀ i, OrderCone (s i))
 
 /-- Cartesian product of a `PosDual` family. -/
-abbrev PiPosDual := Set.pi Set.univ (fun (i : S') => PosDual (O i))
+def PiPosDual := Set.pi Set.univ (fun (i : S') => PosDual (O i))
 
 namespace PiPosDual
 
