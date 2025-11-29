@@ -242,8 +242,8 @@ namespace PiPosDual
 theorem convex : Convex ℝ (PiPosDual S O) :=
   convex_pi (fun i _ => PosDual.convex (O i))
 
-theorem isCompact : IsCompact (PiPosDual S O) := by
-  exact isCompact_univ_pi (fun i :S => PosDual.isCompact (O i))
+theorem isCompact : IsCompact (PiPosDual S O) :=
+  isCompact_univ_pi (fun i :S => PosDual.isCompact (O i))
 
 theorem nonempty [∀ i, Nontrivial (s i)] (hs : ∀ i, PosDual.separating (O i)) :
   (PiPosDual S O).Nonempty := Set.univ_pi_nonempty_iff.mpr (fun i => PosDual.nonempty (hs i))
