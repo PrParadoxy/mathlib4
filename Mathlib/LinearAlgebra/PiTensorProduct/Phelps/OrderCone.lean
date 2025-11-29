@@ -3,7 +3,7 @@ import Mathlib.Analysis.Convex.Cone.Basic
 import Mathlib.Topology.Algebra.Module.WeakBilin
 import Mathlib.LinearAlgebra.Dual.Lemmas
 import Mathlib.Analysis.Normed.Field.Lemmas
-
+import Mathlib.Analysis.Normed.Order.Lattice
 
 /-!
 # Tensor product of partially ordered spaces
@@ -37,7 +37,7 @@ tensor product of vectors comming from `OrderCone`s.
 -/
 
 
-open Module Set Topology
+open Module Set Topology WeakBilin
 
 section SingleVectorSpace
 
@@ -109,17 +109,18 @@ instance : DFunLike (AlgWeakDual V) V fun _ => ℝ where
   coe v := v.toFun
   coe_injective' := fun _ _ h => by simpa using h
 
-abbrev dualEmbed : AlgWeakDual V → (V → ℝ) := DFunLike.coe
+/-- Forgets linear structure of `AlgWeakDual V` for tychonoff's theorem. -/
+abbrev dualembed : AlgWeakDual V → (V → ℝ) := DFunLike.coe
 
 theorem dualembed_isclosed_embedding :
-    IsClosedEmbedding (dualEmbed (V := V)) :=
+    IsClosedEmbedding (dualembed (V := V)) :=
   IsClosedEmbedding.mk (DFunLike.coe_injective.isEmbedding_induced)
     (LinearMap.isClosed_range_coe _ _ _)
 
 /-- A set of dual vectors is compact if it is closed,
     and its image under dualEmbed is a subset of a compact set. -/
 theorem isCompact_image_dualembed {s : Set (AlgWeakDual V)} {c : Set (V → ℝ)}
-    (hs : IsClosed s) (hc : IsCompact c) (hsc : dualEmbed '' s ⊆ c) : IsCompact s :=
+    (hs : IsClosed s) (hc : IsCompact c) (hsc : dualembed '' s ⊆ c) : IsCompact s :=
   dualembed_isclosed_embedding.isCompact_iff.mpr
     (IsCompact.of_isClosed_subset hc
       (dualembed_isclosed_embedding.isClosed_iff_image_isClosed.mp hs) hsc)
@@ -128,3 +129,28 @@ end AlgWeakDual
 
 
 
+section PosDual
+
+/-- Set of all positive dual vectors on the order cone,
+    normalized by fixing their evaluation on `OrderCone.e` to 1. -/
+def PosDual (o : OrderCone V) : Set (AlgWeakDual V) :=
+  {s | ∀ v ∈ o, 0 ≤ s v} ∩ {s | s o.ref = 1}
+
+namespace PosDual
+
+variable (o : OrderCone V) {o' : OrderCone V}
+
+abbrev separating : Prop :=
+  ∀ ⦃v⦄, v ≠ 0 → ∃ f ∈ PosDual o, f v ≠ 0
+
+theorem convex : Convex ℝ (PosDual o) := by
+  apply Convex.inter
+  · exact fun _ hv _ hu _ _ ha hb hab => by
+      simpa using fun q hq => add_nonneg (smul_nonneg ha (hv q hq)) (smul_nonneg hb (hu q hq))
+  · exact Convex.linear_preimage (convex_singleton 1) (((dualPairing ℝ V).flip o.ref))
+
+theorem isClosed : IsClosed (PosDual o) := by
+  apply IsClosed.inter
+  · simpa only [Set.setOf_forall] using (isClosed_biInter fun v hv =>
+      (IsClosed.preimage (eval_continuous (dualPairing ℝ V) v) isClosed_nonneg))
+  · exact IsClosed.preimage (eval_continuous (dualPairing ℝ V) o.ref) isClosed_singleton
