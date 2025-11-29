@@ -117,3 +117,6 @@ namespace PosDual
 variable (o : OrderCone W) {o' : OrderCone W}
 
 def separating : Prop := ∀ ⦃w⦄, w ≠ 0 → ∃ f ∈ PosDual o, f w ≠ 0
+
+
+#leansearch "geometric_hahn_banach_point_closed."
