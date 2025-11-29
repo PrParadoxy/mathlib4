@@ -1,5 +1,5 @@
 import Mathlib.LinearAlgebra.PiTensorProduct.Phelps.Equiv
-import Mathlib.Topology.MetricSpace.ProperSpace.Real
+import Mathlib.Data.Real.Sqrt
 import Mathlib.Analysis.Convex.Cone.Basic
 
 
