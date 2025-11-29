@@ -305,3 +305,5 @@ instance instdualTensorTopology : TopologicalSpace (⨂[R] i, Dual R (V i)) :=
   apply continuous_pi_iff.mp (Continuous.comp' (dual_coefn_continuous) (embedTensorDual_continuous))
 
 end instdualTensorTopology
+
+#check ContinuousLinearMap.toLinearMap

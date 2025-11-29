@@ -232,12 +232,10 @@ section tprodTprodHom
 variable {κ : Type*} {R : Type*} {Tf : (k : κ) → Type*} {s : (k : κ) → (i : Tf k) → Type*}
   [DecidableEq κ] [CommSemiring R] [∀ k : κ, DecidableEq (Tf k)]
   [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
+  (f : (i : (k : κ) × Tf k) → s i.fst i.snd)  (j : (k : κ) × Tf k) (x : s j.1 j.2)
 
 omit [(k : κ) → DecidableEq (Tf k)] in
-lemma tprod_update_comm
-  [DecidableEq ((k : κ) × Tf k)]
-  (f : (i : (k : κ) × Tf k) → s i.fst i.snd)
-  (j : (k : κ) × Tf k) (x : s j.1 j.2) :
+lemma tprod_update_comm [DecidableEq ((k : κ) × Tf k)] :
     (fun k ↦ ⨂ₜ[R] (i : Tf k), (Function.update f j x) ⟨k, i⟩) =
     Function.update (fun k ↦ ⨂ₜ[R] (i : Tf k), f ⟨k, i⟩) j.1
     (⨂ₜ[R] (i : Tf j.1), (Function.update f j x) ⟨j.1, i⟩) := by
@@ -248,9 +246,7 @@ lemma tprod_update_comm
 
 omit [DecidableEq κ] [(k : κ) → (i : Tf k) → AddCommMonoid (s k i)] in
 lemma update_arg
-  [DecidableEq ((k : κ) × Tf k)]
-  (f : (i : (k : κ) × Tf k) → s i.fst i.snd)
-  (j : (k : κ) × Tf k) (x : s j.1 j.2) (x : s j.fst j.snd) :
+  [DecidableEq ((k : κ) × Tf k)] :
     (fun i : Tf j.1  => Function.update f j x ⟨j.1, i⟩) =
       Function.update (fun i : Tf j.1 ↦ f ⟨j.1, i⟩) j.2 x := by
     aesop (add safe unfold Function.update)
