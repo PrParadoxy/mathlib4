@@ -189,7 +189,6 @@ lemma exists_separating_of_ne
   rcases hs (sub_ne_zero_of_ne h) with ⟨f, hf₁, hf₂⟩
   exact ⟨f, hf₁, by simpa [sub_ne_zero] using hf₂⟩
 
-/-- Not an instance, `separating` cannot be automatically inferred. -/
 lemma nonempty [Nontrivial V] (hs : separating o') : (PosDual o').Nonempty := by
   have ⟨f, hf, _⟩ := hs (exists_ne (0 : V)).choose_spec
   exact ⟨f, hf⟩
@@ -205,7 +204,6 @@ end PosDual.PosDual
 namespace OrderCone
 
 variable {o : OrderCone V} (hs : PosDual.separating o)
-
 /-
   We do not demand `ConvexCone.salient` on the ordercone definition, since it is provable
   from the existence of seperating functions. Note that the converse is not true,
@@ -222,9 +220,33 @@ theorem salient (hs : PosDual.separating o) : ∀ x ∈ o, x ≠ 0 → -x ∉ o 
 def partialOrder : PartialOrder V :=
   ConvexCone.toPartialOrder o.toConvexCone o.pointed (o.salient hs)
 
-instance : @IsOrderedAddMonoid V _ (partialOrder hs) :=
+def isOrderedAddMonoid : @IsOrderedAddMonoid V _ (partialOrder hs) :=
   ConvexCone.to_isOrderedAddMonoid o.toConvexCone o.pointed (o.salient hs)
 
 end OrderCone
+end SingleVectorSpace
 
 
+section MultiVectorSpace
+
+open PiTensorProduct
+open scoped TensorProduct
+
+variable {ι : Type*} {S : Set ι} (S' : Set ι) {s : ι → Type*}
+  [∀ i, AddCommGroup (s i)] [∀ i, Module ℝ (s i)] (O : ∀ i, OrderCone (s i))
+
+/-- Cartesian product of a `PosDual` family. -/
+abbrev PiPosDual := Set.pi Set.univ (fun (i : S') => PosDual (O i))
+
+namespace PiPosDual
+
+theorem convex : Convex ℝ (PiPosDual S O) :=
+  convex_pi (fun i _ => PosDual.convex (O i))
+
+theorem isCompact : IsCompact (PiPosDual S O) := by
+  exact isCompact_univ_pi (fun i :S => PosDual.isCompact (O i))
+
+theorem nonempty [∀ i, Nontrivial (s i)] (hs : ∀ i, PosDual.separating (O i)) :
+  (PiPosDual S O).Nonempty := Set.univ_pi_nonempty_iff.mpr (fun i => PosDual.nonempty (hs i))
+
+end PiPosDual
