@@ -44,7 +44,7 @@ variable (W : Type*) [AddCommGroup W] [Module ℝ W]
 
 /-- A Set is `generating` if any element in the vector space can be written as a difference between
   two elements of this Set. -/
-def generating (S : Set V) := ∀ z : V, ∃ x y, x ∈ S ∧ y ∈ S ∧ z = x - y
+def Set.generating (S : Set V) := ∀ z : V, ∃ x y, x ∈ S ∧ y ∈ S ∧ z = x - y
 
 
 section core
@@ -69,7 +69,7 @@ theorem mem_core_of_subset_mem_core {s₁ s₂ : Set V}
   have ⟨ε, hε, hδ⟩ := hvc v
   aesop
 
--- Fixes `δ` to its maximal value `ε` and remove assumptions on `δ`.
+/-- Fixes `δ` in `core` to its maximal value `ε` and removes inequality assumption. -/
 theorem fix_core (hvc : vc ∈ core S) :
     ∀ v, ∃ ε : ℝ, 0 < ε ∧ vc + ε • v ∈ S ∧ vc - ε • v ∈ S := by
   intro v
