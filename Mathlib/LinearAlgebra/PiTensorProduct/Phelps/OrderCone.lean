@@ -139,7 +139,7 @@ section PosDual
 /-- Set of all positive dual vectors on the order cone,
     normalized by fixing their evaluation on `OrderCone.e` to 1. -/
 def PosDual (o : OrderCone V) : Set (AlgWeakDual V) :=
-  {s | ∀ v ∈ o, 0 ≤ s v} ∩ {s | s o.ref = 1}
+  {s | ∀ ⦃v⦄, v ∈ o → 0 ≤ s v} ∩ {s | s o.ref = 1}
 
 namespace PosDual
 
@@ -152,7 +152,7 @@ abbrev separating : Prop :=
 theorem convex : Convex ℝ (PosDual o) := by
   apply Convex.inter
   · exact fun _ hv _ hu _ _ ha hb hab => by
-      simpa using fun q hq => add_nonneg (smul_nonneg ha (hv q hq)) (smul_nonneg hb (hu q hq))
+      simpa using fun q hq => add_nonneg (smul_nonneg ha (hv hq)) (smul_nonneg hb (hu hq))
   · exact Convex.linear_preimage (convex_singleton 1) (((dualPairing ℝ V).flip o.ref))
 
 theorem isClosed : IsClosed (PosDual o) := by
@@ -167,10 +167,9 @@ theorem pointwise_bounded : ∀ v, ∃ M : ℝ, ∀ f : PosDual o, |f.val v| ≤
   intro f
   have ⟨hfv, hfe⟩ := f.val_prop
   rw [Set.mem_setOf_eq] at hfv hfe
-  have hl := hfv (o.ref + ε • v) (hδ ε (abs_of_pos hε).le)
-  have hr := hfv (o.ref - ε • v)
-    (by simpa [sub_eq_add_neg] using (hδ (-ε) (by simp [abs_of_pos hε])))
-  simp only [map_sub, smul_eq_mul, map_add, hfe, map_smul] at hr hl
+  have hl := hfv (hδ ε (abs_of_pos hε).le)
+  have hr := hfv ((hδ (-ε) (by simp [abs_of_pos hε])))
+  simp only [smul_eq_mul, map_add, hfe, map_smul] at hr hl
   exact abs_le.mpr (by constructor <;> (field_simp; linarith))
 
 theorem isCompact : IsCompact (PosDual o) := by
@@ -197,7 +196,7 @@ theorem exists_strict_pos (hs : separating o) :
   ∀ v ∈ o, v ≠ 0 → ∃s ∈ PosDual o, 0 < s v := by
   intro v hv₁ hv₂
   have ⟨s, hs₁, hs₂⟩ := hs hv₂
-  exact ⟨s, hs₁, lt_of_le_of_ne (hs₁.left v hv₁) (hs₂.symm)⟩
+  exact ⟨s, hs₁, lt_of_le_of_ne (hs₁.left hv₁) (hs₂.symm)⟩
 
 end PosDual.PosDual
 
@@ -213,8 +212,8 @@ variable {o : OrderCone V} (hs : PosDual.separating o)
 theorem salient (hs : PosDual.separating o) : ∀ x ∈ o, x ≠ 0 → -x ∉ o := by
   intro x hx₁ hx₂ hx₃
   obtain ⟨f, hf₁, hf₂⟩ := PosDual.exists_strict_pos o hs x hx₁ hx₂
-  have h : f x ≤ 0 := by simpa using hf₁.left (-x) hx₃
-  simp [le_antisymm (h) (hf₁.left (x) hx₁)] at hf₂
+  have h : f x ≤ 0 := by simpa using hf₁.left hx₃
+  simp [le_antisymm (h) (hf₁.left hx₁)] at hf₂
 
 /-- The canonical order on the salient convex cone -/
 def partialOrder : PartialOrder V :=
