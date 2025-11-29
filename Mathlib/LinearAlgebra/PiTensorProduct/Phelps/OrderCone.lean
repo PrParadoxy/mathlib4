@@ -109,6 +109,10 @@ instance : DFunLike (AlgWeakDual V) V fun _ => ℝ where
   coe v := v.toFun
   coe_injective' := fun _ _ h => by simpa using h
 
+instance : LinearMapClass (AlgWeakDual V) ℝ V ℝ where
+  map_add f := f.map_add'
+  map_smulₛₗ f := f.map_smul'
+
 /-- Forgets linear structure of `AlgWeakDual V` for tychonoff's theorem. -/
 abbrev dualembed : AlgWeakDual V → (V → ℝ) := DFunLike.coe
 
@@ -154,3 +158,15 @@ theorem isClosed : IsClosed (PosDual o) := by
   · simpa only [Set.setOf_forall] using (isClosed_biInter fun v hv =>
       (IsClosed.preimage (eval_continuous (dualPairing ℝ V) v) isClosed_nonneg))
   · exact IsClosed.preimage (eval_continuous (dualPairing ℝ V) o.ref) isClosed_singleton
+
+theorem pointwise_bounded : ∀ v, ∃ M : ℝ, ∀ f : PosDual o, |f.val v| ≤ M := fun v => by
+  have ⟨ε, hε, hδ⟩ := o.hcore v
+  use 1 / ε
+  intro f
+  have ⟨hfv, hfe⟩ := f.val_prop
+  rw [Set.mem_setOf_eq] at hfv hfe
+  have hl := hfv (o.ref + ε • v) (hδ ε (abs_of_pos hε).le)
+  have hr := hfv (o.ref - ε • v)
+    (by simpa [sub_eq_add_neg] using (hδ (-ε) (by simp [abs_of_pos hε])))
+  simp only [map_sub, smul_eq_mul, map_add, hfe, map_smul] at hr hl
+  exact abs_le.mpr (by constructor <;> (field_simp; linarith))
