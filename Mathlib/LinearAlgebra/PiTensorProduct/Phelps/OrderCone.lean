@@ -42,6 +42,11 @@ section SingleVectorSpace
 variable {V : Type*} [AddCommGroup V] [Module ℝ V]
 variable (W : Type*) [AddCommGroup W] [Module ℝ W]
 
+/-- A Set is `generating` if any element in the vector space can be written as a difference between
+    two elements of this Set. -/
+def generating (S : Set V) := ∀ z : V, ∃ x y, x ∈ S ∧ y ∈ S ∧ z = x - y
+
+
 section core
 
 variable {vc : V} {S : Set V}
@@ -49,8 +54,7 @@ variable {vc : V} {S : Set V}
 namespace Set
 
 /-- Algebraic interior of a Set. -/
-def core (S : Set V) :=
-  {vc | ∀ v, ∃ ε : ℝ, 0 < ε ∧ ∀ δ, |δ| ≤ ε → vc + δ • v ∈ S}
+def core (S : Set V) := {vc | ∀ v, ∃ ε : ℝ, 0 < ε ∧ ∀ δ, |δ| ≤ ε → vc + δ • v ∈ S}
 
 @[simp] lemma mem_core :
   vc ∈ core S ↔ ∀ v, ∃ ε : ℝ, 0 < ε ∧ ∀ δ, |δ| ≤ ε → vc + δ • v ∈ S := Iff.rfl
@@ -76,6 +80,7 @@ theorem fix_core (hvc : vc ∈ core S) :
 end Set
 end core
 
+section OrderCone
 
 /-- A salient convex cone with a distinguished element `e` in its core.
   For saliency, check `OrderCone.salient`. -/
@@ -85,5 +90,22 @@ structure OrderCone extends ConvexCone ℝ W where
   hcore : ref ∈ (core carrier)
   pointed : ConvexCone.Pointed toConvexCone
 
+namespace OrderCone
 
+instance : Membership V (OrderCone V) where
+  mem S x := x ∈ S.carrier
 
+@[simp] lemma mem_coe {s : Set W} {x : W} {h₁ h₂ h₃ h₄ h₅} :
+  x ∈ (OrderCone.mk (ConvexCone.mk s h₁ h₂) h₃ h₄ h₅) ↔ x ∈ s := Iff.rfl
+
+variable (o : OrderCone V)
+
+theorem is_generating : generating o.carrier := by
+  intro v
+  have ⟨ε, hε, h, _⟩ := fix_core o.hcore v
+  have hε' : 0 < (1 / ε) := by simp [hε]
+  use (1 / ε) • (o.ref + ε • v), (1 / ε) • (o.ref)
+  exact ⟨o.smul_mem' hε' h, o.smul_mem' hε' (mem_core_mem_self o.hcore),
+    by simp [smul_smul, mul_comm, mul_inv_cancel₀ (ne_of_lt hε).symm]⟩
+
+end OrderCone
