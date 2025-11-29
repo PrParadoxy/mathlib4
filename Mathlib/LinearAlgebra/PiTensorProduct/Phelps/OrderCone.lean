@@ -228,24 +228,79 @@ end SingleVectorSpace
 
 section MultiVectorSpace
 
-open PiTensorProduct
-open scoped TensorProduct
+variable {ι : Type*} {s : ι → Type*}
+  [∀ i, AddCommGroup (s i)] [∀ i, Module ℝ (s i)]
 
-variable {ι : Type*} {S : Set ι} (S' : Set ι) {s : ι → Type*}
-  [∀ i, AddCommGroup (s i)] [∀ i, Module ℝ (s i)] (O : ∀ i, OrderCone (s i))
+variable {S : Set ι} (O : ∀ i : S, OrderCone (s i))
 
 /-- Cartesian product of a `PosDual` family. -/
-def PiPosDual := Set.pi Set.univ (fun (i : S') => PosDual (O i))
+def PiPosDual :=
+  Set.pi Set.univ (fun (i : S) => PosDual (O i))
 
 namespace PiPosDual
 
-theorem convex : Convex ℝ (PiPosDual S O) :=
+theorem convex : Convex ℝ (PiPosDual O) :=
   convex_pi (fun i _ => PosDual.convex (O i))
 
-theorem isCompact : IsCompact (PiPosDual S O) :=
+theorem isCompact : IsCompact (PiPosDual O) :=
   isCompact_univ_pi (fun i :S => PosDual.isCompact (O i))
 
 theorem nonempty [∀ i, Nontrivial (s i)] (hs : ∀ i, PosDual.separating (O i)) :
-  (PiPosDual S O).Nonempty := Set.univ_pi_nonempty_iff.mpr (fun i => PosDual.nonempty (hs i))
+  (PiPosDual O).Nonempty := Set.univ_pi_nonempty_iff.mpr (fun i => PosDual.nonempty (hs i))
 
 end PiPosDual
+
+
+open PiTensorProduct Function Finset
+open scoped TensorProduct
+
+section LinearMaps
+
+variable [Fintype ι]
+
+def embedVec : (⨂[ℝ] i, s i) →ₗ[ℝ] (((i : ι) → AlgWeakDual (s i)) → ℝ) :=
+  lift (
+    {
+      toFun vf dv := ∏ i: ι, (dv i) (vf i)
+      map_update_add' _ i _ _  := by
+        ext _; simpa [update] using Eq.symm (prod_add_prod_eq (mem_univ i) (by simp)
+          (by intro _ _ hij; simp [hij]) (by intro _ _ hij; simp [hij]))
+      map_update_smul' vf i r vi := by
+          ext dv
+          simp only [prod_eq_mul_prod_diff_singleton
+            (mem_univ i) (fun x => (dv x) (update vf i (r • vi) x)),
+            update_self, map_smul, smul_eq_mul, Pi.smul_apply,
+            prod_eq_mul_prod_diff_singleton (mem_univ i) (fun x => (dv x) (update vf i vi x)),
+            ← mul_assoc]
+          congr! 3 with j hj
+          aesop
+    }
+  )
+
+@[simp] theorem embedVec_apply (dv : (i : ι) → AlgWeakDual (s i)) (vf : (i : ι) → s i) :
+  embedVec (⨂ₜ[ℝ] i, vf i) dv = ∏ i : ι, (dv i) (vf i) := by simp [embedVec]
+
+end LinearMaps
+
+
+variable {F : Finset ι} (O : ∀ i : F, OrderCone (s i))
+
+/-- The distinguished vector of tensor product space. -/
+def RefTensor := ⨂ₜ[ℝ] i, (O i).ref
+
+/-- The set of tensor products that evaluate to a nonnegative number on `PiPosDual`. -/
+def MaximalProduct := {x | ∀ dv ∈ PiPosDual O, 0 ≤ embedVec x dv}
+
+namespace MaximalProduct
+
+theorem smul_mem' : ∀ ⦃c : ℝ⦄, 0 < c → ∀ ⦃x⦄,
+  x ∈ MaximalProduct O → c • x ∈ MaximalProduct O :=
+  fun c hc x hx dv hdv => by simp_all [MaximalProduct]
+
+theorem add_mem' : ∀ ⦃x⦄ (_ : x ∈ MaximalProduct O) ⦃y⦄ (_ : y ∈ MaximalProduct  O),
+  x + y ∈ MaximalProduct O :=
+  fun x hx y hy dv hdv => by simpa using (add_nonneg (hx dv hdv) (hy dv hdv))
+
+theorem pointed : 0 ∈ MaximalProduct O := by simp [MaximalProduct]
+
+end MaximalProduct
