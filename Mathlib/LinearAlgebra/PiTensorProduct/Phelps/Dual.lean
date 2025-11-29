@@ -136,17 +136,17 @@ theorem WeakBilin.eval_dualpairing_surjective :
 
 /-- The isomorphism between the vector space and topological dual of the algebraic dual of V.
     Ref: Thm. 1.3 on p. 139 of `Conway, A Course in Functional Analysis`. -/
-noncomputable def WeakDualDualEquiv: V ≃ₗ[ℝ] (Dual ℝ V) →L[ℝ] ℝ :=
+noncomputable def WeakDualDualEquiv : V ≃ₗ[ℝ] (Dual ℝ V) →L[ℝ] ℝ :=
   LinearEquiv.ofBijective (WeakBilin.eval (dualPairing ℝ V))
-  (And.intro eval_dualpairing_injective eval_dualpairing_surjective)
+    (And.intro eval_dualpairing_injective eval_dualpairing_surjective)
 
 lemma exists_separating_vector
   {s : Set (Dual ℝ V)} {x : Dual ℝ V} (hc : x ∉ topologicalClosure (span ℝ s)) :
-    ∃ v, v ≠ 0 ∧ ∃u: ℝ, x v < u ∧ (∀b ∈ topologicalClosure (span ℝ s), u < b v)  ∧
-  ∀b ∈ topologicalClosure (span ℝ s), b v = 0 := by
+    ∃ v, v ≠ 0 ∧ ∃u: ℝ, x v < u ∧ (∀ b ∈ topologicalClosure (span ℝ s), u < b v)  ∧
+  ∀ b ∈ topologicalClosure (span ℝ s), b v = 0 := by
   obtain ⟨f, u, hfk, hfs⟩ := geometric_hahn_banach_point_closed
     (topologicalClosure (span ℝ s)).convex (span ℝ s).isClosed_topologicalClosure hc
-  have hp: ∀b ∈ ↑(span ℝ s).topologicalClosure, f b = 0 := by
+  have hp: ∀ b ∈ ↑(span ℝ s).topologicalClosure, f b = 0 := by
     by_contra! hb
     obtain ⟨b, hb, hfb⟩ := hb
     simpa [hfb] using hfs ((u / f b) • b) (by apply Submodule.smul_mem; exact hb)
@@ -169,7 +169,7 @@ theorem wclosure_span_eq_top_of_ne_zero {s : Set (Dual ℝ V)} (h : ∀ v ≠ 0,
   obtain ⟨b, hb, hvb⟩ := h v hv
   exact hvb (hp b (subset_closure (subset_span hb)))
 
-theorem weak_separating_iff {s: Set (Dual ℝ V)} :
+theorem weak_separating_iff {s : Set (Dual ℝ V)} :
   (∀ v ≠ 0, ∃ f ∈ s, f v ≠ 0) ↔ (topologicalClosure (span ℝ s) = ⊤) := by
   constructor
   · exact wclosure_span_eq_top_of_ne_zero
@@ -241,8 +241,6 @@ theorem embedVec_eval_continuous (dv : ((i : ι) → Dual R (V i))) :
 
 end PiTensorProduct
 
-
-
 /-- Embedding of a family of dual vectors to a tensor product dual -/
 def embedPiDual (dv : (i : ι) → Dual R (V i)) : Dual R (⨂[R] i, V i) :=
  lift (
@@ -254,14 +252,14 @@ def embedPiDual (dv : (i : ι) → Dual R (V i)) : Dual R (⨂[R] i, V i) :=
         simp only [prod_eq_mul_prod_diff_singleton
             (mem_univ i) (fun x => (dv x) (update vf i (r • vi) x)),
           Function.update_self, map_smul, smul_eq_mul,
-          prod_eq_mul_prod_diff_singleton (mem_univ i)
-            (fun x => (dv x) (update vf i vi x)), ← mul_assoc]
+          prod_eq_mul_prod_diff_singleton
+            (mem_univ i) (fun x => (dv x) (update vf i vi x)), ← mul_assoc]
         congr! 2 with j hj
         simp [Function.update, show j ≠ i from by simp at hj; exact hj]
     }
   )
 
-@[simp] theorem embedPiDual_apply (dv : (i : ι) → Dual R (V i)) (vf : (i : ι) → V i):
+@[simp] theorem embedPiDual_apply (dv : (i : ι) → Dual R (V i)) (vf : (i : ι) → V i) :
   embedPiDual dv (⨂ₜ[R] i, vf i) =  ∏ i: ι, (dv i) (vf i) := by simp [embedPiDual]
 
 theorem embedPiDual_eq_embedVec {dv : (i : ι) → Dual R (V i)} {v : ⨂[R] i, V i} :
