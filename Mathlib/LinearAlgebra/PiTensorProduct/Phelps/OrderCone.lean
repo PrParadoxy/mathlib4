@@ -39,39 +39,69 @@ open Module Set
 
 section SingleVectorSpace
 
-variable (V : Type*) [AddCommGroup V] [Module ℝ V]
-variable {W : Type*} [AddCommGroup W] [Module ℝ W]
+variable {V : Type*} [AddCommGroup V] [Module ℝ V]
+variable (W : Type*) [AddCommGroup W] [Module ℝ W]
 
 section core
 
 namespace Set
 
 /-- Algebraic interior of a Set. -/
-def core (S : Set W) :=
-  {v ∈ S | ∀ w, ∃ ε > (0 : ℝ), ∀ δ, |δ| ≤ ε → v + δ • w ∈ S}
+def core (S : Set V) :=
+  {vc | ∀ v, ∃ ε : ℝ, 0 < ε ∧ ∀ δ, |δ| ≤ ε → vc + δ • v ∈ S}
 
-@[simp]
-lemma mem_core {v} (S : Set W) :
-  v ∈ core S ↔ v ∈ S ∧ ∀ w, ∃ ε > (0 : ℝ), ∀ δ, |δ| ≤ ε → v + δ • w ∈ S := Iff.rfl
+variable {vc : V} {S : Set V}
 
-theorem mem_core_of_subset_mem_core {w} {s₁ s₂ : Set W}
-    (hsub : s₁ ⊆ s₂) (hw : w ∈ core s₁) : w ∈ core s₂ :=
-  ⟨mem_of_subset_of_mem hsub hw.left, fun y => by obtain ⟨ε, hε, hδ⟩ := hw.right y; aesop⟩
+@[simp] lemma mem_core :
+  vc ∈ core S ↔ ∀ v, ∃ ε : ℝ, 0 < ε ∧ ∀ δ, |δ| ≤ ε → vc + δ • v ∈ S := Iff.rfl
 
--- Fixes `δ` to `ε` and remove assumptions on `δ`.
-theorem fix_core {S : Set W} {wr : W} (hwr : wr ∈ core S) :
-    ∀ w, ∃ ε > (0 : ℝ), wr + ε • w ∈ S ∧ wr - ε • w ∈ S := by
-  intro w
-  obtain ⟨ε, hε, hδ⟩ := hwr.right w
+lemma mem_core_mem_self (hvc : vc ∈ core S) : vc ∈ S := by
+  have ⟨ε, hε, hδ⟩ := hvc 0
+  simpa using hδ 0 (by simp [le_of_lt hε])
+
+theorem mem_core_of_subset_mem_core {s₁ s₂ : Set V}
+    (hsub : s₁ ⊆ s₂) (hvc : vc ∈ core s₁) : vc ∈ core s₂ := by
+  intro v
+  have ⟨ε, hε, hδ⟩ := hvc v
+  aesop
+
+-- Fixes `δ` to its maximal value `ε` and remove assumptions on `δ`.
+theorem fix_core (hvc : vc ∈ core S) :
+    ∀ v, ∃ ε : ℝ, 0 < ε ∧ vc + ε • v ∈ S ∧ vc - ε • v ∈ S := by
+  intro v
+  have ⟨ε, hε, hδ⟩ := hvc v
   have hε₁ := (abs_of_pos hε).le
   exact ⟨ε, hε, hδ ε hε₁, by simpa [←sub_eq_add_neg] using hδ (-ε) (abs_neg ε ▸ hε₁)⟩
 
 end Set
 
-/-- A salient convex cone with a distinguished element `e` in its core.
-  For saliency, check `OrderCone.salient`. -/
-@[ext]
-structure OrderCone extends ConvexCone ℝ V where
-  ref : V
-  hcore : ref ∈ (core carrier)
-  pointed : ConvexCone.Pointed toConvexCone
+-- theorem ConvexCone.core {S : ConvexCone ℝ W} {wr : W} :
+--     wr ∈ core S ↔ ∀ w, ∃ ε > (0 : ℝ), wr + ε • w ∈ S ∧ wr - ε • w ∈ S := by
+--   constructor
+--   . exact fun h => fix_core h
+--   . intro h
+--     constructor
+--     . simpa using (h 0).choose_spec.2
+--     . intro w
+--       have ⟨ε, hε, h1, h2⟩ := h w
+--       use ε
+--       simp [hε]
+--       intro δ hδ
+
+
+
+
+
+-- end core
+
+
+-- /-- A salient convex cone with a distinguished element `e` in its core.
+--   For saliency, check `OrderCone.salient`. -/
+-- @[ext]
+-- structure OrderCone extends ConvexCone ℝ V where
+--   ref : V
+--   hcore : ref ∈ (core carrier)
+--   pointed : ConvexCone.Pointed toConvexCone
+
+
+#check ConvexCone
