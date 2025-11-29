@@ -96,9 +96,7 @@ instance : Membership V (OrderCone V) where
 @[simp] lemma mem_coe {s : Set W} {x : W} {h₁ h₂ h₃ h₄ h₅} :
   x ∈ (OrderCone.mk (ConvexCone.mk s h₁ h₂) h₃ h₄ h₅) ↔ x ∈ s := Iff.rfl
 
-variable (o : OrderCone V)
-
-theorem is_generating : generating o.carrier := by
+theorem is_generating (o : OrderCone V) : generating o.carrier := by
   intro v
   have ⟨ε, hε, h, _⟩ := fix_core o.hcore v
   have hε₁ : 0 < (1 / ε) := by simp [hε]
