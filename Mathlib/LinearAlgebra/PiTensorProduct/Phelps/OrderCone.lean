@@ -44,13 +44,13 @@ variable (W : Type*) [AddCommGroup W] [Module ℝ W]
 
 section core
 
+variable {vc : V} {S : Set V}
+
 namespace Set
 
 /-- Algebraic interior of a Set. -/
 def core (S : Set V) :=
   {vc | ∀ v, ∃ ε : ℝ, 0 < ε ∧ ∀ δ, |δ| ≤ ε → vc + δ • v ∈ S}
-
-variable {vc : V} {S : Set V}
 
 @[simp] lemma mem_core :
   vc ∈ core S ↔ ∀ v, ∃ ε : ℝ, 0 < ε ∧ ∀ δ, |δ| ≤ ε → vc + δ • v ∈ S := Iff.rfl
@@ -74,34 +74,16 @@ theorem fix_core (hvc : vc ∈ core S) :
   exact ⟨ε, hε, hδ ε hε₁, by simpa [←sub_eq_add_neg] using hδ (-ε) (abs_neg ε ▸ hε₁)⟩
 
 end Set
+end core
 
--- theorem ConvexCone.core {S : ConvexCone ℝ W} {wr : W} :
---     wr ∈ core S ↔ ∀ w, ∃ ε > (0 : ℝ), wr + ε • w ∈ S ∧ wr - ε • w ∈ S := by
---   constructor
---   . exact fun h => fix_core h
---   . intro h
---     constructor
---     . simpa using (h 0).choose_spec.2
---     . intro w
---       have ⟨ε, hε, h1, h2⟩ := h w
---       use ε
---       simp [hε]
---       intro δ hδ
+
+/-- A salient convex cone with a distinguished element `e` in its core.
+  For saliency, check `OrderCone.salient`. -/
+@[ext]
+structure OrderCone extends ConvexCone ℝ W where
+  ref : W
+  hcore : ref ∈ (core carrier)
+  pointed : ConvexCone.Pointed toConvexCone
 
 
 
-
-
--- end core
-
-
--- /-- A salient convex cone with a distinguished element `e` in its core.
---   For saliency, check `OrderCone.salient`. -/
--- @[ext]
--- structure OrderCone extends ConvexCone ℝ V where
---   ref : V
---   hcore : ref ∈ (core carrier)
---   pointed : ConvexCone.Pointed toConvexCone
-
-
-#check ConvexCone
