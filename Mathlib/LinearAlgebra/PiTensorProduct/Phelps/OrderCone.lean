@@ -1,6 +1,7 @@
 import Mathlib.LinearAlgebra.PiTensorProduct.Phelps.Equiv
 import Mathlib.Data.Real.Sqrt
 import Mathlib.Analysis.Convex.Cone.Basic
+import Mathlib.LinearAlgebra.Dual.Lemmas
 
 
 /-!
@@ -42,16 +43,14 @@ section SingleVectorSpace
 variable {V : Type*} [AddCommGroup V] [Module ℝ V]
 variable (W : Type*) [AddCommGroup W] [Module ℝ W]
 
+namespace Set
 /-- A Set is `generating` if any element in the vector space can be written as a difference between
   two elements of this Set. -/
-def Set.generating (S : Set V) := ∀ z : V, ∃ x y, x ∈ S ∧ y ∈ S ∧ z = x - y
-
+def generating (S : Set V) := ∀ z : V, ∃ x y, x ∈ S ∧ y ∈ S ∧ z = x - y
 
 section core
 
 variable {vc : V} {S : Set V}
-
-namespace Set
 
 /-- Algebraic interior of a Set. -/
 def core (S : Set V) := {vc | ∀ v, ∃ ε : ℝ, 0 < ε ∧ ∀ δ, |δ| ≤ ε → vc + δ • v ∈ S}
@@ -63,20 +62,21 @@ lemma mem_core_mem_self (hvc : vc ∈ core S) : vc ∈ S := by
   have ⟨ε, hε, hδ⟩ := hvc 0
   simpa using hδ 0 (by simp [le_of_lt hε])
 
-theorem mem_core_of_subset_mem_core {s₁ s₂ : Set V}
+lemma mem_core_of_subset_mem_core {s₁ s₂ : Set V}
     (hsub : s₁ ⊆ s₂) (hvc : vc ∈ core s₁) : vc ∈ core s₂ := by
   intro v
   have ⟨ε, hε, hδ⟩ := hvc v
   aesop
 
 /-- Fixes `δ` in `core` to its maximal value `ε` and removes inequality assumption. -/
-theorem fix_core (hvc : vc ∈ core S) :
+lemma fix_core (hvc : vc ∈ core S) :
     ∀ v, ∃ ε : ℝ, 0 < ε ∧ vc + ε • v ∈ S ∧ vc - ε • v ∈ S := by
   intro v
   have ⟨ε, hε, hδ⟩ := hvc v
   have hε₁ := (abs_of_pos hε).le
   exact ⟨ε, hε, hδ ε hε₁, by simpa [←sub_eq_add_neg] using hδ (-ε) (abs_neg ε ▸ hε₁)⟩
 
+end core
 end Set
 
 
@@ -105,3 +105,15 @@ theorem is_generating (o : OrderCone V) : generating o.carrier := by
     by simp [smul_smul, mul_comm, mul_inv_cancel₀ (ne_of_lt hε).symm]⟩
 
 end OrderCone
+
+
+section PosDual
+/-- Set of all positive dual vectors on the order cone,
+    normalized by fixing their evaluation on `OrderCone.e` to 1 -/
+def PosDual (o : OrderCone V) : Set (Dual ℝ V) := {s | ∀ v ∈ o, 0 ≤ s v} ∩ {s | s o.ref = 1}
+
+namespace PosDual
+
+variable (o : OrderCone W) {o' : OrderCone W}
+
+def separating : Prop := ∀ ⦃w⦄, w ≠ 0 → ∃ f ∈ PosDual o, f w ≠ 0
