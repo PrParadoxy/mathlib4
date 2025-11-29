@@ -4,6 +4,7 @@ import Mathlib.Topology.Algebra.Module.WeakBilin
 import Mathlib.LinearAlgebra.Dual.Lemmas
 import Mathlib.Analysis.Normed.Field.Lemmas
 import Mathlib.Analysis.Normed.Order.Lattice
+import Mathlib.Topology.MetricSpace.ProperSpace.Real
 
 /-!
 # Tensor product of partially ordered spaces
@@ -144,6 +145,7 @@ namespace PosDual
 
 variable (o : OrderCone V) {o' : OrderCone V}
 
+/-- `SeparatingDual` but with no topology on the vector space. -/
 abbrev separating : Prop :=
   ∀ ⦃v⦄, v ≠ 0 → ∃ f ∈ PosDual o, f v ≠ 0
 
@@ -170,3 +172,59 @@ theorem pointwise_bounded : ∀ v, ∃ M : ℝ, ∀ f : PosDual o, |f.val v| ≤
     (by simpa [sub_eq_add_neg] using (hδ (-ε) (by simp [abs_of_pos hε])))
   simp only [map_sub, smul_eq_mul, map_add, hfe, map_smul] at hr hl
   exact abs_le.mpr (by constructor <;> (field_simp; linarith))
+
+theorem isCompact : IsCompact (PosDual o) := by
+  let M : V → ℝ := fun v => (pointwise_bounded o v).choose
+  let family : V → Set ℝ := fun v => Metric.closedBall 0 (M v)
+  let prod := Set.pi Set.univ family
+  have prod_compact : IsCompact prod := by
+    simpa [prod, Set.pi] using isCompact_pi_infinite (fun v => isCompact_closedBall 0 (M v))
+  have h_subset : dualembed '' (PosDual o) ⊆ prod := by
+    simp [dualembed, Set.subset_def, prod, family]
+    exact fun fembed hf v => (pointwise_bounded o v).choose_spec ⟨fembed, hf⟩
+  exact isCompact_image_dualembed (isClosed o) prod_compact h_subset
+
+lemma exists_separating_of_ne
+    {x y : V} (hs : separating o') (h : x ≠ y) : ∃ f ∈ PosDual o', f x ≠ f y := by
+  rcases hs (sub_ne_zero_of_ne h) with ⟨f, hf₁, hf₂⟩
+  exact ⟨f, hf₁, by simpa [sub_ne_zero] using hf₂⟩
+
+/-- Not an instance, `separating` cannot be automatically inferred. -/
+lemma nonempty [Nontrivial V] (hs : separating o') : (PosDual o').Nonempty := by
+  have ⟨f, hf, _⟩ := hs (exists_ne (0 : V)).choose_spec
+  exact ⟨f, hf⟩
+
+theorem exists_strict_pos (hs : separating o) :
+  ∀ v ∈ o, v ≠ 0 → ∃s ∈ PosDual o, 0 < s v := by
+  intro v hv₁ hv₂
+  have ⟨s, hs₁, hs₂⟩ := hs hv₂
+  exact ⟨s, hs₁, lt_of_le_of_ne (hs₁.left v hv₁) (hs₂.symm)⟩
+
+end PosDual.PosDual
+
+namespace OrderCone
+
+variable {o : OrderCone V} (hs : PosDual.separating o)
+
+/-
+  We do not demand `ConvexCone.salient` on the ordercone definition, since it is provable
+  from the existence of seperating functions. Note that the converse is not true,
+  as the set of normalized positive dual vectors `PosDual` might be empty.
+  Look at `Tensor Products of Compact Convex Sets` by `Isaac Namioka & R. R. Phelps`.
+-/
+theorem salient (hs : PosDual.separating o) : ∀ x ∈ o, x ≠ 0 → -x ∉ o := by
+  intro x hx₁ hx₂ hx₃
+  obtain ⟨f, hf₁, hf₂⟩ := PosDual.exists_strict_pos o hs x hx₁ hx₂
+  have h : f x ≤ 0 := by simpa using hf₁.left (-x) hx₃
+  simp [le_antisymm (h) (hf₁.left (x) hx₁)] at hf₂
+
+/-- The canonical order on the salient convex cone -/
+def partialOrder : PartialOrder V :=
+  ConvexCone.toPartialOrder o.toConvexCone o.pointed (o.salient hs)
+
+instance : @IsOrderedAddMonoid V _ (partialOrder hs) :=
+  ConvexCone.to_isOrderedAddMonoid o.toConvexCone o.pointed (o.salient hs)
+
+end OrderCone
+
+
