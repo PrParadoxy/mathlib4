@@ -1,8 +1,8 @@
 import Mathlib.LinearAlgebra.PiTensorProduct.Phelps.Equiv
-import Mathlib.Data.Real.Sqrt
 import Mathlib.Analysis.Convex.Cone.Basic
-import Mathlib.LinearAlgebra.PiTensorProduct.Phelps.Dual
-import Mathlib.Analysis.Normed.Order.Lattice
+import Mathlib.Topology.Algebra.Module.WeakBilin
+import Mathlib.LinearAlgebra.Dual.Lemmas
+import Mathlib.Analysis.Normed.Field.Lemmas
 
 
 /-!
@@ -37,7 +37,7 @@ tensor product of vectors comming from `OrderCone`s.
 -/
 
 
-open Module Set
+open Module Set Topology
 
 section SingleVectorSpace
 
@@ -69,14 +69,6 @@ lemma mem_core_of_subset_mem_core {s₁ s₂ : Set V}
   have ⟨ε, hε, hδ⟩ := hvc v
   aesop
 
-/-- Fixes `δ` in `core` to its maximal value `ε` and removes inequality assumption. -/
-lemma fix_core (hvc : vc ∈ core S) :
-    ∀ v, ∃ ε : ℝ, 0 < ε ∧ vc + ε • v ∈ S ∧ vc - ε • v ∈ S := by
-  intro v
-  have ⟨ε, hε, hδ⟩ := hvc v
-  have hε₁ := (abs_of_pos hε).le
-  exact ⟨ε, hε, hδ ε hε₁, by simpa [←sub_eq_add_neg] using hδ (-ε) (abs_neg ε ▸ hε₁)⟩
-
 end core
 end Set
 
@@ -99,36 +91,40 @@ instance : Membership V (OrderCone V) where
 
 theorem is_generating (o : OrderCone V) : generating o.carrier := by
   intro v
-  have ⟨ε, hε, h, _⟩ := fix_core o.hcore v
+  have ⟨ε, hε, h⟩ := o.hcore v
   have hε₁ : 0 < (1 / ε) := by simp [hε]
   use (1 / ε) • (o.ref + ε • v), (1 / ε) • (o.ref)
-  exact ⟨o.smul_mem' hε₁ h, o.smul_mem' hε₁ (mem_core_mem_self o.hcore),
+  exact ⟨o.smul_mem' hε₁ (h ε (abs_of_pos hε).le), o.smul_mem' hε₁ (mem_core_mem_self o.hcore),
     by simp [smul_smul, mul_comm, mul_inv_cancel₀ (ne_of_lt hε).symm]⟩
 
 end OrderCone
 
 
-section PosDual
-/-- Set of all positive dual vectors on the order cone,
-    normalized by fixing their evaluation on `OrderCone.e` to 1 -/
-def PosDual (o : OrderCone V) : Set (Dual ℝ V) := {s | ∀ v ∈ o, 0 ≤ s v} ∩ {s | s o.ref = 1}
+section AlgWeakDual
 
-namespace PosDual
+/-- A type synonym for `Dual ℝ W`, equipping it with weak topology. -/
+abbrev AlgWeakDual := WeakBilin (dualPairing ℝ W)
 
-variable (o : OrderCone W) {o' : OrderCone W}
+instance : DFunLike (AlgWeakDual V) V fun _ => ℝ where
+  coe v := v.toFun
+  coe_injective' := fun _ _ h => by simpa using h
 
-def separating : Prop := ∀ ⦃w⦄, w ≠ 0 → ∃ f ∈ PosDual o, f w ≠ 0
+abbrev dualEmbed : AlgWeakDual V → (V → ℝ) := DFunLike.coe
 
-theorem convex : Convex ℝ (PosDual o) := by
-  apply Convex.inter
-  · exact fun _ hv _ hu _ _ ha hb hab => by
-      simpa using fun q hq => add_nonneg (smul_nonneg ha (hv q hq)) (smul_nonneg hb (hu q hq))
-  · exact Convex.linear_preimage (convex_singleton 1) (((dualPairing ℝ W).flip o.ref))
+theorem dualembed_isclosed_embedding :
+    IsClosedEmbedding (dualEmbed (V := V)) :=
+  IsClosedEmbedding.mk (DFunLike.coe_injective.isEmbedding_induced)
+    (LinearMap.isClosed_range_coe _ _ _)
 
-theorem isClosed : IsClosed (PosDual o) := by
-  apply IsClosed.inter
-  · simpa only [Set.setOf_forall] using (isClosed_biInter fun v hv =>
-      IsClosed.preimage (dual_eval_continuous v) isClosed_nonneg)
-  · exact IsClosed.preimage (dual_eval_continuous o.ref) isClosed_singleton
+/-- A set of dual vectors is compact if it is closed,
+    and its image under dualEmbed is a subset of a compact set. -/
+theorem isCompact_image_dualembed {s : Set (AlgWeakDual V)} {c : Set (V → ℝ)}
+    (hs : IsClosed s) (hc : IsCompact c) (hsc : dualEmbed '' s ⊆ c) : IsCompact s :=
+  dualembed_isclosed_embedding.isCompact_iff.mpr
+    (IsCompact.of_isClosed_subset hc
+      (dualembed_isclosed_embedding.isClosed_iff_image_isClosed.mp hs) hsc)
+
+end AlgWeakDual
+
 
 
