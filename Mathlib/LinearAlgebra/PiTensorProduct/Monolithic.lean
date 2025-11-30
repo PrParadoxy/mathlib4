@@ -134,9 +134,8 @@ def compMultilinearMap
   map_update_add' := by simp [apply_sigma_curry_update, Sigma.curry, update_arg]
   map_update_smul' := by simp [apply_sigma_curry_update, Sigma.curry, update_arg]
 
-theorem compMultilinearMap_tprod
-    (g : MultilinearMap R M N) (f : (k : κ) → MultilinearMap R (s k) (M k))
-    (m : (i : Σ k, T k) → s i.fst i.snd) :
+theorem compMultilinearMap_tprod (g : MultilinearMap R M N)
+    (f : (k : κ) → MultilinearMap R (s k) (M k)) (m : (i : Σ k, T k) → s i.fst i.snd) :
     compMultilinearMap g f m = g fun k ↦ f k (Sigma.curry m k) := by rfl
 
 end Multilinear
