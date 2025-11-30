@@ -126,7 +126,7 @@ def compMultilinearMap
     (g : MultilinearMap R M N) (f : (k : κ) → MultilinearMap R (s k) (M k)) :
       MultilinearMap R (fun j : Σ k, T k ↦ s j.fst j.snd) N where
   toFun m := g fun k ↦ f k (Sigma.curry m k)
-  map_update_add' m j x y := by simp [apply_sigma_curry_update, Sigma.curry, update_arg]
+  map_update_add' := by simp [apply_sigma_curry_update, Sigma.curry, update_arg]
   map_update_smul' := by simp [apply_sigma_curry_update, Sigma.curry, update_arg]
 
 theorem compMultilinearMap_tprod
