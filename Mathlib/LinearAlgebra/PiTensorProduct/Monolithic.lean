@@ -49,7 +49,11 @@ section Multilinear
 variable {κ : Type*}
 variable {T : κ → Type*}
 variable {s : (k : κ) → (i : T k) → Type*}
-variable [DecidableEq κ] [∀ k : κ, DecidableEq (T k)] [DecidableEq (Σ k, T k)]
+
+variable [DecidableEq κ] [∀ k : κ, DecidableEq (T k)]
+ -- TBD: This should follow from `Sigma.instDecidableEqSigma`, but leaving it out creates trouble
+ -- In general, I'm confused about these instances here.
+variable [DecidableEq (Σ k, T k)]
 
 section Update
 
@@ -69,9 +73,8 @@ lemma apply_sigma_curry_update {β : κ → Type*} (m : (i : Sigma T) → s i.1 
   · simp_all [show ∀ i : T k, ⟨k, i⟩ ≠ j from by grind]
 
 omit [DecidableEq κ] in
-lemma update_arg (m : (i : Σ k, T k) → s i.fst i.snd) (j : Σ k, T k)
-    (v : s j.fst j.snd) (i : T j.1) :
-    update m j v ⟨j.1, i⟩ = update (fun i : T j.1 ↦ m ⟨j.1, i⟩) j.2 v i := by grind
+lemma update_arg (m : (i : Σ k, T k) → s i.1 i.2) (j : Σ k, T k) (v : s j.1 j.2) (i : T j.1) :
+  update m j v ⟨j.1, i⟩ = update (fun i : T j.1 ↦ m ⟨j.1, i⟩) j.2 v i := by grind
 
 /-
 -------------------------unused stuff------------------------
