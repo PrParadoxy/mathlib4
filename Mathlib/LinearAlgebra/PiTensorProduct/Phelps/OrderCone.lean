@@ -255,7 +255,7 @@ open PiTensorProduct Function Finset
 open scoped TensorProduct
 
 /-- For `ConvexCone` of tensors, `core` membership can be verified using product tensors alone. -/
-theorem ConvexCone.mem_piTensorProduct_core {z} {C : ConvexCone ℝ (⨂[ℝ] i, s i)}
+theorem ConvexCone.piTensorProduct_mem_core {z} {C : ConvexCone ℝ (⨂[ℝ] i, s i)}
   (smul_tprod : ∀ (r : ℝ) (f : (i : ι) → s i),
     ∃ ε, 0 < ε ∧ ∀ (δ : ℝ), |δ| ≤ ε → z + δ • r • (⨂ₜ[ℝ] i, f i) ∈ C) : z ∈ core C := by
   intro v
@@ -395,14 +395,15 @@ theorem extended_mem
   simp only [← hz, TensorProduct.tmul_sum]
   aesop
 
-theorem refTensor_mem_core : Nonempty ↥F → RefTensor O ∈ core (MinimalProduct O) := by
-  induction F using Finset.induction_on with
-  | empty => simp_all
-  | insert i₀ F h₀ ih =>
-    intro hne
+-- theorem refTensor_mem_core : Nonempty ↥F → RefTensor O ∈ core (MinimalProduct O) := by
+--   induction F using Finset.induction_on with
+--   | empty => simp_all
+--   | insert i₀ F h₀ ih =>
+--     intro hne
 
     -- by_cases hf : Nonempty ↥F
     -- .
     --   replace ih := ih (fun i => O ⟨i, by simp⟩) hf
     --   have ho := (O ⟨i₀, by simp⟩).hcore
     --   have := extended_mem h₀ O (mem_core_mem_self ih) (mem_core_mem_self ho)
+
