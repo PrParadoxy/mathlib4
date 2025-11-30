@@ -294,13 +294,71 @@ def MaximalProduct := {x | ∀ dv ∈ PiPosDual O, 0 ≤ embedVec x dv}
 namespace MaximalProduct
 
 theorem smul_mem' : ∀ ⦃c : ℝ⦄, 0 < c → ∀ ⦃x⦄,
-  x ∈ MaximalProduct O → c • x ∈ MaximalProduct O :=
+    x ∈ MaximalProduct O → c • x ∈ MaximalProduct O :=
   fun c hc x hx dv hdv => by simp_all [MaximalProduct]
 
 theorem add_mem' : ∀ ⦃x⦄ (_ : x ∈ MaximalProduct O) ⦃y⦄ (_ : y ∈ MaximalProduct  O),
-  x + y ∈ MaximalProduct O :=
+    x + y ∈ MaximalProduct O :=
   fun x hx y hy dv hdv => by simpa using (add_nonneg (hx dv hdv) (hy dv hdv))
 
 theorem pointed : 0 ∈ MaximalProduct O := by simp [MaximalProduct]
 
 end MaximalProduct
+
+/-- The set of finite sums of product tensors whose components are
+  drawn from a family of `OrderCone`s. -/
+def MinimalProduct :=
+  {x | ∃ (n : ℕ) (vf : Fin n → (i : F) → s i),
+    ∑ i, (⨂ₜ[ℝ] j, (vf i j)) = x ∧ ∀ i, ∀ j : F, vf i j ∈ O j}
+
+namespace MinimalProduct
+
+theorem subset_maximalProduct :
+  MinimalProduct O ⊆ MaximalProduct O := by
+  simp only [MinimalProduct, Subtype.forall, MaximalProduct, SetLike.coe_sort_coe,
+    setOf_subset_setOf, forall_exists_index, and_imp]
+  intro x n vf hx hvf dv hdv
+  simp only [← hx, map_sum, sum_apply, embedVec_apply]
+  apply sum_nonneg; intro i _
+  apply prod_nonneg; intro j hj
+  exact (hdv j (by simp_all)).left (hvf i j j.prop)
+
+/- For the empty index set, `smul_mem'` is not true. Since in that case `MinimalProduct` reduces
+  to the set of all natural numbers which is not closed under real real number multiplication. -/
+theorem smul_mem' [DecidableEq ι] [Nonempty ↥F] :
+  ∀ ⦃c : ℝ⦄, 0 < c → ∀ ⦃x⦄, x ∈ MinimalProduct O → c • x ∈ MinimalProduct O :=  by
+  intro c hc _ hx
+  obtain ⟨n, vf, hx, hvf⟩ := hx
+  let j := Classical.arbitrary F
+  use n, (fun i => update (vf i) j (c • (vf i j)))
+  constructor
+  · simpa [Finset.smul_sum] using congr_arg (fun v => c • v) hx
+  · intro k q
+    unfold update
+    split_ifs with h
+    · subst h; exact (O j).smul_mem' hc (hvf k j)
+    · simp [(hvf k q)]
+
+theorem add_mem' :
+  ∀ ⦃x⦄ (_ : x ∈ MinimalProduct O) ⦃y⦄ (_ : y ∈ MinimalProduct O), x + y ∈ MinimalProduct O := by
+  intro x hx y hy
+  obtain ⟨nx, vfx, hx, hvfx⟩ := hx
+  obtain ⟨ny, vfy, hy, hvfy⟩ := hy
+  let vf := fun i : Fin (nx + ny) =>
+    if h : i.val < nx then vfx ⟨i.val, h⟩
+    else vfy ⟨i.val - nx, by omega⟩
+  use nx + ny, vf
+  constructor
+  · simp [Fin.sum_univ_add (fun i => (PiTensorProduct.tprod ℝ) (vf i)), ←hx, ←hy, vf]
+  · intro i j
+    unfold vf
+    split_ifs with h
+    · exact hvfx ⟨i.val, h⟩ j
+    · exact hvfy ⟨i.val - nx, by omega⟩ j
+
+theorem pointed : 0 ∈ MinimalProduct O := by use 0, 0; aesop
+
+theorem refTensor_mem : RefTensor O ∈ MinimalProduct O :=
+  ⟨1, (fun _ j => (O j).ref), by simp [RefTensor], fun _ j => mem_core_mem_self (O j).hcore⟩
+
+end MinimalProduct
