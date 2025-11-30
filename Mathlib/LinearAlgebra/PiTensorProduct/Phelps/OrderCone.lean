@@ -5,6 +5,7 @@ import Mathlib.LinearAlgebra.Dual.Lemmas
 import Mathlib.Analysis.Normed.Field.Lemmas
 import Mathlib.Analysis.Normed.Order.Lattice
 import Mathlib.Topology.MetricSpace.ProperSpace.Real
+import Mathlib.Data.Real.Sqrt
 
 /-!
 # Tensor product of partially ordered spaces
@@ -321,7 +322,7 @@ theorem add_mem : ∀ ⦃x⦄ (_ : x ∈ MaximalProductCarrier O) ⦃y⦄ (_ : y
 
 theorem pointed : 0 ∈ MaximalProductCarrier O := by simp [MaximalProductCarrier]
 
-def toConvexCone : ConvexCone ℝ ((⨂[ℝ] (i : F), s i)) where
+protected def toConvexCone : ConvexCone ℝ ((⨂[ℝ] (i : F), s i)) where
   carrier := MaximalProductCarrier O
   smul_mem' := smul_mem O
   add_mem' := add_mem O
@@ -383,7 +384,8 @@ theorem add_mem :
 
 theorem pointed : 0 ∈ MinimalProductCarrier O := by use 0, 0; aesop
 
-def toConvexCone [DecidableEq ι] (hn : Nonempty ↥F) : ConvexCone ℝ ((⨂[ℝ] (i : F), s i)) where
+protected def toConvexCone [DecidableEq ι] (hn : Nonempty ↥F) :
+    ConvexCone ℝ ((⨂[ℝ] (i : F), s i)) where
   carrier := MinimalProductCarrier O
   smul_mem' := smul_mem O hn
   add_mem' := add_mem O
@@ -396,7 +398,7 @@ variable [DecidableEq ι]
 
 theorem extended_mem
   {i₀} (h₀ : i₀ ∉ F)
-  (O : (i : ↥(insert i₀ F)) → OrderCone (s i))
+  {O : (i : ↥(insert i₀ F)) → OrderCone (s i)}
   {z : ⨂[ℝ] i : F, s i} {x : s i₀}
   (hz : z ∈ MinimalProductCarrier (fun i => O ⟨i, by simp⟩))
   (hx : x ∈ O ⟨i₀, by simp⟩) :
@@ -406,6 +408,7 @@ theorem extended_mem
   simp only [← hz, TensorProduct.tmul_sum]
   aesop
 
+
 theorem refTensor_mem_core : (h : Nonempty ↥F) →
     RefTensor O ∈ core (MinimalProduct.toConvexCone O h) := by
   induction F using Finset.induction_on with
@@ -414,8 +417,32 @@ theorem refTensor_mem_core : (h : Nonempty ↥F) →
     intro hne
     apply ConvexCone.piTensorProduct_mem_core
     intro r f
-    -- by_cases hf : Nonempty ↥F
-    -- .
-    --   replace ih := ih (fun i => O ⟨i, by simp⟩) hf
-    --   have ho := (O ⟨i₀, by simp⟩).hcore
-    --   have := extended_mem h₀ O (mem_core_mem_self ih) (mem_core_mem_self ho)
+    by_cases hf : Nonempty ↥F
+    .
+      obtain ⟨εf, hεf, hδf⟩ := ih (fun i => O ⟨i, by simp⟩) hf (⨂ₜ[ℝ] i, f ⟨i, by simp⟩)
+      obtain ⟨ε₀, hε₀, hδ₀⟩ := (O ⟨i₀, by simp⟩).hcore (f ⟨i₀, _⟩)
+
+      use (min εf ε₀)^2
+      simp_all only [lt_inf_iff, pow_succ_pos, true_and]
+      intro δ hδ
+
+      let μ := Real.sqrt |δ|
+      have hμ : |μ| ≤ (min εf ε₀) := by
+        simpa only [abs_of_nonneg (Real.sqrt_nonneg |δ|), μ] using
+          Real.sqrt_sq (show 0 ≤ (min εf ε₀) by positivity) ▸ Real.sqrt_le_sqrt hδ
+
+      have ef₁ := hδf μ (le_min_iff.mp hμ).left
+      have ef₂ := hδf (-μ) (abs_neg μ ▸ (le_min_iff.mp hμ).left)
+      have ev₁ := hδ₀ μ (le_min_iff.mp hμ).right
+      have ev₂ := hδ₀ (-μ) (abs_neg μ ▸ (le_min_iff.mp hμ).right)
+
+      rw [neg_smul, ←sub_eq_add_neg] at ev₂ ef₂
+
+      have ef₁v₁ := extended_mem h₀ ef₁ ev₁
+      have ef₂v₂ := extended_mem h₀ ef₂ ev₂
+      have ef₁v₂ := extended_mem h₀ ef₁ ev₂
+      have ef₂v₁ := extended_mem h₀ ef₂ ev₁
+
+      have half : (0 : ℝ) < 1/2 := by simp
+      have hδp := smul_mem _ hne half (add_mem _ ef₁v₁ ef₂v₂)
+      have hδn := smul_mem _ hne half (add_mem _ ef₁v₂ ef₂v₁)
