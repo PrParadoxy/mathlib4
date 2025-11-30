@@ -116,6 +116,12 @@ variable [∀ k, AddCommMonoid (M k)] [∀ k, Module R (M k)]
 variable {N : Type*}
 variable [AddCommMonoid N] [Module R N]
 
+/-- Composition of multilinear maps.
+
+If `g` is a multilinear map with index type `κ`, and if for every `k : κ`, we
+have a multilinear map `f k` with index type `T k`, then
+  `m ↦ f (g₁ m_11 m_12 ...) (g₂ m_21 m_22 ...) ...`
+is multilinear with index type `(Σ k : κ, T k)`. -/
 def compMultilinearMap
     (g : MultilinearMap R M N) (f : (k : κ) → MultilinearMap R (s k) (M k)) :
       MultilinearMap R (fun j : Σ k, T k ↦ s j.fst j.snd) N where
