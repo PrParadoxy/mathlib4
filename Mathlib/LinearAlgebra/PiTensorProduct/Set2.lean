@@ -70,6 +70,18 @@ open PiTensorProduct
 open scoped TensorProduct
 
 public section
+
+variable {ι : Type*} {R : Type*} {s : ι → Type*}
+variable [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
+variable {S₁ S₂ : Set ι} (hdisj : Disjoint S₁ S₂) [(i : ι) → Decidable (i ∈ S₁)]
+
+abbrev chooseVec (lv : (i : S₁) → s i) (rv : (i : S₂) → s i) : (i : ↑(S₁ ∪ S₂)) → s i :=
+  fun i => if h : i.val ∈ S₁ then lv ⟨i, h⟩ else rv ⟨i, by aesop⟩
+
+abbrev extendFun [DecidableEq ι] {i₀} (x : s i₀) (f : (i : S₁) → s i) :
+  (i : ↥(insert i₀ S₁)) → s i := fun i => if h : i = i₀ then cast (by rw [h]) x else f ⟨i, by aesop⟩
+
+
 namespace PiTensorProduct
 
 variable {ι : Type*} {R : Type*} {s : ι → Type*}
@@ -91,9 +103,6 @@ theorem univEquiv_symm_tprod (f : (i : ι) → s i) :
 section tmulUnionEquiv
 
 variable {S₁ S₂ : Set ι} (hdisj : Disjoint S₁ S₂) [(i : ι) → Decidable (i ∈ S₁)]
-
-abbrev chooseVec (lv : (i : S₁) → s i) (rv : (i : S₂) → s i) : (i : ↑(S₁ ∪ S₂)) → s i :=
-  fun i => if h : i.val ∈ S₁ then lv ⟨i, h⟩ else rv ⟨i, by aesop⟩
 
 def tmulUnionEquiv :
     ((⨂[R] (i₁ : S₁), s i₁) ⊗[R] (⨂[R] (i₂ : S₂), s i₂)) ≃ₗ[R] ⨂[R] (i : ↥(S₁ ∪ S₂)), s i :=
@@ -203,9 +212,6 @@ def tmulInsertEquiv :
     ((s i₀) ⊗[R] (⨂[R] i₁ : S, s i₁)) ≃ₗ[R] (⨂[R] i₁ : ↥(insert i₀ S), s i₁) :=
   (TensorProduct.congr (singletonSetEquiv i₀).symm (LinearEquiv.refl _ _)) ≪≫ₗ
   (tmulUnionEquiv (Set.disjoint_singleton_left.mpr h₀))
-
-abbrev extendFun (x : s i₀) (f : (i : S) → s i) : (i : ↥(insert i₀ S)) → s i :=
-  fun i => if h : i = i₀ then cast (by rw [h]) x else f ⟨i, by aesop⟩
 
 @[simp]
 theorem tmulInsertEquiv_tprod (x : s i₀) (f : (i : S) → s i) :
