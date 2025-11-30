@@ -409,6 +409,28 @@ theorem extended_mem
   aesop
 
 
+-- # TODO: Move out
+namespace TensorProduct
+
+variable (R : Type*) [CommSemiring R]
+variable {M : Type*} [AddCommGroup M] [Module R M]
+variable {N : Type*} [AddCommGroup N] [Module R N]
+
+lemma add_tmul_add_add_sub_tmul_sub (a b : M) (c d : N) :
+  (a + b) ⊗ₜ[R] (c + d) + (a - b) ⊗ₜ[R] (c - d) = (2 : R) • ((a ⊗ₜ[R] c) + (b ⊗ₜ[R] d)) := by
+  simp only [TensorProduct.tmul_add, TensorProduct.add_tmul, TensorProduct.tmul_sub,
+    TensorProduct.sub_tmul, smul_add, two_smul]
+  abel
+
+lemma add_tmul_sub_add_sub_tmul_add (a b : M) (c d : N) :
+  (a + b) ⊗ₜ[R] (c - d) + (a - b) ⊗ₜ[R] (c + d) = (2 : R) • ((a ⊗ₜ[R] c) - (b ⊗ₜ[R] d)) := by
+  simp only [TensorProduct.tmul_sub, TensorProduct.add_tmul, TensorProduct.tmul_add,
+    TensorProduct.sub_tmul, smul_sub, two_smul]
+  abel
+
+end TensorProduct
+
+
 theorem refTensor_mem_core : (h : Nonempty ↥F) →
     RefTensor O ∈ core (MinimalProduct.toConvexCone O h) := by
   induction F using Finset.induction_on with
@@ -446,3 +468,12 @@ theorem refTensor_mem_core : (h : Nonempty ↥F) →
       have half : (0 : ℝ) < 1/2 := by simp
       have hδp := smul_mem _ hne half (add_mem _ ef₁v₁ ef₂v₂)
       have hδn := smul_mem _ hne half (add_mem _ ef₁v₂ ef₂v₁)
+
+      clear ef₁ ef₂ ev₁ ev₂ ef₁v₁ ef₂v₂ ef₁v₂ ef₂v₁ half
+
+      rw [←map_add, TensorProduct.add_tmul_add_add_sub_tmul_sub] at hδp
+      rw [←map_add, add_comm, TensorProduct.add_tmul_sub_add_sub_tmul_add] at hδn
+
+      simp only [one_div, TensorProduct.tmul_smul, map_smul, map_sub,
+        ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, inv_smul_smul₀, smul_add, map_add,
+        TensorProduct.smul_tmul, smul_smul μ μ] at hδn hδp
