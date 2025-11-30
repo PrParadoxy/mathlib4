@@ -439,7 +439,26 @@ theorem refTensor_mem_core : (h : Nonempty ↥F) →
     intro hne
     apply ConvexCone.piTensorProduct_mem_core
     intro r f
-    by_cases hf : Nonempty ↥F
+    rcases isEmpty_or_nonempty F with hf | hf
+
+    -- Base case
+    · have hs : Subsingleton ↑(insert i₀ F) := by
+        rw [show (insert i₀ F) = {i₀} by aesop]
+        infer_instance
+      choose ε hε hεδ using (O ⟨i₀, by simp⟩).hcore (r • f ⟨i₀, _⟩)
+      use ε
+      simp only [hε, true_and]
+      intro δ hδ
+      use 1, (fun j : Fin 1 => Function.update (fun i : ↑(insert i₀ F) => (O i).ref) ⟨i₀, by simp⟩
+        ((O ⟨i₀, _⟩).ref + δ • r • f ⟨i₀, _⟩))
+      constructor
+      · apply (subsingletonEquivDep ⟨i₀, by simp⟩ (s := (fun i : ↑(insert i₀ F) => s i))).injective
+        simp [RefTensor]
+      · intro _ j
+        have hj : j = ⟨i₀, by simp⟩ := hs.allEq j ⟨i₀, by simp⟩
+        aesop
+
+    -- Inductive Step
     · obtain ⟨εf, hεf, hδf⟩ := ih (fun i => O ⟨i, by simp⟩) hf (⨂ₜ[ℝ] i : F, f ⟨i, by simp⟩)
       obtain ⟨ε₀, hε₀, hδ₀⟩ := (O ⟨i₀, by simp⟩).hcore (r • f ⟨i₀, _⟩)
 
@@ -486,18 +505,6 @@ theorem refTensor_mem_core : (h : Nonempty ↥F) →
         rw [show μ*μ = - δ by simp [μ, le_of_lt (not_le.mp h)]]
         simp_all [-tmulFinsetInsertEquiv_tprod, RefTensor, μ]
 
-    · have hs : Subsingleton ↑(insert i₀ F) := by
-        rw [show (insert i₀ F) = {i₀} by aesop]
-        infer_instance
-      choose ε hε hεδ using (O ⟨i₀, by simp⟩).hcore (r • f ⟨i₀, _⟩)
-      use ε
-      simp only [hε, true_and]
-      intro δ hδ
-      use 1, (fun j : Fin 1 => Function.update (fun i : ↑(insert i₀ F) => (O i).ref) ⟨i₀, by simp⟩
-        ((O ⟨i₀, _⟩).ref + δ • r • f ⟨i₀, _⟩))
-      constructor
-      · apply (subsingletonEquivDep ⟨i₀, by simp⟩ (s := (fun i : ↑(insert i₀ F) => s i))).injective
-        simp [RefTensor]
-      · intro _ j
-        have hj : j = ⟨i₀, by simp⟩ := hs.allEq j ⟨i₀, by simp⟩
-        aesop
+
+
+
