@@ -51,6 +51,13 @@ namespace Set
   two elements of this Set. -/
 def generating (S : Set V) := ∀ z : V, ∃ x y, x ∈ S ∧ y ∈ S ∧ z = x - y
 
+omit [Module ℝ V] in
+lemma subset_generating {S T : Set V} (hsub : S ⊆ T) (hg : generating S) : generating T := by
+  intro v
+  obtain ⟨x, y, hx, hy, hv⟩ := hg v
+  use x, y
+  aesop
+
 section core
 
 variable {vc : V} {S : Set V}
@@ -255,6 +262,28 @@ end PiPosDual
 open PiTensorProduct Function Finset
 open scoped TensorProduct
 
+-- # TODO: Move out
+namespace TensorProduct
+
+variable (R : Type*) [CommSemiring R]
+variable {M : Type*} [AddCommGroup M] [Module R M]
+variable {N : Type*} [AddCommGroup N] [Module R N]
+
+lemma add_tmul_add_add_sub_tmul_sub (a b : M) (c d : N) :
+  (a + b) ⊗ₜ[R] (c + d) + (a - b) ⊗ₜ[R] (c - d) = (2 : R) • ((a ⊗ₜ[R] c) + (b ⊗ₜ[R] d)) := by
+  simp only [TensorProduct.tmul_add, TensorProduct.add_tmul, TensorProduct.tmul_sub,
+    TensorProduct.sub_tmul, smul_add, two_smul]
+  abel
+
+lemma add_tmul_sub_add_sub_tmul_add (a b : M) (c d : N) :
+  (a + b) ⊗ₜ[R] (c - d) + (a - b) ⊗ₜ[R] (c + d) = (2 : R) • ((a ⊗ₜ[R] c) - (b ⊗ₜ[R] d)) := by
+  simp only [TensorProduct.tmul_sub, TensorProduct.add_tmul, TensorProduct.tmul_add,
+    TensorProduct.sub_tmul, smul_sub, two_smul]
+  abel
+
+end TensorProduct
+
+
 /-- For `ConvexCone` of tensors, `core` membership can be verified using product tensors alone. -/
 theorem ConvexCone.piTensorProduct_mem_core {z} {C : ConvexCone ℝ (⨂[ℝ] i, s i)}
   (smul_tprod : ∀ (r : ℝ) (f : (i : ι) → s i),
@@ -291,7 +320,7 @@ def embedVec : (⨂[ℝ] i, s i) →ₗ[ℝ] (((i : ι) → AlgWeakDual (s i)) �
             update_self, map_smul, smul_eq_mul, Pi.smul_apply,
             prod_eq_mul_prod_diff_singleton (mem_univ i) (fun x => (dv x) (update vf i vi x)),
             ← mul_assoc]
-          congr! 3 with j hj
+          congr! 3 with _ _
           aesop
     }
   )
@@ -312,6 +341,8 @@ def MaximalProductCarrier := {x | ∀ dv ∈ PiPosDual O, 0 ≤ embedVec x dv}
 
 namespace MaximalProduct
 
+variable {O : ∀ i : F, OrderCone (s i)}
+
 theorem smul_mem : ∀ ⦃c : ℝ⦄, 0 < c → ∀ ⦃x⦄,
     x ∈ MaximalProductCarrier O → c • x ∈ MaximalProductCarrier O :=
   fun c hc x hx dv hdv => by simp_all [MaximalProductCarrier]
@@ -324,8 +355,8 @@ theorem pointed : 0 ∈ MaximalProductCarrier O := by simp [MaximalProductCarrie
 
 protected def toConvexCone : ConvexCone ℝ ((⨂[ℝ] (i : F), s i)) where
   carrier := MaximalProductCarrier O
-  smul_mem' := smul_mem O
-  add_mem' := add_mem O
+  smul_mem' := smul_mem
+  add_mem' := add_mem
 
 end MaximalProduct
 
@@ -336,6 +367,8 @@ def MinimalProductCarrier :=
     ∑ i, (⨂ₜ[ℝ] j, (vf i j)) = x ∧ ∀ i, ∀ j : F, vf i j ∈ O j}
 
 namespace MinimalProduct
+
+variable {O : ∀ i : F, OrderCone (s i)}
 
 theorem subset_maximalProduct :
   MinimalProductCarrier O ⊆ MaximalProductCarrier O := by
@@ -387,12 +420,11 @@ theorem pointed : 0 ∈ MinimalProductCarrier O := by use 0, 0; aesop
 protected def toConvexCone [DecidableEq ι] (hn : Nonempty ↥F) :
     ConvexCone ℝ ((⨂[ℝ] (i : F), s i)) where
   carrier := MinimalProductCarrier O
-  smul_mem' := smul_mem O hn
-  add_mem' := add_mem O
+  smul_mem' := smul_mem hn
+  add_mem' := add_mem
 
 theorem refTensor_mem : RefTensor O ∈ MinimalProductCarrier O :=
   ⟨1, (fun _ j => (O j).ref), by simp [RefTensor], fun _ j => mem_core_mem_self (O j).hcore⟩
-
 
 variable [DecidableEq ι]
 
@@ -408,31 +440,8 @@ theorem extended_mem
   simp only [← hz, TensorProduct.tmul_sum]
   aesop
 
-
--- # TODO: Move out
-namespace TensorProduct
-
-variable (R : Type*) [CommSemiring R]
-variable {M : Type*} [AddCommGroup M] [Module R M]
-variable {N : Type*} [AddCommGroup N] [Module R N]
-
-lemma add_tmul_add_add_sub_tmul_sub (a b : M) (c d : N) :
-  (a + b) ⊗ₜ[R] (c + d) + (a - b) ⊗ₜ[R] (c - d) = (2 : R) • ((a ⊗ₜ[R] c) + (b ⊗ₜ[R] d)) := by
-  simp only [TensorProduct.tmul_add, TensorProduct.add_tmul, TensorProduct.tmul_sub,
-    TensorProduct.sub_tmul, smul_add, two_smul]
-  abel
-
-lemma add_tmul_sub_add_sub_tmul_add (a b : M) (c d : N) :
-  (a + b) ⊗ₜ[R] (c - d) + (a - b) ⊗ₜ[R] (c + d) = (2 : R) • ((a ⊗ₜ[R] c) - (b ⊗ₜ[R] d)) := by
-  simp only [TensorProduct.tmul_sub, TensorProduct.add_tmul, TensorProduct.tmul_add,
-    TensorProduct.sub_tmul, smul_sub, two_smul]
-  abel
-
-end TensorProduct
-
-
 theorem refTensor_mem_core : (h : Nonempty ↥F) →
-    RefTensor O ∈ core (MinimalProduct.toConvexCone O h) := by
+    RefTensor O ∈ core (MinimalProduct.toConvexCone h (O := O)) := by
   induction F using Finset.induction_on with
   | empty => simp_all
   | insert i₀ F h₀ ih =>
@@ -458,7 +467,7 @@ theorem refTensor_mem_core : (h : Nonempty ↥F) →
         aesop
 
     -- Inductive Step
-    · obtain ⟨εf, hεf, hδf⟩ := ih (fun i => O ⟨i, by simp⟩) hf (⨂ₜ[ℝ] i : F, f ⟨i, by simp⟩)
+    · obtain ⟨εf, hεf, hδf⟩ := @ih (fun i => O ⟨i, by simp⟩) hf (⨂ₜ[ℝ] i : F, f ⟨i, by simp⟩)
       obtain ⟨ε₀, hε₀, hδ₀⟩ := (O ⟨i₀, by simp⟩).hcore (r • f ⟨i₀, _⟩)
 
       use (min εf ε₀)^2
@@ -483,8 +492,8 @@ theorem refTensor_mem_core : (h : Nonempty ↥F) →
       have ht₂v₁ := extended_mem h₀ ht₂ hv₁
 
       have half : (0 : ℝ) < 1/2 := by simp
-      have hδp := smul_mem _ hne half (add_mem _ ht₁v₁ ht₂v₂)
-      have hδn := smul_mem _ hne half (add_mem _ ht₁v₂ ht₂v₁)
+      have hδp := smul_mem hne half (add_mem ht₁v₁ ht₂v₂)
+      have hδn := smul_mem hne half (add_mem ht₁v₂ ht₂v₁)
 
       clear ht₁ ht₂ hv₁ hv₂ ht₁v₁ ht₂v₂ ht₁v₂ ht₂v₁ half
 
@@ -503,3 +512,45 @@ theorem refTensor_mem_core : (h : Nonempty ↥F) →
         apply ((tmulFinsetInsertEquiv h₀ (s := s)).symm).injective
         rw [show μ*μ = - δ by simp [μ, le_of_lt (not_le.mp h)]]
         simp_all [-tmulFinsetInsertEquiv_tprod, RefTensor, μ]
+
+theorem is_generating (h : Nonempty ↥F) :
+    generating (MinimalProduct.toConvexCone (O := O) h).carrier := by
+  intro z
+  have ⟨ε, hε, hδ⟩ := refTensor_mem_core (O := O) h z
+  have hε₁ : 0 < (1 / ε) := by simp [hε]
+  use (1 / ε) • (RefTensor O  + ε • z), (1 / ε) • RefTensor O
+  exact ⟨smul_mem h hε₁ (hδ ε (abs_of_pos hε).le),
+    smul_mem h hε₁ (mem_core_mem_self (refTensor_mem_core h)),
+    by simp [smul_smul, mul_comm, mul_inv_cancel₀ (ne_of_lt hε).symm]⟩
+
+end MinimalProduct
+
+namespace MaximalProduct
+
+variable [DecidableEq ι]
+
+theorem refTensor_mem_core (h : Nonempty ↥F) :
+    RefTensor O ∈ core (MaximalProduct.toConvexCone (O := O)) :=
+  mem_core_of_subset_mem_core MinimalProduct.subset_maximalProduct
+    (MinimalProduct.refTensor_mem_core h)
+
+theorem is_generating (h : Nonempty ↥F) : generating (MaximalProductCarrier O) :=
+  subset_generating MinimalProduct.subset_maximalProduct (MinimalProduct.is_generating h)
+
+end MaximalProduct
+
+def MaximalProduct [DecidableEq ι] (h : Nonempty ↥F) : OrderCone (⨂[ℝ] i : F, s i) where
+  carrier := MaximalProductCarrier O
+  smul_mem' := MaximalProduct.smul_mem
+  add_mem' := MaximalProduct.add_mem
+  ref := RefTensor O
+  hcore := MaximalProduct.refTensor_mem_core (O := O) h
+  pointed := MaximalProduct.pointed
+
+def MinimalProduct [DecidableEq ι] (h : Nonempty ↥F) : OrderCone (⨂[ℝ] i : F, s i) where
+  carrier := MinimalProductCarrier O
+  smul_mem' := MinimalProduct.smul_mem h
+  add_mem' := MinimalProduct.add_mem
+  ref := RefTensor O
+  hcore := MinimalProduct.refTensor_mem_core (O := O) h
+  pointed := MinimalProduct.pointed
