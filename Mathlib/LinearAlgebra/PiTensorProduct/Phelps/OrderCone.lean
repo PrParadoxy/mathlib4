@@ -441,8 +441,8 @@ theorem refTensor_mem_core : (h : Nonempty ↥F) →
     intro r f
     by_cases hf : Nonempty ↥F
     .
-      obtain ⟨εf, hεf, hδf⟩ := ih (fun i => O ⟨i, by simp⟩) hf (⨂ₜ[ℝ] i, f ⟨i, by simp⟩)
-      obtain ⟨ε₀, hε₀, hδ₀⟩ := (O ⟨i₀, by simp⟩).hcore (f ⟨i₀, _⟩)
+      obtain ⟨εf, hεf, hδf⟩ := ih (fun i => O ⟨i, by simp⟩) hf (⨂ₜ[ℝ] i : F, f ⟨i, by simp⟩)
+      obtain ⟨ε₀, hε₀, hδ₀⟩ := (O ⟨i₀, by simp⟩).hcore (r • f ⟨i₀, _⟩)
 
       use (min εf ε₀)^2
       simp_all only [lt_inf_iff, pow_succ_pos, true_and]
@@ -477,3 +477,16 @@ theorem refTensor_mem_core : (h : Nonempty ↥F) →
       simp only [one_div, TensorProduct.tmul_smul, map_smul, map_sub,
         ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, inv_smul_smul₀, smul_add, map_add,
         TensorProduct.smul_tmul, smul_smul μ μ] at hδn hδp
+
+      by_cases h : 0 ≤ δ
+      . convert hδp using 1
+        apply ((tmulFinsetInsertEquiv h₀ (s := s)).symm).injective
+        simp_all [-tmulFinsetInsertEquiv_tprod, RefTensor, μ, abs_of_nonneg]
+      . convert hδn using 1
+        apply ((tmulFinsetInsertEquiv h₀ (s := s)).symm).injective
+        simp_all only [Finset.mem_insert, nonempty_subtype, exists_or_eq_left, RefTensor, mem_core,
+          SetLike.mem_coe, forall_true_left, le_inf_iff, abs_nonneg, Real.mul_self_sqrt, not_le,
+          map_add, tmulFinsetInsertEquiv_symm_tprod, coe_insert, Set.subset_insert, coe_inclusion,
+          map_smul, map_sub, LinearEquiv.symm_apply_apply, μ]
+        simp [abs_of_neg h]
+    . 
