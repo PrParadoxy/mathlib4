@@ -44,6 +44,11 @@ Replace by other construction? Keep here? Mark `protected`? Add "_aux" to name?
 Move to `Equiv.Fin /Equiv.Sum`?  Restructure entirely?
 -/
 
+-- -- doesn't really help. :(
+--@[simp, grind =]
+--theorem Sigma.curry_apply {α : Type*} {β : α → Type*} {γ : ∀ a, β a → Type*}
+--    (f : ∀ x : Sigma β, γ x.1 x.2) (x : α) (y : β x) :  Sigma.curry f x y = f ⟨x, y⟩ := by rfl
+
 section Multilinear
 
 variable {κ : Type*}
@@ -66,11 +71,11 @@ lemma apply_sigma_curry_update {β : κ → Type*} (m : (i : Sigma T) → s i.1 
     (fun k ↦ f k (Sigma.curry (update m j v) k)) =
     update (fun k ↦ f k (Sigma.curry m k)) j.1
     (f j.1 (fun i : T j.1 ↦ Sigma.curry (update m j v) j.1 i)) := by
-  unfold Sigma.curry -- `Sigma.curry` doesn't seem to have an applicable `apply` lemma
   ext k
   by_cases heq : k = j.1
   · aesop
-  · simp_all [show ∀ i : T k, ⟨k, i⟩ ≠ j from by grind]
+  · unfold Sigma.curry -- Should one add simp lemmas to `Sigma.curry`?
+    simp_all [show ∀ i : T k, ⟨k, i⟩ ≠ j from by grind]
 
 omit [DecidableEq κ] in
 lemma update_arg (m : (i : Σ k, T k) → s i.1 i.2) (j : Σ k, T k) (v : s j.1 j.2) (i : T j.1) :
@@ -116,16 +121,21 @@ variable [∀ k, AddCommMonoid (M k)] [∀ k, Module R (M k)]
 variable {N : Type*}
 variable [AddCommMonoid N] [Module R N]
 
+/-- Composition of multilinear maps.
+
+If `g` is a multilinear map with index type `κ`, and if for every `k : κ`, we
+have a multilinear map `f k` with index type `T k`, then
+  `m ↦ f (g₁ m_11 m_12 ...) (g₂ m_21 m_22 ...) ...`
+is multilinear with index type `(Σ k : κ, T k)`. -/
 def compMultilinearMap
     (g : MultilinearMap R M N) (f : (k : κ) → MultilinearMap R (s k) (M k)) :
       MultilinearMap R (fun j : Σ k, T k ↦ s j.fst j.snd) N where
   toFun m := g fun k ↦ f k (Sigma.curry m k)
-  map_update_add' m j x y := by simp [apply_sigma_curry_update, Sigma.curry, update_arg]
+  map_update_add' := by simp [apply_sigma_curry_update, Sigma.curry, update_arg]
   map_update_smul' := by simp [apply_sigma_curry_update, Sigma.curry, update_arg]
 
-theorem compMultilinearMap_tprod
-    (g : MultilinearMap R M N) (f : (k : κ) → MultilinearMap R (s k) (M k))
-    (m : (i : Σ k, T k) → s i.fst i.snd) :
+theorem compMultilinearMap_tprod (g : MultilinearMap R M N)
+    (f : (k : κ) → MultilinearMap R (s k) (M k)) (m : (i : Σ k, T k) → s i.fst i.snd) :
     compMultilinearMap g f m = g fun k ↦ f k (Sigma.curry m k) := by rfl
 
 end Multilinear
