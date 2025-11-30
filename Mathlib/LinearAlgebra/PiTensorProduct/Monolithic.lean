@@ -66,8 +66,8 @@ open Function
 
 -- This lemma is closely related to `Sigma.curry_update`
 omit [(k : κ) → DecidableEq (T k)] in
-lemma apply_sigma_curry_update {β : κ → Type*} (m : (i : Sigma T) → s i.1 i.2)
-    (j : Sigma T) (v : s j.1 j.2) (f : (k : κ) → ((i : T k) → (s k i)) → β k) :
+lemma apply_sigma_curry_update {β : κ → Type*} (m : (i : Σ k, T k) → s i.1 i.2)
+    (j : Σ k, T k) (v : s j.1 j.2) (f : (k : κ) → ((i : T k) → (s k i)) → β k) :
     (fun k ↦ f k (Sigma.curry (update m j v) k)) =
     update (fun k ↦ f k (Sigma.curry m k)) j.1
     (f j.1 (fun i : T j.1 ↦ Sigma.curry (update m j v) j.1 i)) := by
@@ -80,31 +80,6 @@ lemma apply_sigma_curry_update {β : κ → Type*} (m : (i : Sigma T) → s i.1 
 omit [DecidableEq κ] in
 lemma update_arg (m : (i : Σ k, T k) → s i.1 i.2) (j : Σ k, T k) (v : s j.1 j.2) (i : T j.1) :
   update m j v ⟨j.1, i⟩ = update (fun i : T j.1 ↦ m ⟨j.1, i⟩) j.2 v i := by grind
-
-/-
--------------------------unused stuff------------------------
--/
--- Can one relate the above directly to `Sigma.curry_update`?
-lemma apply_sigma_curry_update' {β : κ → Type*} (m : (i : Sigma T) → s i.1 i.2)
-    (j : Sigma T) (v : s j.1 j.2) (f : (k : κ) → ((i : T k) → (s k i)) → β k) :
-    (fun k ↦ f k (Sigma.curry (update m j v) k)) =
-    update (fun k ↦ f k (Sigma.curry m k)) j.1
-    (f j.1 (fun i : T j.1 ↦ Sigma.curry (update m j v) j.1 i)) := by
-  have hcu := Sigma.curry_update  j m v
-  ext k
-  rw [<-Function.apply_update]
-  congr
-  replace hcu := congrFun hcu k
-  sorry
---- `Sigma.curry` version, but doesn't seem to help below.
-lemma update_arg_curry (m : (i : Σ k, T k) → s i.fst i.snd) (j : Σ k, T k)
-    (x : s j.fst j.snd) (i : T j.1) :
-    update m j x ⟨j.1, i⟩ = update (Sigma.curry m j.1) j.2 x i := by
-  unfold Sigma.curry
-  grind
-/-
-----------------------end unused stuff------------------------
--/
 
 end Update
 
@@ -125,18 +100,15 @@ variable [AddCommMonoid N] [Module R N]
 
 If `g` is a multilinear map with index type `κ`, and if for every `k : κ`, we
 have a multilinear map `f k` with index type `T k`, then
-  `m ↦ f (g₁ m_11 m_12 ...) (g₂ m_21 m_22 ...) ...`
+  `m ↦ g (f₁ m_11 m_12 ...) (f₂ m_21 m_22 ...) ...`
 is multilinear with index type `(Σ k : κ, T k)`. -/
+@[simps]
 def compMultilinearMap
     (g : MultilinearMap R M N) (f : (k : κ) → MultilinearMap R (s k) (M k)) :
       MultilinearMap R (fun j : Σ k, T k ↦ s j.fst j.snd) N where
   toFun m := g fun k ↦ f k (Sigma.curry m k)
   map_update_add' := by simp [apply_sigma_curry_update, Sigma.curry, update_arg]
   map_update_smul' := by simp [apply_sigma_curry_update, Sigma.curry, update_arg]
-
-theorem compMultilinearMap_tprod (g : MultilinearMap R M N)
-    (f : (k : κ) → MultilinearMap R (s k) (M k)) (m : (i : Σ k, T k) → s i.fst i.snd) :
-    compMultilinearMap g f m = g fun k ↦ f k (Sigma.curry m k) := by rfl
 
 end Multilinear
 
@@ -157,7 +129,7 @@ def tprodTprodHom : (⨂[R] j : (Σ k, T k), s j.1 j.2) →ₗ[R] (⨂[R] k, ⨂
 
 theorem tprodTprod_tprod (f : (j : (Σ k, T k)) → s j.1 j.2) :
     tprodTprodHom (⨂ₜ[R] j, f j) = ⨂ₜ[R] k, ⨂ₜ[R] i : T k, f ⟨k, i⟩ := by
-  simp [tprodTprodHom, Multilinear.compMultilinearMap_tprod]
+  simp [tprodTprodHom, Multilinear.compMultilinearMap_apply]
   rfl -- needed, because `Sigma.curry` has no simp lemmas and won't unfold.
 
 end tprodTprodHom
@@ -206,22 +178,19 @@ theorem tprodFinTprodEquiv_tprod (f : (k : Fin n) → (i : Tf k) → s k i) :
     simp only [tprodFinTprodEquiv, Nat.rec_zero, trans_apply,
       symm_apply_eq, isEmptyEquiv_apply_tprod]
   | succ m ih =>
-    -- Strategy: Repeatedly move equivalences around to obtain the form
-    -- `(complicated terms) = aSingleEquiv tprod`, then simp away `aSingleEquiv`.
-
     simp only [tprodFinTprodEquiv, Equiv.symm_symm, finSumFinEquiv_apply_left, trans_apply]
 
-    -- Final reindex & tmulEquivDep
+    -- Strategy: Repeatedly move equivalences around to obtain the form
+    -- `(complicated terms) = aSingleEquiv tprod`, then simp away `aSingleEquiv`.
+    -- Stat with final reindex & tmulEquivDep:
     rw [symm_apply_eq, reindex_tprod, ←eq_symm_apply]
     conv_rhs => apply tmulEquivDep_symm_apply
-
-    -- Initial reindex & tmulEquivDep
+    -- Initial reindex & tmulEquivDep:
     rw [←eq_symm_apply, ←eq_symm_apply]
     conv_lhs => apply reindex_tprod
     rw [←symm_apply_eq]
     conv_lhs => apply tmulEquivDep_symm_apply
-
-    -- Middle congruence & subsingletonEquivDep
+    -- Middle congruence & subsingletonEquivDep:
     simp only [eq_symm_apply, finSumFinEquiv_apply_left,
       TensorProduct.congr_tmul, subsingletonEquivDep_apply_tprod]
 
@@ -234,6 +203,77 @@ theorem tprodFinTprodEquiv_symm_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
   simp [LinearEquiv.symm_apply_eq]
 
 end TprodFinTrodEquiv
+
+
+section tprodFiniteTprodEquiv
+
+variable {ι : Type*} [Finite ι] {Tf : ι → Type*}
+variable {R : Type*} {s : (k : ι) → (i : Tf k) → Type*}
+  [CommSemiring R] [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
+
+noncomputable def tprodFiniteTprodEquiv :
+    (⨂[R] k, ⨂[R] i, s k i) ≃ₗ[R] (⨂[R] j : (Σ k, Tf k), s j.1 j.2) := by
+  let e := Classical.choice (Finite.exists_equiv_fin ι).choose_spec
+  apply reindex _ _ e ≪≫ₗ tprodFinTprodEquiv ≪≫ₗ
+    ((PiTensorProduct.congr fun i => LinearEquiv.refl _ _) ≪≫ₗ
+      (reindex _ _ (Equiv.sigmaCongrLeft e.symm).symm).symm)
+
+@[simp]
+theorem tprodFiniteTprodEquiv_tprod (f : (k : ι) → (i : Tf k) → s k i) :
+    tprodFiniteTprodEquiv (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) = ⨂ₜ[R] j : (Σ k, Tf k), f j.1 j.2 := by
+  simp only [tprodFiniteTprodEquiv, Equiv.symm_symm, LinearEquiv.trans_apply,
+    reindex_tprod, LinearEquiv.symm_apply_eq]
+  conv_rhs => apply reindex_tprod
+  conv_lhs => arg 2; apply tprodFinTprodEquiv_tprod
+  apply congr_tprod
+
+@[simp]
+theorem tprodFiniteTprodEquiv_symm_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
+    tprodFiniteTprodEquiv.symm (⨂ₜ[R] j : (Σ k, Tf k), f j) = (⨂ₜ[R] k, ⨂ₜ[R] i, f ⟨k, i⟩) := by
+  simp [LinearEquiv.symm_apply_eq]
+
+theorem span_tprodFiniteTprod_eq_top :
+  (span R (range (fun (f : (k : ι) → (i : Tf k) → s k i) => (⨂ₜ[R] k, ⨂ₜ[R] i, f k i))))
+    = (⊤ : Submodule R _) := by
+  rw [← tprodFiniteTprodEquiv (R := R) (s := s).symm.range,
+    LinearMap.range_eq_map, ← span_tprod_eq_top, ← span_image]
+  congr with f
+  simp only [mem_range, LinearEquiv.coe_coe, mem_image, exists_exists_eq_and,
+    tprodFiniteTprodEquiv_symm_tprod]
+  constructor
+  · intro ⟨y, hy⟩
+    rw [←hy]
+    use (fun j => y j.1 j.2)
+  · intro ⟨y, hy⟩
+    rw [←hy]
+    use (fun j k => y ⟨j, k⟩)
+
+@[elab_as_elim]
+protected theorem nested_induction_on
+    {motive : (⨂[R] k, ⨂[R] i, s k i) → Prop}
+    (smul_tprod_tprod : ∀ (r : R) (f : ∀ k, ∀ i, s k i), motive (r • ⨂ₜ[R] k, ⨂ₜ[R] i, (f k i)))
+    (add : ∀ (x y), motive x → motive y → motive (x + y))
+    (z : ⨂[R] k, ⨂[R] i, s k i) : motive z := by
+  have h := span_tprodFiniteTprod_eq_top (s := s) (R := R) ▸ mem_top (x := z)
+  let p := fun z =>
+    fun (_ : z ∈ span R (range
+      fun f : (k : ι) → (i : Tf k) → s k i ↦ ⨂ₜ[R] k, ⨂ₜ[R] i, f k i)) =>
+        ∀ r : R, motive (r • z)
+  suffices hp : p z h by simpa [p] using hp 1
+  induction h using span_induction with
+  | mem x h =>
+    intro r
+    obtain ⟨y, hy⟩ := mem_range.mp h
+    simpa [hy] using smul_tprod_tprod r y
+  | smul r _ _ hx =>
+    intro r'
+    simpa [←smul_assoc] using hx (r' • r)
+  | zero => simpa [p] using smul_tprod_tprod 0 0
+  | add => simp_all [p]
+
+end tprodFiniteTprodEquiv
+
+
 
 section iUnion
 
@@ -273,76 +313,6 @@ theorem tprodFiniUnionEquiv_symm_tprod (f : (i : (iUnion Sf)) → s i) :
   simp [LinearEquiv.symm_apply_eq, iUnionSigmaEquiv]
 
 end iUnion
-
-section tprodFiniteTprodEquiv
-
-
-variable {ι : Type*} [Finite ι] {Tf : ι → Type*}
-variable {R : Type*} {s : (k : ι) → (i : Tf k) → Type*}
-  [CommSemiring R] [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
-
-noncomputable def tprodFiniteTprodEquiv :
-    (⨂[R] k, ⨂[R] i, s k i) ≃ₗ[R] (⨂[R] j : (Σ k, Tf k), s j.1 j.2) := by
-  let e := Classical.choice (Finite.exists_equiv_fin ι).choose_spec
-  apply reindex _ _ e ≪≫ₗ tprodFinTprodEquiv ≪≫ₗ
-    ((PiTensorProduct.congr fun i => LinearEquiv.refl _ _) ≪≫ₗ
-      (reindex _ _ (Equiv.sigmaCongrLeft e.symm).symm).symm)
-
-@[simp]
-theorem tprodFiniteTprodEquiv_tprod (f : (k : ι) → (i : Tf k) → s k i) :
-    tprodFiniteTprodEquiv (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) = ⨂ₜ[R] j : (Σ k, Tf k), f j.1 j.2 := by
-  simp only [tprodFiniteTprodEquiv, Equiv.symm_symm, LinearEquiv.trans_apply,
-    reindex_tprod, LinearEquiv.symm_apply_eq]
-  conv_rhs => apply reindex_tprod
-  conv_lhs => arg 2; apply tprodFinTprodEquiv_tprod
-  apply congr_tprod
-
-@[simp]
-theorem tprodFiniteTprodEquiv_symm_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
-    tprodFiniteTprodEquiv.symm (⨂ₜ[R] j : (Σ k, Tf k), f j) = (⨂ₜ[R] k, ⨂ₜ[R] i, f ⟨k, i⟩) := by
-  simp [LinearEquiv.symm_apply_eq]
-
-theorem span_tprodFiniteTprod_eq_top :
-  (span R (range (fun (f : (k : ι) → (i : Tf k) → s k i) => (⨂ₜ[R] k, ⨂ₜ[R] i, f k i))))
-    = (⊤ : Submodule R (⨂[R] k, ⨂[R] i : Tf k, s k i)) := by
-  rw [← tprodFiniteTprodEquiv (R := R) (s := s).symm.range,
-    LinearMap.range_eq_map, ← span_tprod_eq_top, ← span_image]
-  congr with f
-  simp only [mem_range, LinearEquiv.coe_coe, mem_image, exists_exists_eq_and,
-    tprodFiniteTprodEquiv_symm_tprod]
-  constructor
-  · intro ⟨y, hy⟩
-    rw [←hy]
-    use (fun j => y j.1 j.2)
-  · intro ⟨y, hy⟩
-    rw [←hy]
-    use (fun j k => y ⟨j, k⟩)
-
-@[elab_as_elim]
-protected theorem nested_induction_on
-    {motive : (⨂[R] k, ⨂[R] i, s k i) → Prop}
-    (smul_tprod_tprod : ∀ (r : R) (f : ∀ k, ∀ i, s k i), motive (r • ⨂ₜ[R] k, ⨂ₜ[R] i, (f k i)))
-    (add : ∀ (x y), motive x → motive y → motive (x + y))
-    (z : ⨂[R] k, ⨂[R] i, s k i) : motive z := by
-  have h := span_tprodFiniteTprod_eq_top (s := s) (R := R) ▸ mem_top (x := z)
-  let p := fun z =>
-    fun (_ : z ∈ span R (range
-      fun f : (k : ι) → (i : Tf k) → s k i ↦ ⨂ₜ[R] k, ⨂ₜ[R] i, f k i)) =>
-        ∀ r : R, motive (r • z)
-  suffices hp : p z h by simpa [p] using hp 1
-  induction h using span_induction with
-  | mem x h =>
-    intro r
-    obtain ⟨y, hy⟩ := mem_range.mp h
-    simpa [hy] using smul_tprod_tprod r y
-  | smul r _ _ hx =>
-    intro r'
-    simpa [←smul_assoc] using hx (r' • r)
-  | zero => simpa [p] using smul_tprod_tprod 0 0
-  | add => simp_all [p]
-
-end tprodFiniteTprodEquiv
-
 
 
 section unifyMaps
