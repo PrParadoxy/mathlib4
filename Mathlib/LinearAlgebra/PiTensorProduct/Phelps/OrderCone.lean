@@ -539,6 +539,9 @@ theorem is_generating (h : Nonempty ↥F) : generating (MaximalProductCarrier O)
 
 end MaximalProduct
 
+/- It is possible to weaken remove both `[DecidableEq ι] (h : Nonempty ↥F)` from
+  the following by not relying on the proofs of `MinimalProduct`. That is, by proving
+  `MaximalProduct.refTensor_mem_core` from scratch. -/
 def MaximalProduct [DecidableEq ι] (h : Nonempty ↥F) : OrderCone (⨂[ℝ] i : F, s i) where
   carrier := MaximalProductCarrier O
   smul_mem' := MaximalProduct.smul_mem
