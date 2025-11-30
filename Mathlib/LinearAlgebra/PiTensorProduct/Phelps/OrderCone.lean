@@ -440,15 +440,14 @@ theorem refTensor_mem_core : (h : Nonempty ↥F) →
     apply ConvexCone.piTensorProduct_mem_core
     intro r f
     by_cases hf : Nonempty ↥F
-    .
-      obtain ⟨εf, hεf, hδf⟩ := ih (fun i => O ⟨i, by simp⟩) hf (⨂ₜ[ℝ] i : F, f ⟨i, by simp⟩)
+    · obtain ⟨εf, hεf, hδf⟩ := ih (fun i => O ⟨i, by simp⟩) hf (⨂ₜ[ℝ] i : F, f ⟨i, by simp⟩)
       obtain ⟨ε₀, hε₀, hδ₀⟩ := (O ⟨i₀, by simp⟩).hcore (r • f ⟨i₀, _⟩)
 
       use (min εf ε₀)^2
       simp_all only [lt_inf_iff, pow_succ_pos, true_and]
       intro δ hδ
 
-      let μ := Real.sqrt |δ|
+      set μ := Real.sqrt |δ| with hμ₀
       have hμ : |μ| ≤ (min εf ε₀) := by
         simpa only [abs_of_nonneg (Real.sqrt_nonneg |δ|), μ] using
           Real.sqrt_sq (show 0 ≤ (min εf ε₀) by positivity) ▸ Real.sqrt_le_sqrt hδ
@@ -479,10 +478,26 @@ theorem refTensor_mem_core : (h : Nonempty ↥F) →
         TensorProduct.smul_tmul, smul_smul μ μ] at hδn hδp
 
       by_cases h : 0 ≤ δ
-      . convert hδp using 1
+      · convert hδp using 1
         apply ((tmulFinsetInsertEquiv h₀ (s := s)).symm).injective
         simp_all [-tmulFinsetInsertEquiv_tprod, RefTensor, μ, abs_of_nonneg]
-      . convert hδn using 1
+      · convert hδn using 1
         apply ((tmulFinsetInsertEquiv h₀ (s := s)).symm).injective
         rw [show μ*μ = - δ by simp [μ, le_of_lt (not_le.mp h)]]
         simp_all [-tmulFinsetInsertEquiv_tprod, RefTensor, μ]
+
+    · have hs : Subsingleton ↑(insert i₀ F) := by
+        rw [show (insert i₀ F) = {i₀} by aesop]
+        infer_instance
+      choose ε hε hεδ using (O ⟨i₀, by simp⟩).hcore (r • f ⟨i₀, _⟩)
+      use ε
+      simp only [hε, true_and]
+      intro δ hδ
+      use 1, (fun j : Fin 1 => Function.update (fun i : ↑(insert i₀ F) => (O i).ref) ⟨i₀, by simp⟩
+        ((O ⟨i₀, _⟩).ref + δ • r • f ⟨i₀, _⟩))
+      constructor
+      · apply (subsingletonEquivDep ⟨i₀, by simp⟩ (s := (fun i : ↑(insert i₀ F) => s i))).injective
+        simp [RefTensor]
+      · intro _ j
+        have hj : j = ⟨i₀, by simp⟩ := hs.allEq j ⟨i₀, by simp⟩
+        aesop
