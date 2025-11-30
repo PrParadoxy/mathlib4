@@ -362,16 +362,33 @@ theorem refTensor_mem : RefTensor O ∈ MinimalProduct O :=
   ⟨1, (fun _ j => (O j).ref), by simp [RefTensor], fun _ j => mem_core_mem_self (O j).hcore⟩
 
 
-variable [DecidableEq ι] {i₀} (h₀ : i₀ ∉ F) (O : ∀ i : ↥(insert i₀ F), OrderCone (s i))
+variable [DecidableEq ι]
 
-theorem extended_mem {x : ⨂[ℝ] i : F, s i} {v : s i₀}
+theorem extended_mem {i₀} (h₀ : i₀ ∉ F) (O : ∀ i : ↥(insert i₀ F), OrderCone (s i))
+  {x : ⨂[ℝ] i : F, s i} {v : s i₀}
   (hx : x ∈ MinimalProduct (fun i => O ⟨i, by simp⟩))
   (hv : v ∈ O ⟨i₀, by simp⟩) :
     tmulFinsetInsertEquiv h₀ (v ⊗ₜ[ℝ] x) ∈ MinimalProduct O := by
   have ⟨n, vf, hx, hvf⟩ := hx
   use n, (fun x i => if h : ↑i = i₀ then cast (by rw [h]) v else vf x ⟨i, by aesop⟩)
-  simp only [← hx, TensorProduct.tmul_sum, map_sum, tmulFinsetInsertEquiv_tprod, mem_singleton_iff,
-    Subtype.forall, Finset.mem_insert, true_and]
+  simp only [← hx, TensorProduct.tmul_sum, map_sum, tmulFinsetInsertEquiv_tprod]
   aesop
+
+-- #check PiTensorProduct.isEmptyEquiv
+-- theorem refTensor_mem_core : RefTensor O ∈ core (MinimalProduct O) := by
+--   intro v
+--   induction F, v using finset_induction_on (s := s) with
+--   | empty r =>
+--     by_cases hr : r = 0
+--     . simp [hr, refTensor_mem]; use 1; simp
+--     . use 1/|r|
+--       simp only [one_div, inv_pos, abs_pos, ne_eq, hr, not_false_eq_true,
+--         true_and]
+--       intro δ hδ
+--       simp only [MinimalProduct, IsEmpty.forall_iff, implies_true, and_true, mem_setOf_eq]
+--       use 1, (fun i j => (1 + δ * r) • isEmptyElim j)
+--       apply (isEmptyEquiv ↥(∅ : Finset ι)).injective
+--       conv_rhs => simp [RefTensor]
+--       conv_lhs => simp
 
 end MinimalProduct

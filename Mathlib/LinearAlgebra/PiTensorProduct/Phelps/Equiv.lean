@@ -52,13 +52,13 @@ theorem set_finite_induction_on
 
 @[elab_as_elim]
 theorem finset_induction_on
-    [DecidableEq ι] (S : Finset ι)
-    {motive : ∀ {T : Finset ι}, (⨂[R] i : (T : Set ι), s i) → Prop}
+    [DecidableEq ι] {F : Finset ι}
+    {motive : ∀ {T : Finset ι}, (⨂[R] i : T, s i) → Prop}
     (empty : ∀ r : R, motive ((isEmptyEquiv (∅ : Finset ι)).symm r))
     (insert : ∀ (i₀ : ι) (T : Finset ι) (_ : i₀ ∉ T),
-      (∀ (w : ⨂[R] i : (T : Set ι), s i), motive w) →
+      (∀ (w : ⨂[R] i : T, s i), motive w) →
         ∀ (z : ⨂[R] i : ↑(insert i₀ T), s i), motive z)
-    (z : ⨂[R] i : (S : Set ι), s i) : motive z := by
-  induction S using Finset.induction with
+    (z : ⨂[R] i : F, s i) : motive z := by
+  induction F using Finset.induction with
   | empty => simpa [LinearEquiv.symm_apply_apply] using empty (isEmptyEquiv (∅ : Finset ι) z)
   | insert i₀ S hi₀ hm => exact insert i₀ S hi₀ hm z
