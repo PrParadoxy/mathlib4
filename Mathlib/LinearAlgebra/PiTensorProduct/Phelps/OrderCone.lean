@@ -437,8 +437,7 @@ theorem refTensor_mem_core : (h : Nonempty ↥F) →
   | empty => simp_all
   | insert i₀ F h₀ ih =>
     intro hne
-    apply ConvexCone.piTensorProduct_mem_core
-    intro r f
+    apply ConvexCone.piTensorProduct_mem_core (fun r f => ?_)
     rcases isEmpty_or_nonempty F with hf | hf
 
     -- Base case
