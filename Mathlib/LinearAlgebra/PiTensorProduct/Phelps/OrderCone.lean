@@ -325,9 +325,9 @@ theorem subset_maximalProduct :
 
 /- For the empty index set, `smul_mem'` is not true. Since in that case `MinimalProduct` reduces
   to the set of all natural numbers which is not closed under real real number multiplication. -/
-theorem smul_mem' [DecidableEq ι] [Nonempty ↥F] :
-  ∀ ⦃c : ℝ⦄, 0 < c → ∀ ⦃x⦄, x ∈ MinimalProduct O → c • x ∈ MinimalProduct O :=  by
-  intro c hc _ hx
+theorem smul_mem' [DecidableEq ι] :
+  Nonempty ↥F → ∀ ⦃c : ℝ⦄, 0 < c → ∀ ⦃x⦄, x ∈ MinimalProduct O → c • x ∈ MinimalProduct O := by
+  intro _ c hc _ hx
   obtain ⟨n, vf, hx, hvf⟩ := hx
   let j := Classical.arbitrary F
   use n, (fun i => update (vf i) j (c • (vf i j)))
@@ -361,38 +361,31 @@ theorem pointed : 0 ∈ MinimalProduct O := by use 0, 0; aesop
 theorem refTensor_mem : RefTensor O ∈ MinimalProduct O :=
   ⟨1, (fun _ j => (O j).ref), by simp [RefTensor], fun _ j => mem_core_mem_self (O j).hcore⟩
 
+section
 
 variable [DecidableEq ι]
 
-theorem extended_mem {i₀} (h₀ : i₀ ∉ F)
+theorem extended_mem
+  {i₀} (h₀ : i₀ ∉ F)
   (O : (i : ↥(insert i₀ F)) → OrderCone (s i))
-  {x : ⨂[ℝ] i : F, s i} {v : s i₀}
-  (hx : x ∈ MinimalProduct (fun i => O ⟨i, by simp⟩))
-  (hv : v ∈ O ⟨i₀, by simp⟩) :
-    tmulFinsetInsertEquiv h₀ (v ⊗ₜ[ℝ] x) ∈ MinimalProduct O := by
-  have ⟨n, vf, hx, hvf⟩ := hx
-  use n, (fun x i => if h : ↑i = i₀ then cast (by rw [h]) v else vf x ⟨i, by aesop⟩)
-  simp only [← hx, TensorProduct.tmul_sum, map_sum, tmulFinsetInsertEquiv_tprod]
+  {z : ⨂[ℝ] i : F, s i} {x : s i₀}
+  (hz : z ∈ MinimalProduct (fun i => O ⟨i, by simp⟩))
+  (hx : x ∈ O ⟨i₀, by simp⟩) :
+    tmulFinsetInsertEquiv h₀ (x ⊗ₜ[ℝ] z) ∈ MinimalProduct O := by
+  have ⟨n, vf, hz, hvf⟩ := hz
+  use n, (fun n i => if h : ↑i = i₀ then cast (by rw [h]) x else vf n ⟨i, by aesop⟩)
+  simp only [← hz, TensorProduct.tmul_sum]
   aesop
 
--- #check PiTensorProduct.isEmptyEquiv
--- theorem refTensor_mem_core : RefTensor O ∈ core (MinimalProduct O) := by
---   intro v
---   induction F, v using finset_induction_on (s := s) with
---   | empty r =>
---     by_cases hr : r = 0
---     . simp [hr, refTensor_mem]; use 1; simp
---     . use 1/|r|
---       simp only [one_div, inv_pos, abs_pos, ne_eq, hr, not_false_eq_true,
---         true_and]
---       intro δ hδ
---       simp only [MinimalProduct, IsEmpty.forall_iff, implies_true, and_true, mem_setOf_eq]
---       use 1, (fun i j => (1 + δ * r) • isEmptyElim j)
---       apply (isEmptyEquiv ↥(∅ : Finset ι)).injective
---       conv_rhs => simp [RefTensor]
---       conv_lhs => simp
-
-end MinimalProduct
-#check update
-#check Set.piecewise
-#check PiTensorProduct.subsingletonEquiv
+theorem refTensor_mem_core : Nonempty ↥F → RefTensor O ∈ core (MinimalProduct O) := by
+  induction F using Finset.induction_on with
+  | empty => simp_all
+  | insert i₀ F h₀ ih =>
+    intro hne
+    by_cases hf : Nonempty ↥F
+    .
+      replace ih := ih (fun i => O ⟨i, by simp⟩) hf
+      have ho := (O ⟨i₀, by simp⟩).hcore
+      have := extended_mem h₀ O (mem_core_mem_self ih) (mem_core_mem_self ho)
+      intro v
+      
