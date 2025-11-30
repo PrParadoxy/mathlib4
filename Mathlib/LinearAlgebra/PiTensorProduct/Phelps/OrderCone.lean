@@ -254,6 +254,24 @@ end PiPosDual
 open PiTensorProduct Function Finset
 open scoped TensorProduct
 
+/-- For `ConvexCone` of tensors, `core` membership can be verified using product tensors alone. -/
+theorem ConvexCone.mem_piTensorProduct_core {z} {C : ConvexCone ℝ (⨂[ℝ] i, s i)}
+  (smul_tprod : ∀ (r : ℝ) (f : (i : ι) → s i),
+    ∃ ε, 0 < ε ∧ ∀ (δ : ℝ), |δ| ≤ ε → z + δ • r • (⨂ₜ[ℝ] i, f i) ∈ C) : z ∈ core C := by
+  intro v
+  induction v using PiTensorProduct.induction_on with
+  | smul_tprod r f => exact smul_tprod r f
+  | add a b ha hb =>
+    obtain ⟨εa, hεa, ha⟩ := ha
+    obtain ⟨εb, hεb, hb⟩ := hb
+    use (min εa εb)/2
+    simp_all only [lt_inf_iff, and_self, div_pos_iff_of_pos_left, Nat.ofNat_pos, smul_add, true_and]
+    intro δ hδ
+    have hδ₁ : |2 * δ| ≤ min εa εb := by simp only [abs_mul, Nat.abs_ofNat]; linarith
+    simpa [smul_smul, add_add_add_comm, smul_add, ←two_smul ℝ] using
+      C.smul_mem' (show (0 : ℝ) < 1/2 by simp)
+        (C.add_mem' (ha (2 * δ) (le_min_iff.mp hδ₁).left) (hb (2 * δ) (le_min_iff.mp hδ₁).right))
+
 section LinearMaps
 
 variable [Fintype ι]
@@ -382,10 +400,9 @@ theorem refTensor_mem_core : Nonempty ↥F → RefTensor O ∈ core (MinimalProd
   | empty => simp_all
   | insert i₀ F h₀ ih =>
     intro hne
-    by_cases hf : Nonempty ↥F
-    .
-      replace ih := ih (fun i => O ⟨i, by simp⟩) hf
-      have ho := (O ⟨i₀, by simp⟩).hcore
-      have := extended_mem h₀ O (mem_core_mem_self ih) (mem_core_mem_self ho)
-      intro v
-      
+
+    -- by_cases hf : Nonempty ↥F
+    -- .
+    --   replace ih := ih (fun i => O ⟨i, by simp⟩) hf
+    --   have ho := (O ⟨i₀, by simp⟩).hcore
+    --   have := extended_mem h₀ O (mem_core_mem_self ih) (mem_core_mem_self ho)
