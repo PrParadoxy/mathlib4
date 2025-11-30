@@ -484,9 +484,5 @@ theorem refTensor_mem_core : (h : Nonempty ↥F) →
         simp_all [-tmulFinsetInsertEquiv_tprod, RefTensor, μ, abs_of_nonneg]
       . convert hδn using 1
         apply ((tmulFinsetInsertEquiv h₀ (s := s)).symm).injective
-        simp_all only [Finset.mem_insert, nonempty_subtype, exists_or_eq_left, RefTensor, mem_core,
-          SetLike.mem_coe, forall_true_left, le_inf_iff, abs_nonneg, Real.mul_self_sqrt, not_le,
-          map_add, tmulFinsetInsertEquiv_symm_tprod, coe_insert, Set.subset_insert, coe_inclusion,
-          map_smul, map_sub, LinearEquiv.symm_apply_apply, μ]
-        simp [abs_of_neg h]
-    . 
+        rw [show μ*μ = - δ by simp [μ, le_of_lt (not_le.mp h)]]
+        simp_all [-tmulFinsetInsertEquiv_tprod, RefTensor, μ]
