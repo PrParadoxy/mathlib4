@@ -361,4 +361,17 @@ theorem pointed : 0 ∈ MinimalProduct O := by use 0, 0; aesop
 theorem refTensor_mem : RefTensor O ∈ MinimalProduct O :=
   ⟨1, (fun _ j => (O j).ref), by simp [RefTensor], fun _ j => mem_core_mem_self (O j).hcore⟩
 
+
+variable [DecidableEq ι] {i₀} (h₀ : i₀ ∉ F) (O : ∀ i : ↥(insert i₀ F), OrderCone (s i))
+
+theorem extended_mem {x : ⨂[ℝ] i : F, s i} {v : s i₀}
+  (hx : x ∈ MinimalProduct (fun i => O ⟨i, by simp⟩))
+  (hv : v ∈ O ⟨i₀, by simp⟩) :
+    tmulFinsetInsertEquiv h₀ (v ⊗ₜ[ℝ] x) ∈ MinimalProduct O := by
+  have ⟨n, vf, hx, hvf⟩ := hx
+  use n, (fun x i => if h : ↑i = i₀ then cast (by rw [h]) v else vf x ⟨i, by aesop⟩)
+  simp only [← hx, TensorProduct.tmul_sum, map_sum, tmulFinsetInsertEquiv_tprod, mem_singleton_iff,
+    Subtype.forall, Finset.mem_insert, true_and]
+  aesop
+
 end MinimalProduct
