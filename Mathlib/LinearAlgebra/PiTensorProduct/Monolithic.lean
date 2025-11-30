@@ -44,8 +44,111 @@ Replace by other construction? Keep here? Mark `protected`? Add "_aux" to name?
 Move to `Equiv.Fin /Equiv.Sum`?  Restructure entirely?
 -/
 
+section Multilinear
+
+variable {κ : Type*}
+variable {T : κ → Type*}
+variable {s : (k : κ) → (i : T k) → Type*}
+variable [DecidableEq κ] [∀ k : κ, DecidableEq (T k)] [DecidableEq (Σ k, T k)]
+
+section Update
+
+open Function
+
+-- This lemma is closely related to `Sigma.curry_update`
+omit [(k : κ) → DecidableEq (T k)] in
+lemma apply_sigma_curry_update {β : κ → Type*} (m : (i : Sigma T) → s i.1 i.2)
+    (j : Sigma T) (v : s j.1 j.2) (f : (k : κ) → ((i : T k) → (s k i)) → β k) :
+    (fun k ↦ f k (Sigma.curry (update m j v) k)) =
+    update (fun k ↦ f k (Sigma.curry m k)) j.1
+    (f j.1 (fun i : T j.1 ↦ Sigma.curry (update m j v) j.1 i)) := by
+  unfold Sigma.curry -- `Sigma.curry` doesn't seem to have an applicable `apply` lemma
+  ext k
+  by_cases heq : k = j.1
+  · aesop
+  · simp_all [show ∀ i : T k, ⟨k, i⟩ ≠ j from by grind]
+
+omit [DecidableEq κ] in
+lemma update_arg (m : (i : Σ k, T k) → s i.fst i.snd) (j : Σ k, T k)
+    (v : s j.fst j.snd) (i : T j.1) :
+    update m j v ⟨j.1, i⟩ = update (fun i : T j.1 ↦ m ⟨j.1, i⟩) j.2 v i := by grind
+
+/-
+-------------------------unused stuff------------------------
+-/
+-- Can one relate the above directly to `Sigma.curry_update`?
+lemma apply_sigma_curry_update' {β : κ → Type*} (m : (i : Sigma T) → s i.1 i.2)
+    (j : Sigma T) (v : s j.1 j.2) (f : (k : κ) → ((i : T k) → (s k i)) → β k) :
+    (fun k ↦ f k (Sigma.curry (update m j v) k)) =
+    update (fun k ↦ f k (Sigma.curry m k)) j.1
+    (f j.1 (fun i : T j.1 ↦ Sigma.curry (update m j v) j.1 i)) := by
+  have hcu := Sigma.curry_update  j m v
+  ext k
+  rw [<-Function.apply_update]
+  congr
+  replace hcu := congrFun hcu k
+  sorry
+--- `Sigma.curry` version, but doesn't seem to help below.
+lemma update_arg_curry (m : (i : Σ k, T k) → s i.fst i.snd) (j : Σ k, T k)
+    (x : s j.fst j.snd) (i : T j.1) :
+    update m j x ⟨j.1, i⟩ = update (Sigma.curry m j.1) j.2 x i := by
+  unfold Sigma.curry
+  grind
+/-
+----------------------end unused stuff------------------------
+-/
+
+end Update
+
+variable {R : Type*} [CommSemiring R]
+variable [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
+
+section Multilinear
+
+namespace Multilinear
+
+variable {M : κ → Type*}
+variable [∀ k, AddCommMonoid (M k)] [∀ k, Module R (M k)]
+
+variable {N : Type*}
+variable [AddCommMonoid N] [Module R N]
+
+def compMultilinearMap
+    (g : MultilinearMap R M N) (f : (k : κ) → MultilinearMap R (s k) (M k)) :
+      MultilinearMap R (fun j : Σ k, T k ↦ s j.fst j.snd) N where
+  toFun m := g fun k ↦ f k (Sigma.curry m k)
+  map_update_add' m j x y := by simp [apply_sigma_curry_update, Sigma.curry, update_arg]
+  map_update_smul' := by simp [apply_sigma_curry_update, Sigma.curry, update_arg]
+
+theorem compMultilinearMap_tprod
+    (g : MultilinearMap R M N) (f : (k : κ) → MultilinearMap R (s k) (M k))
+    (m : (i : Σ k, T k) → s i.fst i.snd) :
+    compMultilinearMap g f m = g fun k ↦ f k (Sigma.curry m k) := by rfl
+
+end Multilinear
+
+
 open Fin Set Submodule
 open scoped TensorProduct
+
+namespace PiTensorProduct
+
+section tprodTprodHom
+
+variable {κ : Type*} {R : Type*} {T : (k : κ) → Type*} {s : (k : κ) → (i : T k) → Type*}
+  [DecidableEq κ] [CommSemiring R] [∀ k : κ, DecidableEq (T k)]
+  [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
+
+def tprodTprodHom : (⨂[R] j : (Σ k, T k), s j.1 j.2) →ₗ[R] (⨂[R] k, ⨂[R] i, s k i) :=
+  lift (Multilinear.compMultilinearMap (tprod R) (fun _ ↦ tprod R))
+
+theorem tprodTprod_tprod (f : (j : (Σ k, T k)) → s j.1 j.2) :
+    tprodTprodHom (⨂ₜ[R] j, f j) = ⨂ₜ[R] k, ⨂ₜ[R] i : T k, f ⟨k, i⟩ := by
+  simp [tprodTprodHom, Multilinear.compMultilinearMap_tprod]
+  rfl -- needed, because `Sigma.curry` has no simp lemmas and won't unfold.
+
+end tprodTprodHom
+
 
 section Fin
 
@@ -59,7 +162,6 @@ def sigmaFinSuccEquiv {n : Nat} {t : Fin n.succ → Type*} :
     right_inv _ := by aesop
   }
 
-namespace PiTensorProduct
 
 section TprodFinTrodEquiv
 
@@ -229,60 +331,6 @@ protected theorem nested_induction_on
 end tprodFiniteTprodEquiv
 
 
-section tprodTprodHom
-
-variable {κ : Type*} {R : Type*} {Tf : (k : κ) → Type*} {s : (k : κ) → (i : Tf k) → Type*}
-  [DecidableEq κ] [CommSemiring R] [∀ k : κ, DecidableEq (Tf k)]
-  [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
-
-omit [(k : κ) → DecidableEq (Tf k)] in
-lemma tprod_update_comm
-  [DecidableEq ((k : κ) × Tf k)]
-  (f : (i : (k : κ) × Tf k) → s i.fst i.snd)
-  (j : (k : κ) × Tf k) (x : s j.1 j.2) :
-    (fun k ↦ ⨂ₜ[R] (i : Tf k), (Function.update f j x) ⟨k, i⟩) =
-    Function.update (fun k ↦ ⨂ₜ[R] (i : Tf k), f ⟨k, i⟩) j.1
-    (⨂ₜ[R] (i : Tf j.1), (Function.update f j x) ⟨j.1, i⟩) := by
-  ext k
-  by_cases heq : k = j.1
-  · aesop
-  · simp_all [show ∀ i1 : Tf k, ⟨k, i1⟩ ≠ j from by aesop]
-
-omit [DecidableEq κ] [(k : κ) → (i : Tf k) → AddCommMonoid (s k i)] in
-lemma update_arg
-  [DecidableEq ((k : κ) × Tf k)]
-  (f : (i : (k : κ) × Tf k) → s i.fst i.snd)
-  (j : (k : κ) × Tf k) (x : s j.1 j.2) (x : s j.fst j.snd) :
-    (fun i : Tf j.1  => Function.update f j x ⟨j.1, i⟩) =
-      Function.update (fun i : Tf j.1 ↦ f ⟨j.1, i⟩) j.2 x := by
-    aesop (add safe unfold Function.update)
-
-def tprodTprodHom : (⨂[R] j : (Σ k, Tf k), s j.1 j.2) →ₗ[R] (⨂[R] k, ⨂[R] i, s k i) :=
-  lift {
-    toFun x := ⨂ₜ[R] k, ⨂ₜ[R] i : Tf k, x ⟨k, i⟩
-    map_update_add' := by
-      intro _ f j a b
-      rw [tprod_update_comm, update_arg (x := a + b)]
-      simp only [MultilinearMap.map_update_add]
-      apply congrArg₂ HAdd.hAdd
-      all_goals
-        congr
-        ext k
-        by_cases h : k = j.fst <;> aesop (add safe forward update_arg)
-    map_update_smul' := by
-      intro _ f j c x
-      rw [tprod_update_comm, update_arg (x := x)]
-      simp only [MultilinearMap.map_update_smul]
-      congr
-      ext k
-      by_cases h : k = j.fst <;> aesop (add safe forward update_arg)
-    }
-
-def tprodTprod_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
-    tprodTprodHom (⨂ₜ[R] j, f j) = ⨂ₜ[R] k, ⨂ₜ[R] i : Tf k, f ⟨k, i⟩ := by
-  simp [tprodTprodHom]
-
-end tprodTprodHom
 
 section unifyMaps
 
