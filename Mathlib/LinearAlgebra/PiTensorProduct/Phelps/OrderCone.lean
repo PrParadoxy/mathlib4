@@ -392,3 +392,6 @@ theorem extended_mem {i₀} (h₀ : i₀ ∉ F) (O : ∀ i : ↥(insert i₀ F),
 --       conv_lhs => simp
 
 end MinimalProduct
+#check update
+#check Set.piecewise
+#check PiTensorProduct.subsingletonEquiv
