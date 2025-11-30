@@ -186,8 +186,8 @@ theorem isCompact : IsCompact (PosDual o) := by
 
 lemma exists_separating_of_ne
     {x y : V} (hs : separating o') (h : x ≠ y) : ∃ f ∈ PosDual o', f x ≠ f y := by
-  rcases hs (sub_ne_zero_of_ne h) with ⟨f, hf₁, hf₂⟩
-  exact ⟨f, hf₁, by simpa [sub_ne_zero] using hf₂⟩
+  rcases hs (sub_ne_zero_of_ne h) with ⟨f, hht₁, hht₂⟩
+  exact ⟨f, hht₁, by simpa [sub_ne_zero] using hht₂⟩
 
 lemma nonempty [Nontrivial V] (hs : separating o') : (PosDual o').Nonempty := by
   have ⟨f, hf, _⟩ := hs (exists_ne (0 : V)).choose_spec
@@ -212,9 +212,9 @@ variable {o : OrderCone V} (hs : PosDual.separating o)
 -/
 theorem salient (hs : PosDual.separating o) : ∀ x ∈ o, x ≠ 0 → -x ∉ o := by
   intro x hx₁ hx₂ hx₃
-  obtain ⟨f, hf₁, hf₂⟩ := PosDual.exists_strict_pos o hs x hx₁ hx₂
-  have h : f x ≤ 0 := by simpa using hf₁.left hx₃
-  simp [le_antisymm (h) (hf₁.left hx₁)] at hf₂
+  obtain ⟨f, hht₁, hht₂⟩ := PosDual.exists_strict_pos o hs x hx₁ hx₂
+  have h : f x ≤ 0 := by simpa using hht₁.left hx₃
+  simp [le_antisymm (h) (hht₁.left hx₁)] at hht₂
 
 /-- The canonical order on the salient convex cone -/
 def partialOrder : PartialOrder V :=
@@ -471,23 +471,23 @@ theorem refTensor_mem_core : (h : Nonempty ↥F) →
         simpa only [abs_of_nonneg (Real.sqrt_nonneg |δ|), μ] using
           Real.sqrt_sq (show 0 ≤ (min εf ε₀) by positivity) ▸ Real.sqrt_le_sqrt hδ
 
-      have ef₁ := hδf μ (le_min_iff.mp hμ).left
-      have ef₂ := hδf (-μ) (abs_neg μ ▸ (le_min_iff.mp hμ).left)
-      have ev₁ := hδ₀ μ (le_min_iff.mp hμ).right
-      have ev₂ := hδ₀ (-μ) (abs_neg μ ▸ (le_min_iff.mp hμ).right)
+      have ht₁ := hδf μ (le_min_iff.mp hμ).left
+      have ht₂ := hδf (-μ) (abs_neg μ ▸ (le_min_iff.mp hμ).left)
+      have hv₁ := hδ₀ μ (le_min_iff.mp hμ).right
+      have hv₂ := hδ₀ (-μ) (abs_neg μ ▸ (le_min_iff.mp hμ).right)
 
-      rw [neg_smul, ←sub_eq_add_neg] at ev₂ ef₂
+      rw [neg_smul, ←sub_eq_add_neg] at hv₂ ht₂
 
-      have ef₁v₁ := extended_mem h₀ ef₁ ev₁
-      have ef₂v₂ := extended_mem h₀ ef₂ ev₂
-      have ef₁v₂ := extended_mem h₀ ef₁ ev₂
-      have ef₂v₁ := extended_mem h₀ ef₂ ev₁
+      have ht₁v₁ := extended_mem h₀ ht₁ hv₁
+      have ht₂v₂ := extended_mem h₀ ht₂ hv₂
+      have ht₁v₂ := extended_mem h₀ ht₁ hv₂
+      have ht₂v₁ := extended_mem h₀ ht₂ hv₁
 
       have half : (0 : ℝ) < 1/2 := by simp
-      have hδp := smul_mem _ hne half (add_mem _ ef₁v₁ ef₂v₂)
-      have hδn := smul_mem _ hne half (add_mem _ ef₁v₂ ef₂v₁)
+      have hδp := smul_mem _ hne half (add_mem _ ht₁v₁ ht₂v₂)
+      have hδn := smul_mem _ hne half (add_mem _ ht₁v₂ ht₂v₁)
 
-      clear ef₁ ef₂ ev₁ ev₂ ef₁v₁ ef₂v₂ ef₁v₂ ef₂v₁ half
+      clear ht₁ ht₂ hv₁ hv₂ ht₁v₁ ht₂v₂ ht₁v₂ ht₂v₁ half
 
       rw [←map_add, TensorProduct.add_tmul_add_add_sub_tmul_sub] at hδp
       rw [←map_add, add_comm, TensorProduct.add_tmul_sub_add_sub_tmul_add] at hδn
@@ -504,7 +504,3 @@ theorem refTensor_mem_core : (h : Nonempty ↥F) →
         apply ((tmulFinsetInsertEquiv h₀ (s := s)).symm).injective
         rw [show μ*μ = - δ by simp [μ, le_of_lt (not_le.mp h)]]
         simp_all [-tmulFinsetInsertEquiv_tprod, RefTensor, μ]
-
-
-
-
