@@ -364,7 +364,8 @@ theorem refTensor_mem : RefTensor O ∈ MinimalProduct O :=
 
 variable [DecidableEq ι]
 
-theorem extended_mem {i₀} (h₀ : i₀ ∉ F) (O : ∀ i : ↥(insert i₀ F), OrderCone (s i))
+theorem extended_mem {i₀} (h₀ : i₀ ∉ F)
+  (O : (i : ↥(insert i₀ F)) → OrderCone (s i))
   {x : ⨂[ℝ] i : F, s i} {v : s i₀}
   (hx : x ∈ MinimalProduct (fun i => O ⟨i, by simp⟩))
   (hv : v ∈ O ⟨i₀, by simp⟩) :
