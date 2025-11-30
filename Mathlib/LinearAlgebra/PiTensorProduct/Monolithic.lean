@@ -71,11 +71,11 @@ lemma apply_sigma_curry_update {β : κ → Type*} (m : (i : Sigma T) → s i.1 
     (fun k ↦ f k (Sigma.curry (update m j v) k)) =
     update (fun k ↦ f k (Sigma.curry m k)) j.1
     (f j.1 (fun i : T j.1 ↦ Sigma.curry (update m j v) j.1 i)) := by
-  unfold Sigma.curry -- `Sigma.curry` doesn't seem to have an applicable `_def` lemma
   ext k
   by_cases heq : k = j.1
   · aesop
-  · simp_all [show ∀ i : T k, ⟨k, i⟩ ≠ j from by grind]
+  · unfold Sigma.curry -- Should one add simp lemmas to `Sigma.curry`?
+    simp_all [show ∀ i : T k, ⟨k, i⟩ ≠ j from by grind]
 
 omit [DecidableEq κ] in
 lemma update_arg (m : (i : Σ k, T k) → s i.1 i.2) (j : Σ k, T k) (v : s j.1 j.2) (i : T j.1) :
