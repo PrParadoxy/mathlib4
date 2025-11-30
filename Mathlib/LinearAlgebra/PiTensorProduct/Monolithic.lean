@@ -44,6 +44,11 @@ Replace by other construction? Keep here? Mark `protected`? Add "_aux" to name?
 Move to `Equiv.Fin /Equiv.Sum`?  Restructure entirely?
 -/
 
+-- -- doesn't really help. :(
+--@[simp, grind =]
+--theorem Sigma.curry_apply {α : Type*} {β : α → Type*} {γ : ∀ a, β a → Type*}
+--    (f : ∀ x : Sigma β, γ x.1 x.2) (x : α) (y : β x) :  Sigma.curry f x y = f ⟨x, y⟩ := by rfl
+
 section Multilinear
 
 variable {κ : Type*}
@@ -66,7 +71,7 @@ lemma apply_sigma_curry_update {β : κ → Type*} (m : (i : Sigma T) → s i.1 
     (fun k ↦ f k (Sigma.curry (update m j v) k)) =
     update (fun k ↦ f k (Sigma.curry m k)) j.1
     (f j.1 (fun i : T j.1 ↦ Sigma.curry (update m j v) j.1 i)) := by
-  unfold Sigma.curry -- `Sigma.curry` doesn't seem to have an applicable `apply` lemma
+  unfold Sigma.curry -- `Sigma.curry` doesn't seem to have an applicable `_def` lemma
   ext k
   by_cases heq : k = j.1
   · aesop
