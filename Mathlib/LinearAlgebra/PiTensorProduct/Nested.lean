@@ -12,16 +12,15 @@ public import Mathlib.LinearAlgebra.PiTensorProduct
 
 # Nested PiTensorProducts
 
-Let `T : (k : κ) → Type*` be a family of types. Given a "double-indexed family"
-`s : (k : κ) → (i : T k) → Type*` of modules, we analyze the type
+Let `T : (k : κ) → Type*` be a family of types. We analyze nested tensor products of the form
 
- `⨂ k : κ, ⨂ i : T i, s k i`
+ `⨂ k : κ, ⨂ i : T k, s k i`.
 
-of nested PiTensorProducts. In particular, we relate it to "tensors with a
-double index", i.e. `PiTensorProducts` indexed by a sigma type:
+In particular, we relate them to "tensors with a double index"
 
- `⨂ j : Σ (k : κ), T k, s j.fst j.snd`.
+ `⨂ j : (Σ k, T k), s j.fst j.snd`.
 
+## Main definitions
 -/
 
 /-
@@ -197,7 +196,7 @@ theorem tprodFinTprodEquiv_tprod (f : (k : Fin n) → (i : Tf k) → s k i) :
 
     -- Strategy: Repeatedly move equivalences around to obtain the form
     -- `(complicated terms) = aSingleEquiv tprod`, then simp away `aSingleEquiv`.
-    -- Stat with final reindex & tmulEquivDep:
+    -- Start with final reindex & tmulEquivDep:
     rw [symm_apply_eq, reindex_tprod, ←eq_symm_apply]
     conv_rhs => apply tmulEquivDep_symm_apply
     -- Initial reindex & tmulEquivDep:
@@ -228,16 +227,15 @@ variable {ι : Type*} [Finite ι] {Tf : ι → Type*}
 variable {R : Type*} {s : (k : ι) → (i : Tf k) → Type*}
   [CommSemiring R] [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
 
--- TBD: Why the `.symm.symm.symm`? Can one simplify?
 noncomputable def tprodFiniteTprodEquiv :
     (⨂[R] k, ⨂[R] i, s k i) ≃ₗ[R] (⨂[R] j : (Σ k, Tf k), s j.1 j.2) :=
   let e := Classical.choice (Finite.exists_equiv_fin ι).choose_spec
-  reindex _ _ e ≪≫ₗ tprodFinTprodEquiv ≪≫ₗ
-  (reindex R (fun i ↦ s i.fst i.snd) (Equiv.sigmaCongrLeft e.symm).symm).symm
+  let f := (Equiv.sigmaCongrLeft e.symm).symm
+  reindex _ _ e ≪≫ₗ tprodFinTprodEquiv ≪≫ₗ (reindex R (fun i ↦ s i.fst i.snd) f).symm
 
 @[simp]
 theorem tprodFiniteTprodEquiv_tprod (f : (k : ι) → (i : Tf k) → s k i) :
-    tprodFiniteTprodEquiv (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) = ⨂ₜ[R] j : (Σ k, Tf k), f j.1 j.2 := by
+    tprodFiniteTprodEquiv (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) = ⨂ₜ[R] j : (Σ k, Tf k), f j.fst j.snd := by
   simp only [tprodFiniteTprodEquiv, Equiv.symm_symm, LinearEquiv.trans_apply,
     reindex_tprod, Equiv.sigmaCongrLeft_apply, tprodFinTprodEquiv_tprod, LinearEquiv.symm_apply_eq]
   conv_rhs => apply reindex_tprod
