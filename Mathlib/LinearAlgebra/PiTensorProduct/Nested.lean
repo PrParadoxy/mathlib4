@@ -56,6 +56,8 @@ Move to `Equiv.Fin /Equiv.Sum`?  Restructure entirely?
 --theorem Sigma.curry_apply {α : Type*} {β : α → Type*} {γ : ∀ a, β a → Type*}
 --    (f : ∀ x : Sigma β, γ x.1 x.2) (x : α) (y : β x) :  Sigma.curry f x y = f ⟨x, y⟩ := by rfl
 
+-- # What happened to tprodiUnionEquiv?
+
 @[expose] public section
 
 section Multilinear
@@ -151,6 +153,7 @@ end tprodTprodHom
 
 section Fin
 
+-- # This should be moved under Equiv.sigmaNatSucc
 /-- Split off last summand of a sigma type over `Fin n.succ` -/
 def sigmaFinSuccEquiv {n : Nat} {t : Fin n.succ → Type*} :
   (Σ k : Fin n.succ, t k) ≃ (Σ k : Fin n, t k.castSucc) ⊕ t (last n) := {
@@ -263,6 +266,9 @@ theorem span_tprodFiniteTprod_eq_top :
     use (fun j k => y ⟨j, k⟩)
 
 -- TBD: How does that relate to `Submodule.iSup_induction`? Does it follow from that theorem?
+-- # Yes, it is provable from Submodule.iSup_induction. but Submodule.iSup_induction requires
+-- # specifying p in the argument anyways and its membership proof will be more complicated
+-- # So ultimately it doesn't help. span_induction in that sense is easier to read.
 @[elab_as_elim]
 protected theorem nested_induction_on
     {motive : (⨂[R] k, ⨂[R] i, s k i) → Prop}
