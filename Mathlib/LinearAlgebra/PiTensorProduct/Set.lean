@@ -6,6 +6,7 @@ Authors: Davood Tehrani, David Gross
 module
 
 public import Mathlib.LinearAlgebra.PiTensorProduct
+public import Mathlib.LinearAlgebra.PiTensorProduct.Nested
 public import Mathlib.LinearAlgebra.TensorProduct.Associator
 
 /-!
@@ -69,7 +70,8 @@ fields, but can become quite subtle for `AddCommMonoid`s.
 open PiTensorProduct
 open scoped TensorProduct
 
-public section
+@[expose] public section
+
 namespace PiTensorProduct
 
 variable {ι : Type*} {R : Type*} {s : ι → Type*}
@@ -326,5 +328,65 @@ theorem extendTensor_trans [(i : ι) → Decidable (i ∈ T)] {U : Set ι} (hsub
 end ExtendTensor
 
 end Extensions
+
+section iUnion
+
+open Fin Set Submodule
+open scoped TensorProduct
+
+variable {ι : Type*} {s : ι → Type*} {R : Type*} {n : Nat} {Sf : Fin n → Set ι}
+  (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
+  [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
+  [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
+
+--# TODO: either move it out, or make it a Private def
+def iUnionSigmaEquiv : (Σ k, Sf k) ≃ iUnion Sf where
+  toFun s := ⟨s.2, by aesop⟩
+  invFun s := ⟨(Fin.find (↑s ∈ Sf ·)).get
+        (Fin.isSome_find_iff.mpr ⟨_, (mem_iUnion.mp s.prop).choose_spec⟩),
+      ⟨s, by simp [Fin.find_spec (↑s ∈ Sf ·)]⟩⟩
+  left_inv := by
+    simp_intro s
+    generalize_proofs _ h
+    congr!
+    by_contra hc
+    exact (H hc).ne_of_mem h s.2.prop rfl
+  right_inv := by simp [Function.RightInverse, Function.LeftInverse]
+
+def tprodFiniUnionEquiv :
+    (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : (iUnion Sf), s i) :=
+  (tprodFinTprodEquiv ≪≫ₗ reindex R _ (iUnionSigmaEquiv H))
+
+@[simp]
+theorem tprodFiniUnionEquiv_tprod (f : (k : Fin n) → (i : Sf k) → s i) :
+    tprodFiniUnionEquiv H (⨂ₜ[R] k, ⨂ₜ[R] i, f k i)
+    = ⨂ₜ[R] i, f ((iUnionSigmaEquiv H).symm i).fst ((iUnionSigmaEquiv H).symm i).snd := by
+  simp only [tprodFiniUnionEquiv, LinearEquiv.trans_apply, tprodFinTprodEquiv_tprod]
+  apply reindex_tprod
+
+@[simp]
+theorem tprodFiniUnionEquiv_symm_tprod (f : (i : (iUnion Sf)) → s i) :
+    (tprodFiniUnionEquiv H).symm (⨂ₜ[R] i, f i) = ⨂ₜ[R] k, ⨂ₜ[R] i : Sf k, f ⟨i, by aesop⟩ := by
+  simp [LinearEquiv.symm_apply_eq, iUnionSigmaEquiv]
+
+end iUnion
+
+
+section unifyMaps
+
+variable {ι : Type*} {κ : Type*} {R : Type*} {s : ι → Type*} {Sf : κ → Set ι} {M : κ → Type*}
+variable (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
+  [∀ k, AddCommMonoid (M k)] [CommSemiring R] [∀ k, Module R (M k)] [∀ i, AddCommGroup (s i)]
+  [∀ i, Module R (s i)] [DecidableEq κ] [(k : κ) → DecidableEq ↑(Sf k)]
+
+noncomputable def unifyMaps :
+    (⨂[R] k, (⨂[R] i : Sf k, s i) →ₗ[R] (M k)) →ₗ[R]
+      ((⨂[R] i : iUnion Sf, s i) →ₗ[R] (⨂[R] k, M k)) := lift {
+    toFun L := ((map L) ∘ₗ tprodTprodHom) ∘ₗ ((reindex R _ (unionEqSigmaOfDisjoint H))).toLinearMap
+    map_update_add' := by simp [PiTensorProduct.map_update_add, LinearMap.add_comp]
+    map_update_smul' := by simp [PiTensorProduct.map_update_smul, LinearMap.smul_comp]
+  }
+
+end unifyMaps
 
 end PiTensorProduct

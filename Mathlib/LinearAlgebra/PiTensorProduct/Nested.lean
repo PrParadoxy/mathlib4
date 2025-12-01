@@ -1,4 +1,12 @@
-import Mathlib.LinearAlgebra.PiTensorProduct.Set
+/-
+Copyright (c) 2025 Davood Tehrani, David Gross. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Davood Tehrani, David Gross
+-/
+
+module
+
+public import Mathlib.LinearAlgebra.PiTensorProduct
 
 /-!
 
@@ -49,31 +57,21 @@ Move to `Equiv.Fin /Equiv.Sum`?  Restructure entirely?
 --theorem Sigma.curry_apply {α : Type*} {β : α → Type*} {γ : ∀ a, β a → Type*}
 --    (f : ∀ x : Sigma β, γ x.1 x.2) (x : α) (y : β x) :  Sigma.curry f x y = f ⟨x, y⟩ := by rfl
 
+@[expose] public section
+
 section Multilinear
 
 variable {κ : Type*}
 variable {T : κ → Type*}
 variable {s : (k : κ) → (i : T k) → Type*}
 
-variable [DecidableEq κ] [∀ k : κ, DecidableEq (T k)]
- -- TBD: This should follow from `Sigma.instDecidableEqSigma`, but leaving it out creates trouble
- -- In general, I'm confused about these instances here.
--- variable [DecidableEq (Σ k, T k)]
--- # I don't see any issue ? [DecidableEq ((k : κ) × T k)] must be set as an argument to
--- # apply_sigma_curry_update and update_arg so that the [DecidableEq (Σ k, T k)] instance
--- # produced by map_update_add' itself is consumed by these lemmas, not Sigma.instDecidableEqSigma
--- # instance.  I intentionally removed the global instance to illustrate this point.
-
-
 section Update
 
 open Function
 
-
 -- This lemma is closely related to `Sigma.curry_update`
-omit [(k : κ) → DecidableEq (T k)] in
-lemma apply_sigma_curry_update
-  [DecidableEq ((k : κ) × T k)] {β : κ → Type*} (m : (i : Σ k, T k) → s i.1 i.2)
+lemma apply_sigma_curry_update [DecidableEq κ] [DecidableEq ((k : κ) × T k)]
+    {β : κ → Type*} (m : (i : Σ k, T k) → s i.1 i.2)
     (j : Σ k, T k) (v : s j.1 j.2) (f : (k : κ) → ((i : T k) → (s k i)) → β k) :
     (fun k ↦ f k (Sigma.curry (update m j v) k)) =
     update (fun k ↦ f k (Sigma.curry m k)) j.1
@@ -92,8 +90,7 @@ lemma apply_sigma_curry_update
 --         have apply_sigma_curry_update m j v id
 --         sorry
 
-omit [DecidableEq κ] in
-lemma update_arg [DecidableEq ((k : κ) × T k)]
+lemma update_arg [∀ k : κ, DecidableEq (T k)] [DecidableEq ((k : κ) × T k)]
   (m : (i : Σ k, T k) → s i.1 i.2) (j : Σ k, T k) (v : s j.1 j.2) (i : T j.1) :
   update m j v ⟨j.1, i⟩ = update (fun i : T j.1 ↦ m ⟨j.1, i⟩) j.2 v i := by grind
 
@@ -111,6 +108,8 @@ variable [∀ k, AddCommMonoid (M k)] [∀ k, Module R (M k)]
 
 variable {N : Type*}
 variable [AddCommMonoid N] [Module R N]
+
+variable [DecidableEq κ] [∀ k : κ, DecidableEq (T k)]
 
 /-- Composition of multilinear maps.
 
@@ -288,62 +287,3 @@ protected theorem nested_induction_on
   | add => simp_all [p]
 
 end tprodFiniteTprodEquiv
-
-
-
-section iUnion
-
-variable {ι : Type*} {s : ι → Type*} {R : Type*} {n : Nat} {Sf : Fin n → Set ι}
-  (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
-  [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
-  [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
-
---# TODO: either move it out, or make it a Private def
-def iUnionSigmaEquiv : (Σ k, Sf k) ≃ iUnion Sf where
-  toFun s := ⟨s.2, by aesop⟩
-  invFun s := ⟨(Fin.find (↑s ∈ Sf ·)).get
-        (Fin.isSome_find_iff.mpr ⟨_, (mem_iUnion.mp s.prop).choose_spec⟩),
-      ⟨s, by simp [Fin.find_spec (↑s ∈ Sf ·)]⟩⟩
-  left_inv := by
-    simp_intro s
-    generalize_proofs _ h
-    congr!
-    by_contra hc
-    exact (H hc).ne_of_mem h s.2.prop rfl
-  right_inv := by simp [Function.RightInverse, Function.LeftInverse]
-
-def tprodFiniUnionEquiv :
-    (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : (iUnion Sf), s i) :=
-  (tprodFinTprodEquiv ≪≫ₗ reindex R _ (iUnionSigmaEquiv H))
-
-@[simp]
-theorem tprodFiniUnionEquiv_tprod (f : (k : Fin n) → (i : Sf k) → s i) :
-    tprodFiniUnionEquiv H (⨂ₜ[R] k, ⨂ₜ[R] i, f k i)
-    = ⨂ₜ[R] i, f ((iUnionSigmaEquiv H).symm i).fst ((iUnionSigmaEquiv H).symm i).snd := by
-  simp only [tprodFiniUnionEquiv, LinearEquiv.trans_apply, tprodFinTprodEquiv_tprod]
-  apply reindex_tprod
-
-@[simp]
-theorem tprodFiniUnionEquiv_symm_tprod (f : (i : (iUnion Sf)) → s i) :
-    (tprodFiniUnionEquiv H).symm (⨂ₜ[R] i, f i) = ⨂ₜ[R] k, ⨂ₜ[R] i : Sf k, f ⟨i, by aesop⟩ := by
-  simp [LinearEquiv.symm_apply_eq, iUnionSigmaEquiv]
-
-end iUnion
-
-
-section unifyMaps
-
-variable {ι : Type*} {κ : Type*} {R : Type*} {s : ι → Type*} {Sf : κ → Set ι} {M : κ → Type*}
-variable (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
-  [∀ k, AddCommMonoid (M k)] [CommSemiring R] [∀ k, Module R (M k)] [∀ i, AddCommGroup (s i)]
-  [∀ i, Module R (s i)] [DecidableEq κ] [(k : κ) → DecidableEq ↑(Sf k)]
-
-noncomputable def unifyMaps :
-    (⨂[R] k, (⨂[R] i : Sf k, s i) →ₗ[R] (M k)) →ₗ[R]
-      ((⨂[R] i : iUnion Sf, s i) →ₗ[R] (⨂[R] k, M k)) := lift {
-    toFun L := ((map L) ∘ₗ tprodTprodHom) ∘ₗ ((reindex R _ (unionEqSigmaOfDisjoint H))).toLinearMap
-    map_update_add' := by simp [PiTensorProduct.map_update_add, LinearMap.add_comp]
-    map_update_smul' := by simp [PiTensorProduct.map_update_smul, LinearMap.smul_comp]
-  }
-
-end unifyMaps
