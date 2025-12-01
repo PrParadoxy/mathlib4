@@ -68,7 +68,8 @@ variable [DecidableEq κ] [∀ k : κ, DecidableEq (T k)]
 section Update
 
 open Function
-#check Sigma.curry_update
+
+
 -- This lemma is closely related to `Sigma.curry_update`
 omit [(k : κ) → DecidableEq (T k)] in
 lemma apply_sigma_curry_update
@@ -82,6 +83,14 @@ lemma apply_sigma_curry_update
   · aesop
   · unfold Sigma.curry -- Should one add simp lemmas to `Sigma.curry`?
     simp_all [show ∀ i : T k, ⟨k, i⟩ ≠ j from by grind]
+
+-- TBD: Relate.
+-- #check Sigma.curry_update
+-- theorem Sigma.curry_update' (j : Σ k, T k) (m : (i : Σ k, T k) → s i.1 i.2) (v : s j.1 j.2) :
+--     Sigma.curry (Function.update m j v) =
+--       Function.update (Sigma.curry m) j.1 (Function.update (Sigma.curry m j.1) j.2 v) := by
+--         have apply_sigma_curry_update m j v id
+--         sorry
 
 omit [DecidableEq κ] in
 lemma update_arg [DecidableEq ((k : κ) × T k)]
