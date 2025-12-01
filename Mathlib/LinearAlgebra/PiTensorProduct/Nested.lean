@@ -229,6 +229,7 @@ variable {R : Type*} {s : (k : ι) → (i : Tf k) → Type*}
   [CommSemiring R] [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
 
 -- TBD: Why the `.symm.symm.symm`? Can one simplify?
+-- TBD: Why is this a tactic?
 noncomputable def tprodFiniteTprodEquiv :
     (⨂[R] k, ⨂[R] i, s k i) ≃ₗ[R] (⨂[R] j : (Σ k, Tf k), s j.1 j.2) := by
   let e := Classical.choice (Finite.exists_equiv_fin ι).choose_spec
