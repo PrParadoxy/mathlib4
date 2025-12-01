@@ -233,17 +233,15 @@ noncomputable def tprodFiniteTprodEquiv :
     (⨂[R] k, ⨂[R] i, s k i) ≃ₗ[R] (⨂[R] j : (Σ k, Tf k), s j.1 j.2) :=
   let e := Classical.choice (Finite.exists_equiv_fin ι).choose_spec
   reindex _ _ e ≪≫ₗ tprodFinTprodEquiv ≪≫ₗ
-  (PiTensorProduct.congr fun _ ↦ LinearEquiv.refl _ _) ≪≫ₗ
   (reindex R (fun i ↦ s i.fst i.snd) (Equiv.sigmaCongrLeft e.symm).symm).symm
 
 @[simp]
 theorem tprodFiniteTprodEquiv_tprod (f : (k : ι) → (i : Tf k) → s k i) :
     tprodFiniteTprodEquiv (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) = ⨂ₜ[R] j : (Σ k, Tf k), f j.1 j.2 := by
   simp only [tprodFiniteTprodEquiv, Equiv.symm_symm, LinearEquiv.trans_apply,
-    reindex_tprod, LinearEquiv.symm_apply_eq]
+    reindex_tprod, Equiv.sigmaCongrLeft_apply, tprodFinTprodEquiv_tprod, LinearEquiv.symm_apply_eq]
   conv_rhs => apply reindex_tprod
-  conv_lhs => arg 2; apply tprodFinTprodEquiv_tprod
-  apply congr_tprod
+  congr
 
 @[simp]
 theorem tprodFiniteTprodEquiv_symm_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
