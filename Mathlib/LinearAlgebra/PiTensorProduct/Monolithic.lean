@@ -58,15 +58,21 @@ variable {s : (k : κ) → (i : T k) → Type*}
 variable [DecidableEq κ] [∀ k : κ, DecidableEq (T k)]
  -- TBD: This should follow from `Sigma.instDecidableEqSigma`, but leaving it out creates trouble
  -- In general, I'm confused about these instances here.
-variable [DecidableEq (Σ k, T k)]
+-- variable [DecidableEq (Σ k, T k)]
+-- # I don't see any issue ? [DecidableEq ((k : κ) × T k)] must be set as an argument to
+-- # apply_sigma_curry_update and update_arg so that the [DecidableEq (Σ k, T k)] instance
+-- # produced by map_update_add' itself is consumed by these lemmas, not Sigma.instDecidableEqSigma
+-- # instance.  I intentionally removed the global instance to illustrate this point.
+
 
 section Update
 
 open Function
-
+#check Sigma.curry_update
 -- This lemma is closely related to `Sigma.curry_update`
 omit [(k : κ) → DecidableEq (T k)] in
-lemma apply_sigma_curry_update {β : κ → Type*} (m : (i : Σ k, T k) → s i.1 i.2)
+lemma apply_sigma_curry_update
+  [DecidableEq ((k : κ) × T k)] {β : κ → Type*} (m : (i : Σ k, T k) → s i.1 i.2)
     (j : Σ k, T k) (v : s j.1 j.2) (f : (k : κ) → ((i : T k) → (s k i)) → β k) :
     (fun k ↦ f k (Sigma.curry (update m j v) k)) =
     update (fun k ↦ f k (Sigma.curry m k)) j.1
@@ -78,7 +84,8 @@ lemma apply_sigma_curry_update {β : κ → Type*} (m : (i : Σ k, T k) → s i.
     simp_all [show ∀ i : T k, ⟨k, i⟩ ≠ j from by grind]
 
 omit [DecidableEq κ] in
-lemma update_arg (m : (i : Σ k, T k) → s i.1 i.2) (j : Σ k, T k) (v : s j.1 j.2) (i : T j.1) :
+lemma update_arg [DecidableEq ((k : κ) × T k)]
+  (m : (i : Σ k, T k) → s i.1 i.2) (j : Σ k, T k) (v : s j.1 j.2) (i : T j.1) :
   update m j v ⟨j.1, i⟩ = update (fun i : T j.1 ↦ m ⟨j.1, i⟩) j.2 v i := by grind
 
 end Update
