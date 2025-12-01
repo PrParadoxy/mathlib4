@@ -26,21 +26,18 @@ variable {R : Type*} [CommSemiring R] [TopologicalSpace R]
   [T2Space R] [ContinuousConstSMul R R] [ContinuousAdd R]
 variable {V : Type*} [AddCommGroup V] [Module R V]
 
-/-- Forgets linear structure of `AlgWeakDual V` for tychonoff's theorem. -/
-def dualembed : AlgWeakDual R V → (V → R) := DFunLike.coe
-
-theorem dualembed_isclosed_embedding :
-    IsClosedEmbedding (dualembed (R := R) (V := V)) :=
+theorem coe_isclosed_embedding :
+    IsClosedEmbedding (DFunLike.coe : AlgWeakDual R V → (V → R)) :=
   IsClosedEmbedding.mk (DFunLike.coe_injective.isEmbedding_induced)
     (LinearMap.isClosed_range_coe _ _ _)
 
 /-- A set of dual vectors is compact if it is closed,
     and its image under dualEmbed is a subset of a compact set. -/
-theorem isCompact_image_dualembed {s : Set (AlgWeakDual R V)} {c : Set (V → R)}
-    (hs : IsClosed s) (hc : IsCompact c) (hsc : dualembed '' s ⊆ c) : IsCompact s :=
-  dualembed_isclosed_embedding.isCompact_iff.mpr
+theorem isCompact_subset_image_coe {s : Set (AlgWeakDual R V)} {c : Set (V → R)}
+    (hs : IsClosed s) (hc : IsCompact c) (hsc : DFunLike.coe '' s ⊆ c) : IsCompact s :=
+  coe_isclosed_embedding.isCompact_iff.mpr
     (IsCompact.of_isClosed_subset hc
-      (dualembed_isclosed_embedding.isClosed_iff_image_isClosed.mp hs) hsc)
+      (coe_isclosed_embedding.isClosed_iff_image_isClosed.mp hs) hsc)
 
 variable {R : Type*} [Field R]
 variable {V : Type*} [AddCommGroup V] [Module R V]
