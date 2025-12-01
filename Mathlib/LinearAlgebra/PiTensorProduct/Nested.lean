@@ -116,7 +116,7 @@ variable [DecidableEq κ] [∀ k : κ, DecidableEq (T k)]
 If `g` is a multilinear map with index type `κ`, and if for every `k : κ`, we
 have a multilinear map `f k` with index type `T k`, then
   `m ↦ g (f₁ m_11 m_12 ...) (f₂ m_21 m_22 ...) ...`
-is multilinear with index type `(Σ k : κ, T k)`. -/
+is multilinear with index type `(Σ k, T k)`. -/
 @[simps]
 def compMultilinearMap
     (g : MultilinearMap R M N) (f : (k : κ) → MultilinearMap R (s k) (M k)) :
@@ -214,23 +214,26 @@ theorem tprodFinTprodEquiv_tprod (f : (k : Fin n) → (i : Tf k) → s k i) :
 
 @[simp]
 theorem tprodFinTprodEquiv_symm_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
-    tprodFinTprodEquiv.symm (⨂ₜ[R] j : (Σ k, Tf k), f j) = (⨂ₜ[R] k, ⨂ₜ[R] i, f ⟨k, i⟩) := by
-  simp [LinearEquiv.symm_apply_eq]
+    tprodFinTprodEquiv.symm (⨂ₜ[R] j : (Σ k, Tf k), f j) = (⨂ₜ[R] k, ⨂ₜ[R] i, Sigma.curry f k i)
+    := by simp [LinearEquiv.symm_apply_eq, Sigma.curry]
 
 end TprodFinTrodEquiv
 
 
 section tprodFiniteTprodEquiv
 
+-- TBD: Settle on `ι` vs `κ` for outer type
+
 variable {ι : Type*} [Finite ι] {Tf : ι → Type*}
 variable {R : Type*} {s : (k : ι) → (i : Tf k) → Type*}
   [CommSemiring R] [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
 
+-- TBD: Why the `.symm.symm.symm`? Can one simplify?
 noncomputable def tprodFiniteTprodEquiv :
     (⨂[R] k, ⨂[R] i, s k i) ≃ₗ[R] (⨂[R] j : (Σ k, Tf k), s j.1 j.2) := by
   let e := Classical.choice (Finite.exists_equiv_fin ι).choose_spec
   apply reindex _ _ e ≪≫ₗ tprodFinTprodEquiv ≪≫ₗ
-    ((PiTensorProduct.congr fun i => LinearEquiv.refl _ _) ≪≫ₗ
+    ((PiTensorProduct.congr fun _ ↦ LinearEquiv.refl _ _) ≪≫ₗ
       (reindex _ _ (Equiv.sigmaCongrLeft e.symm).symm).symm)
 
 @[simp]
@@ -247,9 +250,38 @@ theorem tprodFiniteTprodEquiv_symm_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) 
     tprodFiniteTprodEquiv.symm (⨂ₜ[R] j : (Σ k, Tf k), f j) = (⨂ₜ[R] k, ⨂ₜ[R] i, f ⟨k, i⟩) := by
   simp [LinearEquiv.symm_apply_eq]
 
-theorem span_tprodFiniteTprod_eq_top :
-  (span R (range (fun (f : (k : ι) → (i : Tf k) → s k i) => (⨂ₜ[R] k, ⨂ₜ[R] i, f k i))))
+#check Submodule.map_span
+#check span_tprod_eq_top (R:=R) (s:=fun j : (Σ k, Tf k) ↦ s j.1 j.2)
+#check (tprodFiniteTprodEquiv (R := R) (s := s)).symm.toFun
+
+theorem span_tprodFiniteTprod_eq_top' :
+  (span R (range (fun (f : (j : Σ k : ι, Tf k) → s j.1 j.2) ↦ (⨂ₜ[R] k, ⨂ₜ[R] i, Sigma.curry f k i))))
     = (⊤ : Submodule R _) := by
+  have yyy := span_tprod_eq_top (R:=R) (s:=fun j : (Σ k, Tf k) ↦ s j.1 j.2)
+  have zzz := tprodFiniteTprodEquiv (R := R) (s := s).symm.toFun
+
+--  have zzz := span_image (tprodFiniteTprodEquiv (R := R) (s:=s)).symm
+  rw [←tprodFiniteTprodEquiv (R := R) (s := s).symm.range]
+  rw [LinearMap.range_eq_map, ← span_tprod_eq_top]
+  rw [← span_image]
+  congr with f
+  simp only [mem_range, LinearEquiv.coe_coe, mem_image, exists_exists_eq_and,
+    tprodFiniteTprodEquiv_symm_tprod]
+  constructor
+  · intro ⟨y, hy⟩
+    rw [←hy]
+    use (fun j => y j.1 j.2)
+  · intro ⟨y, hy⟩
+    rw [←hy]
+    use (fun j k => y ⟨j, k⟩)
+
+#check LinearMap.map_span
+
+theorem span_tprodFiniteTprod_eq_top :
+  (span R (range (fun (f : (k : ι) → (i : Tf k) → s k i) ↦ (⨂ₜ[R] k, ⨂ₜ[R] i, f k i))))
+    = (⊤ : Submodule R _) := by
+  have yyy := span_tprod_eq_top (R:=R) (s:=fun j : (Σ k, Tf k) ↦ s j.1 j.2)
+
   rw [← tprodFiniteTprodEquiv (R := R) (s := s).symm.range,
     LinearMap.range_eq_map, ← span_tprod_eq_top, ← span_image]
   congr with f
@@ -263,6 +295,7 @@ theorem span_tprodFiniteTprod_eq_top :
     rw [←hy]
     use (fun j k => y ⟨j, k⟩)
 
+-- TBD: How does that relate to `Submodule.iSup_induction`? Does it follow from that theorem?
 @[elab_as_elim]
 protected theorem nested_induction_on
     {motive : (⨂[R] k, ⨂[R] i, s k i) → Prop}

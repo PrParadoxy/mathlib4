@@ -61,7 +61,6 @@ the type of distinguishable degrees of freedom of a system.
 * Seek feedback
 * Injectivity lemmas for the extensions. These are easy for vector spaces over
 fields, but can become quite subtle for `AddCommMonoid`s.
-* Nested `PiTensorProducts`. We provide a preliminary theory in a subsequent PR.
 
 -/
 
@@ -300,14 +299,13 @@ open TensorProduct
 variable {s₀ : (i : ι) → s i}
 
 /-- Given a family of distinguished elements `s₀ : (i : ι) → s i` and sets `S ⊆ T`,
-map a tensor with index set to a tensor with index set `T`, by padding with vectors
+map a tensor with index set `S` to a tensor with index set `T`, by padding with vectors
 provided by `s₀` on `T \ S`. -/
 def extendTensor (s₀ : (i : ι) → s i) : (⨂[R] (i : S), s i) →ₗ[R] (⨂[R] (i : T), s i) where
   toFun t := (tmulUnifyEquiv hsub) (t ⊗ₜ[R] (⨂ₜ[R] i : ↥(T \ S), s₀ i))
   map_add' := by simp [TensorProduct.add_tmul]
   map_smul' := by simp [←TensorProduct.smul_tmul']
 
-/-- Extending the index set of a tensor from `S` to `S` is trivial. -/
 @[simp]
 theorem extendTensor_self : extendTensor (subset_refl S) s₀ = LinearMap.id (R:=R) :=
   by ext; simp [extendTensor]
