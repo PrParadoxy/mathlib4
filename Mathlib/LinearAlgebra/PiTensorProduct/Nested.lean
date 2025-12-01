@@ -250,38 +250,9 @@ theorem tprodFiniteTprodEquiv_symm_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) 
     tprodFiniteTprodEquiv.symm (⨂ₜ[R] j : (Σ k, Tf k), f j) = (⨂ₜ[R] k, ⨂ₜ[R] i, f ⟨k, i⟩) := by
   simp [LinearEquiv.symm_apply_eq]
 
-#check Submodule.map_span
-#check span_tprod_eq_top (R:=R) (s:=fun j : (Σ k, Tf k) ↦ s j.1 j.2)
-#check (tprodFiniteTprodEquiv (R := R) (s := s)).symm.toFun
-
-theorem span_tprodFiniteTprod_eq_top' :
-  (span R (range (fun (f : (j : Σ k : ι, Tf k) → s j.1 j.2) ↦ (⨂ₜ[R] k, ⨂ₜ[R] i, Sigma.curry f k i))))
-    = (⊤ : Submodule R _) := by
-  have yyy := span_tprod_eq_top (R:=R) (s:=fun j : (Σ k, Tf k) ↦ s j.1 j.2)
-  have zzz := tprodFiniteTprodEquiv (R := R) (s := s).symm.toFun
-
---  have zzz := span_image (tprodFiniteTprodEquiv (R := R) (s:=s)).symm
-  rw [←tprodFiniteTprodEquiv (R := R) (s := s).symm.range]
-  rw [LinearMap.range_eq_map, ← span_tprod_eq_top]
-  rw [← span_image]
-  congr with f
-  simp only [mem_range, LinearEquiv.coe_coe, mem_image, exists_exists_eq_and,
-    tprodFiniteTprodEquiv_symm_tprod]
-  constructor
-  · intro ⟨y, hy⟩
-    rw [←hy]
-    use (fun j => y j.1 j.2)
-  · intro ⟨y, hy⟩
-    rw [←hy]
-    use (fun j k => y ⟨j, k⟩)
-
-#check LinearMap.map_span
-
 theorem span_tprodFiniteTprod_eq_top :
   (span R (range (fun (f : (k : ι) → (i : Tf k) → s k i) ↦ (⨂ₜ[R] k, ⨂ₜ[R] i, f k i))))
     = (⊤ : Submodule R _) := by
-  have yyy := span_tprod_eq_top (R:=R) (s:=fun j : (Σ k, Tf k) ↦ s j.1 j.2)
-
   rw [← tprodFiniteTprodEquiv (R := R) (s := s).symm.range,
     LinearMap.range_eq_map, ← span_tprod_eq_top, ← span_image]
   congr with f
