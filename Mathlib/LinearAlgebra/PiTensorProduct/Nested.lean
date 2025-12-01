@@ -287,3 +287,7 @@ protected theorem nested_induction_on
   | add => simp_all [p]
 
 end tprodFiniteTprodEquiv
+
+end Fin
+
+end PiTensorProduct

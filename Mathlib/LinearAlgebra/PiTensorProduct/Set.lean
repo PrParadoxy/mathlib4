@@ -266,7 +266,7 @@ def extendEnd : End R (⨂[R] i : S, s i) →ₗ[R] End R (⨂[R] i : T, s i) :=
 
 /-- Partial contraction: a functional on tensors with index set `S ⊆ T` contracts
 tensors with index set `T` to tensors with index set `T \ S`. Bundled as a linear map. -/
-def partialContract :
+def extendFunctional :
     ((⨂[R] i : S, s i) →ₗ[R] R) →ₗ[R] (⨂[R] i : T, s i) →ₗ[R] ⨂[R] (i₂ : ↑(T \ S)), s i₂ :=
    (TensorProduct.lid _ _).congrRight.toLinearMap ∘ₗ (extendLinearHom hsub)
 
@@ -285,9 +285,9 @@ theorem extendEnd_tprod (l : End _ (⨂[R] i : S, s i)) (f : (i : T) → s i) :
 
 @[simp]
 theorem partialContract_tprod (l : (⨂[R] i : S, s i) →ₗ[R] R) (f : (i : T) → s i) :
-    partialContract hsub l (⨂ₜ[R] i, f i)
+    extendFunctional hsub l (⨂ₜ[R] i, f i)
     = (l (⨂ₜ[R] i : S, f ⟨i, by aesop⟩)) • ⨂ₜ[R] i : ↑(T \ S), f ⟨i, by aesop⟩ := by
-  simp [partialContract, LinearEquiv.congrRight]
+  simp [extendFunctional, LinearEquiv.congrRight]
 
 -- TBD: Injectivity lemmas
 
@@ -388,5 +388,12 @@ noncomputable def unifyMaps :
   }
 
 end unifyMaps
+
+section Fin
+
+-- TBD: We can now define a `unifyEnd` and `unifyFunctional`. Like "Fig. 4a" (or
+-- whatever) in Reinhard's paper, but with a finite # of blocks.
+
+end Fin
 
 end PiTensorProduct
