@@ -229,13 +229,12 @@ variable {R : Type*} {s : (k : ι) → (i : Tf k) → Type*}
   [CommSemiring R] [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
 
 -- TBD: Why the `.symm.symm.symm`? Can one simplify?
--- TBD: Why is this a tactic?
 noncomputable def tprodFiniteTprodEquiv :
-    (⨂[R] k, ⨂[R] i, s k i) ≃ₗ[R] (⨂[R] j : (Σ k, Tf k), s j.1 j.2) := by
+    (⨂[R] k, ⨂[R] i, s k i) ≃ₗ[R] (⨂[R] j : (Σ k, Tf k), s j.1 j.2) :=
   let e := Classical.choice (Finite.exists_equiv_fin ι).choose_spec
-  apply reindex _ _ e ≪≫ₗ tprodFinTprodEquiv ≪≫ₗ
-    ((PiTensorProduct.congr fun _ ↦ LinearEquiv.refl _ _) ≪≫ₗ
-      (reindex _ _ (Equiv.sigmaCongrLeft e.symm).symm).symm)
+  reindex _ _ e ≪≫ₗ tprodFinTprodEquiv ≪≫ₗ
+  (PiTensorProduct.congr fun _ ↦ LinearEquiv.refl _ _) ≪≫ₗ
+  (reindex R (fun i ↦ s i.fst i.snd) (Equiv.sigmaCongrLeft e.symm).symm).symm
 
 @[simp]
 theorem tprodFiniteTprodEquiv_tprod (f : (k : ι) → (i : Tf k) → s k i) :
