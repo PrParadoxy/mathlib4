@@ -20,6 +20,7 @@ instance : LinearMapClass (AlgWeakDual R V) R V R where
   map_add f := f.map_add'
   map_smulₛₗ f := f.map_smul'
 
+namespace AlgWeakDual
 
 variable {R : Type*} [CommSemiring R] [TopologicalSpace R]
   [T2Space R] [ContinuousConstSMul R R] [ContinuousAdd R]
@@ -41,11 +42,6 @@ theorem isCompact_image_dualembed {s : Set (AlgWeakDual R V)} {c : Set (V → R)
     (IsCompact.of_isClosed_subset hc
       (dualembed_isclosed_embedding.isClosed_iff_image_isClosed.mp hs) hsc)
 
-
-
-
-namespace AlgWeakDual
-
 variable {R : Type*} [Field R]
 variable {V : Type*} [AddCommGroup V] [Module R V]
 
@@ -56,7 +52,7 @@ theorem exists_dual_vec_ne_zero :
   use g
   intro hc
   have hp := LinearMap.congr_fun hg ⟨v, mem_span_singleton_self v⟩
-  erw [LinearPMap.toFun_eq_coe] at hp
+  rw [LinearPMap.toFun_eq_coe] at hp
   simp [hc] at hp
 
 variable [TopologicalSpace R] [ContinuousConstSMul R R] [IsTopologicalAddGroup R]
@@ -124,7 +120,6 @@ theorem eval_dualpairing_surjective :
 
 /-- The isomorphism between a vector space V and `ContinuousLinearMap`s
   on the algebraic dual of V. -/
-noncomputable def WeakDualDualEquiv : V ≃ₗ[R] StrongDual R (AlgWeakDual R V) :=
+noncomputable def StrongWeakDualEquiv : V ≃ₗ[R] StrongDual R (AlgWeakDual R V) :=
   LinearEquiv.ofBijective (WeakBilin.eval (dualPairing R V))
     (And.intro eval_dualpairing_injective eval_dualpairing_surjective)
-
