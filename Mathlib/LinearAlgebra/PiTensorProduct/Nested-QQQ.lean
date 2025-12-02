@@ -66,6 +66,8 @@ open Function
 
 variable {α : Type*} {β : α → Type*}
 
+variable (s : Finset α)
+#check s.toSet
 #check Sigma.curry_update
 #check curry_update
 
@@ -137,7 +139,7 @@ namespace Multilinear
 
 variable {M : κ → Type*}
 variable [∀ k, AddCommMonoid (M k)] [∀ k, Module R (M k)]
-
+#check Set.piecewise
 variable {N : Type*}
 variable [AddCommMonoid N] [Module R N]
 
@@ -148,7 +150,7 @@ If `g` is a multilinear map with index type `κ`, and if for every `k : κ`, we
 have a multilinear map `f k` with index type `T k`, then
   `m ↦ g (f₁ m_11 m_12 ...) (f₂ m_21 m_22 ...) ...`
 is multilinear with index type `(Σ k, T k)`. -/
-@[simps]
+-- @[simps]
 def compMultilinearMap
     (g : MultilinearMap R M N) (f : (k : κ) → MultilinearMap R (s k) (M k)) :
       MultilinearMap R (fun j : Σ k, T k ↦ s j.fst j.snd) N where
@@ -162,35 +164,8 @@ def compMultilinearMap
   --
   -- Maybe these `DecidableEq` instances again?
   map_update_add' m j x y := by
-
-    have (v : s j.fst j.snd) :
-      (fun k ↦ (f k).toFun (Sigma.curry (Function.update m j v) k))
-      =
-      (Function.update
-        (fun k ↦ (f k).toFun (Sigma.curry m k)) j.1
-        ((f j.1).toFun (fun i : T j.1 ↦ Sigma.curry (Function.update m j v) j.1 i))) := by
-          ext a
-          have sa := Sigma.apply_update m j v (fun k ↦ (f k).toFun) a
-          apply sa
-
-    -- have that (v : s j.fst j.snd) := Sigma.apply_update' m j v (fun k ↦ (f k).toFun)
-    have that (v : s j.fst j.snd) := Sigma.apply_update' m j v (fun k ↦ ↑(f k))
-
-    -- simp [this]
-
-    -- `erw` works, but, bizarrely, `erw?` does not output any problem.
-    erw? [this]
-    erw? [this]
-
-    erw? [that]
-
-    -- have := this (x + y)
-
-    simp [update_arg, Sigma.curry]
-
---    simp [this (x + y)]
-
-    sorry
+    have h := fun j m x => Sigma.apply_update m j x fun k => (f k)
+    simp [fun x => funext (h j m x), update_arg, Sigma.curry]
 
 
   map_update_smul' := by simp [Sigma.apply_update', update_arg, Sigma.curry]
