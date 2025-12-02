@@ -397,8 +397,11 @@ variable {ι : Type*} {s : ι → Type*} {R : Type*} {n : Nat} {Sf : Fin n → S
   [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
 
 /--
-A finite collection of endomorphisms defined for disjoint subsets of the
-index type defines an endomorphism for tensors indexed by the union.
+A finite family of endomorphisms defined for disjoint subsets of the
+index type defines an endomorphism for tensors indexed by their union.
+
+Bundled as a homomorphism from the tensor product of the local endomorphisms to
+the global endomorphisms.
 -/
 def unifyEnds : (⨂[R] k, End R (⨂[R] i : Sf k, s i)) →ₗ[R] End R (⨂[R] i : iUnion Sf, s i) :=
   lift {
@@ -408,8 +411,11 @@ def unifyEnds : (⨂[R] k, End R (⨂[R] i : Sf k, s i)) →ₗ[R] End R (⨂[R]
   }
 
 /--
-A finite collection of linear functinals defined for disjoint subsets of the
-index type defines a linear functional for tensors indexed by the union.
+A finite family of linear functionals defined for disjoint subsets of the
+index type defines a linear functional for tensors indexed by their union.
+
+Bundled as a homomorphism from the tensor product of the local functionals to
+the global functionals.
 
 Note: Inherits noncomputability from `constantBaseRingEquiv`, which carries this
 attribute for performance reasons.
