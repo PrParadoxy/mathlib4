@@ -78,7 +78,8 @@ TBD: Think about `DecidableEq` instances.
 -/
 lemma Sigma.apply_update {γ : (a : α) → β a → Type*}
     [DecidableEq α]
-    [DecidableEq ((a : α) × β a)]
+
+    [(a : α) → DecidableEq (β a)]
     -- Preferable, for compat. w/ `Sigma.curry_update`, but somehow doesn't work below. TBD:
     -- [(a : α) → DecidableEq (β a)]
     {δ : α → Type*} (g : (i : Σ a, β a) → γ i.1 i.2) (j : Σ a, β a) (v : γ j.1 j.2)
@@ -87,10 +88,9 @@ lemma Sigma.apply_update {γ : (a : α) → β a → Type*}
     Function.update (fun a ↦ f a (Sigma.curry g a)) j.1
     (f j.1 (fun i : β j.1 ↦ Sigma.curry (Function.update g j v) j.1 i)) a := by
   by_cases h : a = j.1
-  · subst h
-    simp
-  · unfold Sigma.curry
-    simp_all [show ∀ i : β a, ⟨a, i⟩ ≠ j from by grind]
+  · aesop
+  · simp_all [congr_fun (Sigma.curry_update j g v) a]
+
 
 end Sigma
 
