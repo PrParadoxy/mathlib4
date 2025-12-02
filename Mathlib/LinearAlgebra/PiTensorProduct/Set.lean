@@ -288,8 +288,6 @@ theorem extendFunctional_tprod (l : (⨂[R] i : S, s i) →ₗ[R] R) (f : (i : T
     = (l (⨂ₜ[R] i : S, f ⟨i, by aesop⟩)) • ⨂ₜ[R] i : ↑(T \ S), f ⟨i, by aesop⟩ := by
   simp [extendFunctional, LinearEquiv.congrRight]
 
--- TBD: Injectivity lemmas
-
 end LinearMap
 
 section ExtendTensor
@@ -337,8 +335,8 @@ variable {ι : Type*} {s : ι → Type*} {R : Type*} {n : Nat} {Sf : Fin n → S
   [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
   [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
 
---# TODO: either move it out, or make it a Private def
-def iUnionSigmaEquiv : (Σ k, Sf k) ≃ iUnion Sf where
+-- TBD: What's the non-computable library version?
+private def iUnionSigmaEquiv : (Σ k, Sf k) ≃ iUnion Sf where
   toFun s := ⟨s.2, by aesop⟩
   invFun s := ⟨(Fin.find (↑s ∈ Sf ·)).get
         (Fin.isSome_find_iff.mpr ⟨_, (mem_iUnion.mp s.prop).choose_spec⟩),
