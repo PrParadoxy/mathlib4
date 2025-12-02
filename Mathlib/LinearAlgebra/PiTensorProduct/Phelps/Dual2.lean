@@ -158,22 +158,21 @@ theorem wclosure_span_eq_top_of_ne_zero (h : ∀ v ≠ 0, ∃ dv ∈ s, dv v ≠
 
 theorem weak_separating_iff :
   (∀ v ≠ 0, ∃ dv ∈ s, dv v ≠ 0) ↔ (topologicalClosure (span ℝ s) = ⊤) := by
-  constructor
-  · exact wclosure_span_eq_top_of_ne_zero
-  · intro h v hv
-    by_contra! hc
-    replace hc : ∀ f ∈ (span ℝ s).topologicalClosure, f v = 0 := by
-      intro f hf
-      let p := { f : AlgWeakDual ℝ V | f v = 0 }
-      have hp : IsClosed p := isClosed_eq (eval_continuous (dualPairing ℝ V) v) (by fun_prop)
-      have hpspan : ↑(span ℝ s) ⊆ p := by
-        apply span_induction
-        iterate 2 aesop
-        · intro _ _ _ _ hx hy
-          simpa [p] using by rw [LinearMap.add_apply, hx, hy, add_zero]
-        · intro _ _ _ hx
-          simpa [p] using by rw [LinearMap.smul_apply, hx, smul_eq_mul, mul_zero]
-      exact (closure_minimal hpspan hp) hf
-    replace hc : ∀ dv : AlgWeakDual ℝ V, dv v = 0 := fun dv => hc dv (h ▸ mem_top)
-    obtain ⟨dv, hdv⟩ := exists_dual_vec_ne_zero ℝ v hv
-    exact hdv (hc dv)
+  refine ⟨wclosure_span_eq_top_of_ne_zero, ?_⟩
+  intro h v hv
+  by_contra! hc
+  replace hc : ∀ f ∈ (span ℝ s).topologicalClosure, f v = 0 := by
+    intro f hf
+    let p := { f : AlgWeakDual ℝ V | f v = 0 }
+    have hp : IsClosed p := isClosed_eq (eval_continuous (dualPairing ℝ V) v) (by fun_prop)
+    have hpspan : ↑(span ℝ s) ⊆ p := by
+      apply span_induction
+      iterate 2 aesop
+      · intro _ _ _ _ hx hy
+        simpa [p] using by rw [LinearMap.add_apply, hx, hy, add_zero]
+      · intro _ _ _ hx
+        simpa [p] using by rw [LinearMap.smul_apply, hx, smul_eq_mul, mul_zero]
+    exact (closure_minimal hpspan hp) hf
+  replace hc : ∀ dv : AlgWeakDual ℝ V, dv v = 0 := fun dv => hc dv (h ▸ mem_top)
+  obtain ⟨dv, hdv⟩ := exists_dual_vec_ne_zero ℝ v hv
+  exact hdv (hc dv)
