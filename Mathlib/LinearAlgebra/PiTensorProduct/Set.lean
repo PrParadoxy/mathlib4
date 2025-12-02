@@ -389,10 +389,20 @@ end unifyMaps
 
 section Fin
 
+open Module
 -- TBD: We can now define a `unifyEnd` and `unifyFunctional`. Like "Fig. 4a" (or
 -- whatever) in Reinhard's paper, but with a finite # of blocks.
+variable {ι : Type*} {s : ι → Type*} {R : Type*} {n : Nat} {Sf : Fin n → Set ι}
+  (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
+  [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
+  [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
+
+def unifyEnds :
+    (⨂[R] k, End R (⨂[R] i : Sf k, s i)) →ₗ[R] End R (⨂[R] i : iUnion Sf, s i) := lift
+  {
+    toFun E := LinearEquiv.conj (tprodFiniUnionEquiv H) (map E)
+    map_update_add' := by simp [PiTensorProduct.map_update_add]
+    map_update_smul' := by simp [PiTensorProduct.map_update_smul]
+  }
 
 end Fin
-
-end PiTensorProduct
-#check PiTensorProduct.piTensorHomMap₂
