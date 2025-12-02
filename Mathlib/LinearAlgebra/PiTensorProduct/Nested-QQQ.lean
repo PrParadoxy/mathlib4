@@ -65,13 +65,10 @@ section Update
 open Function
 
 variable {α : Type*} {β : α → Type*}
-
 variable (s : Finset α)
-#check s.toSet
-#check Sigma.curry_update
-#check curry_update
 
 variable {α : Type*} {β : α → Type*}
+
 lemma Sigma.apply_update'
     {γ : (a : α) → (i : β a) → Type*}
     [DecidableEq α]
@@ -92,8 +89,6 @@ lemma Sigma.apply_update'
   · unfold Sigma.curry
     simp_all [show ∀ i : β a, ⟨a, i⟩ ≠ j from by grind]
 
-
--- This has signature analogues to `curry_update`, but for sigma types, as in `Sigma.curry_update`
 lemma Sigma.apply_update
       {γ : ∀ a, β a → Type*}
       [DecidableEq α]
@@ -110,6 +105,22 @@ lemma Sigma.apply_update
       (f j.1 (fun i : β j.1 ↦ Sigma.curry (update g j v) j.1 i)) a :=
   congr_fun (Sigma.apply_update' ..) a
 
+lemma Sigma.apply_update''
+    {γ : (a : α) → (i : β a) → Type*}
+    [DecidableEq α]
+    [DecidableEq ((a : α) × β a)]
+    {δ : α → Type*}
+    -- [(a : α) → DecidableEq (β a)]
+    (g : (i : Σ a, β a) → γ i.1 i.2)
+    (j : Σ a, β a)
+    (v : γ j.1 j.2)
+    (f : (a : α) → ((i : β a) → (γ a i)) → δ a) :
+    (fun a ↦ f a (Sigma.curry (update g j v) a)) =
+    update (fun a ↦ f a (Sigma.curry g a)) j.1
+    (f j.1 (fun i : β j.1 ↦ Sigma.curry (update g j v) j.1 i)) :=
+    funext (fun _ => Sigma.apply_update ..)
+
+--      simp [Sigma.apply_update']
     -- exact congr_arg (Sigma.apply_update' g j v f) a
 
 -- This is the same as above, but doesn't evaluate the function at `a`.
@@ -165,11 +176,12 @@ def compMultilinearMap
   --
   -- Maybe these `DecidableEq` instances again?
   map_update_add' m j x y := by
-    have h := fun j m x => Sigma.apply_update m j x fun k => (f k)
-    simp [fun x => funext (h j m x), update_arg, Sigma.curry]
+    have h v := funext (fun a ↦ Sigma.apply_update m j v (fun k ↦ f k) a)
+    simp [h, update_arg, Sigma.curry]
 
-
-  map_update_smul' := by simp [Sigma.apply_update', update_arg, Sigma.curry]
+  map_update_smul' m j x y := by
+    have h v := funext (fun a ↦ Sigma.apply_update m j v (fun k ↦ f k) a)
+    simp [h, update_arg, Sigma.curry]
 
 end Multilinear
 
