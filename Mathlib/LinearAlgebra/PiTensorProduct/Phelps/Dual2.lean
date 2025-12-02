@@ -9,7 +9,7 @@ open Module Topology WeakBilin Submodule
 variable (R : Type*) [CommSemiring R]
 variable (V : Type*) [AddCommGroup V] [Module R V]
 
-/-- A type synonym for `Dual R W`, equipping it with weak topology. -/
+/-- A type synonym for `Dual R W`, equipping it with the weak topology. -/
 abbrev AlgWeakDual := WeakBilin (dualPairing R V)
 
 instance : DFunLike (AlgWeakDual R V) V fun _ => R where
@@ -32,7 +32,7 @@ theorem coe_isclosed_embedding :
     (LinearMap.isClosed_range_coe _ _ _)
 
 /-- A set of dual vectors is compact if it is closed,
-    and its image under dualEmbed is a subset of a compact set. -/
+    and its image under `DFunLike.coe` is a subset of a compact set. -/
 theorem isCompact_subset_image_coe {s : Set (AlgWeakDual R V)} {c : Set (V → R)}
     (hs : IsClosed s) (hc : IsCompact c) (hsc : DFunLike.coe '' s ⊆ c) : IsCompact s :=
   coe_isclosed_embedding.isCompact_iff.mpr
@@ -43,7 +43,7 @@ variable {R : Type*} [Field R]
 variable {V : Type*} [AddCommGroup V] [Module R V]
 
 theorem exists_dual_vec_ne_zero :
-    ∀ v: V, v ≠ 0 → ∃ dv: AlgWeakDual R V, dv v ≠ 0 := fun v hv => by
+    ∀ v : V, v ≠ 0 → ∃ dv: AlgWeakDual R V, dv v ≠ 0 := fun v hv => by
   obtain ⟨g, hg⟩ := LinearMap.exists_extend
     (LinearPMap.mkSpanSingleton (K := R) v (1: R) (hv)).toFun
   use g
@@ -54,8 +54,7 @@ theorem exists_dual_vec_ne_zero :
 
 variable [TopologicalSpace R] [ContinuousConstSMul R R] [IsTopologicalAddGroup R]
 
-theorem eval_dualpairing_injective :
-    Function.Injective ((eval (dualPairing R V))) := by
+theorem eval_dualpairing_injective : Function.Injective ((eval (dualPairing R V))) := by
   apply LinearMap.ker_eq_bot.mp (LinearMap.ker_eq_bot'.mpr ?_)
   intro v hv
   by_contra! hc
@@ -85,7 +84,7 @@ variable {R : Type*} [NormedField R] [ContinuousConstSMul R R]
 variable {V : Type*} [AddCommGroup V] [Module R V]
 
 theorem eval_dualpairing_surjective :
-  Function.Surjective (eval (dualPairing R V)) := by
+    Function.Surjective (eval (dualPairing R V)) := by
   simp [Function.Surjective]
   intro f
   let U := f ⁻¹' (Metric.ball 0 1)
@@ -117,6 +116,33 @@ theorem eval_dualpairing_surjective :
 
 /-- The isomorphism between a vector space V and `ContinuousLinearMap`s
   on the algebraic dual of V. -/
+@[simps! apply]
 noncomputable def StrongWeakDualEquiv : V ≃ₗ[R] StrongDual R (AlgWeakDual R V) :=
   LinearEquiv.ofBijective (WeakBilin.eval (dualPairing R V))
     (And.intro eval_dualpairing_injective eval_dualpairing_surjective)
+
+@[simp] lemma StrongWeakDualEquiv_symm_apply
+    (v : StrongDual R (AlgWeakDual R V)) (x : AlgWeakDual R V) :
+    x (StrongWeakDualEquiv.symm v) = v x := by
+  conv_rhs =>
+    rw [← LinearEquiv.apply_symm_apply StrongWeakDualEquiv v, StrongWeakDualEquiv_apply]
+  rfl
+
+
+variable {V : Type*} [AddCommGroup V] [Module ℝ V]
+
+lemma exists_separating_vector  {s : Set (AlgWeakDual ℝ V)} {x : AlgWeakDual ℝ V}
+    (hc : x ∉ topologicalClosure (span ℝ s)) :
+    ∃ v ≠ 0, x v < 0 ∧ ∀ b ∈ topologicalClosure (span ℝ s), b v = 0 := by
+  obtain ⟨v, u, hvk, hvs⟩ := geometric_hahn_banach_point_closed
+    (topologicalClosure (span ℝ s)).convex (span ℝ s).isClosed_topologicalClosure hc
+  have hp : ∀ b ∈ ↑(span ℝ s).topologicalClosure, v b = 0 := by
+    by_contra! hb
+    obtain ⟨b, hb, hvb⟩ := hb
+    simpa [hvb] using hvs ((u / v b) • b) (by apply Submodule.smul_mem; exact hb)
+  have hu : u < 0 := by simpa using hvs 0 (Submodule.zero_mem _)
+  have hvz : v ≠ 0 := fun h => by
+    rw [h] at hvk
+    simp_all [lt_asymm hu]
+  exact ⟨StrongWeakDualEquiv.symm v, by simp [hvz],
+    by simpa using lt_trans hvk hu, by simpa using hp⟩
