@@ -14,17 +14,15 @@ variable (F : Finset ι) [DecidableEq ι] {i₀} (h₀ : i₀ ∉ F) (x : s i₀
 example : (⨂[R] i : F, s i) = ⨂[R] i : (F : Set ι), s i := rfl
 
 -- After `tmulInsertEquiv`, the tensors on rhs are indexed by `({i₀} : Set ι) ∪ F.toSet`
--- and not `({i₀} : Finset ι).toSet ∪ F.toSet`
 #check tmulInsertEquiv h₀ (R := R) (s := s) _
 
 -- Here is the issue!
 example : (⨂[R] i : ↑(({i₀} : Set ι) ∪ (F : Set ι)), s i)
-  = (⨂[R] i : ↑((({i₀} : Finset ι) : Set ι) ∪ (F : Set ι)), s i) := rfl
-
--- or more importantly, by `(({i₀} : Finset ι) ∪ F).toSet` that we actually want.
-example : (⨂[R] i : ↑(({i₀} : Set ι) ∪ (F : Set ι)), s i)
   = (⨂[R] i : ↑ (((({i₀} : Finset ι) ∪ F) : Set ι)), s i) := rfl
 
+-- Even the following is not true
+example : (⨂[R] i : ↑(({i₀} : Set ι) ∪ (F : Set ι)), s i)
+  = (⨂[R] i : ↑((({i₀} : Finset ι) : Set ι) ∪ (F : Set ι)), s i) := rfl
 
 -- `tmulUnionEquiv` is the same, btw!
 variable (F₁ F₂ : Finset ι) (hdisj : Disjoint (F₁ : Set ι) (F₂ : Set ι))
@@ -39,7 +37,7 @@ variable (S : Set (⨂[R] i : ↑(insert i₀ F), s i)) (x : s i₀) (v : (⨂[R
 example : tmulInsertEquiv h₀ (x ⊗ₜ[R] v) ∈ S := sorry
 -- Check lemma `extended_mem` in `Phelps/OrderCone` file.
 -- had the tensors on rhs of `tmulInsertEquiv` were indexed by `(({i₀} : Finset ι) ∪ F).toSet`
--- there would've been no issue. 
+-- there would've been no issue.
 
 
 
