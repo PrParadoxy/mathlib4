@@ -71,31 +71,6 @@ variable (s : Finset α)
 #check Sigma.curry_update
 #check curry_update
 
--- This has signature analogues to `curry_update`, but for sigma types, as in `Sigma.curry_update`
-lemma Sigma.apply_update
-    {γ : ∀ a, β a → Type*}
-    [DecidableEq α]
-    [DecidableEq ((a : α) × β a)]
-    -- [(a : α) → DecidableEq (β a)]
-    {δ : α → Type*}
-    (g : (i : Σ a, β a) → γ i.1 i.2)
-    (j : Σ a, β a)
-    (v : γ j.1 j.2)
-    (f : (a : α) → ((i : β a) → (γ a i)) → δ a)
-    (a : α) :
-    f a (Sigma.curry (update g j v) a) =
-    update (fun a' ↦ f a' (Sigma.curry g a')) j.1
-    (f j.1 (fun i : β j.1 ↦ Sigma.curry (update g j v) j.1 i)) a := by
-  by_cases h : a = j.1
-  · subst h
-    simp
-  · unfold Sigma.curry
-    simp_all [show ∀ i : β a, ⟨a, i⟩ ≠ j from by grind]
-
--- This is the same as above, but doesn't evaluate the function at `a`.
--- I would prefer to use the function above (because, I think, there's a good
--- chance it would make it into `Mathlib.Data.Sigma` as a direct analogue of
--- `Function.apply_update`).
 variable {α : Type*} {β : α → Type*}
 lemma Sigma.apply_update'
     {γ : (a : α) → (i : β a) → Type*}
@@ -116,6 +91,32 @@ lemma Sigma.apply_update'
     simp
   · unfold Sigma.curry
     simp_all [show ∀ i : β a, ⟨a, i⟩ ≠ j from by grind]
+
+
+-- This has signature analogues to `curry_update`, but for sigma types, as in `Sigma.curry_update`
+lemma Sigma.apply_update
+      {γ : ∀ a, β a → Type*}
+      [DecidableEq α]
+      [DecidableEq ((a : α) × β a)]
+      -- [(a : α) → DecidableEq (β a)]
+      {δ : α → Type*}
+      (g : (i : Σ a, β a) → γ i.1 i.2)
+      (j : Σ a, β a)
+      (v : γ j.1 j.2)
+      (f : (a : α) → ((i : β a) → (γ a i)) → δ a)
+      (a : α) :
+      f a (Sigma.curry (update g j v) a) =
+      update (fun a' ↦ f a' (Sigma.curry g a')) j.1
+      (f j.1 (fun i : β j.1 ↦ Sigma.curry (update g j v) j.1 i)) a :=
+  congr_fun (Sigma.apply_update' ..) a
+
+    -- exact congr_arg (Sigma.apply_update' g j v f) a
+
+-- This is the same as above, but doesn't evaluate the function at `a`.
+-- I would prefer to use the function above (because, I think, there's a good
+-- chance it would make it into `Mathlib.Data.Sigma` as a direct analogue of
+-- `Function.apply_update`).
+
 
 end Update
 
