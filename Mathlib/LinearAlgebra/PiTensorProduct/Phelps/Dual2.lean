@@ -39,9 +39,7 @@ theorem isCompact_subset_image_coe {s : Set (AlgWeakDual R V)} {c : Set (V → R
     (IsCompact.of_isClosed_subset hc
       (coe_isclosed_embedding.isClosed_iff_image_isClosed.mp hs) hsc)
 
-variable {R : Type*} [Field R]
-variable {V : Type*} [AddCommGroup V] [Module R V]
-
+variable (R : Type*) [Field R] {V : Type*} [AddCommGroup V] [Module R V] in
 theorem exists_dual_vec_ne_zero :
     ∀ v : V, v ≠ 0 → ∃ dv: AlgWeakDual R V, dv v ≠ 0 := fun v hv => by
   obtain ⟨g, hg⟩ := LinearMap.exists_extend
@@ -52,13 +50,15 @@ theorem exists_dual_vec_ne_zero :
   rw [LinearPMap.toFun_eq_coe] at hp
   simp [hc] at hp
 
+variable {R : Type*} [Field R]
+variable {V : Type*} [AddCommGroup V] [Module R V]
 variable [TopologicalSpace R] [ContinuousConstSMul R R] [IsTopologicalAddGroup R]
 
 theorem eval_dualpairing_injective : Function.Injective ((eval (dualPairing R V))) := by
   apply LinearMap.ker_eq_bot.mp (LinearMap.ker_eq_bot'.mpr ?_)
   intro v hv
   by_contra! hc
-  obtain ⟨dv, hdv⟩ := exists_dual_vec_ne_zero (R := R) v hc
+  obtain ⟨dv, hdv⟩ := exists_dual_vec_ne_zero R v hc
   exact hdv (congrArg (fun f => f dv) hv)
 
 /-!
@@ -129,11 +129,11 @@ noncomputable def StrongWeakDualEquiv : V ≃ₗ[R] StrongDual R (AlgWeakDual R 
   rfl
 
 
-variable {V : Type*} [AddCommGroup V] [Module ℝ V]
+variable {V : Type*} [AddCommGroup V] [Module ℝ V] {s : Set (AlgWeakDual ℝ V)}
 
-lemma exists_separating_vector  {s : Set (AlgWeakDual ℝ V)} {x : AlgWeakDual ℝ V}
-    (hc : x ∉ topologicalClosure (span ℝ s)) :
-    ∃ v ≠ 0, x v < 0 ∧ ∀ b ∈ topologicalClosure (span ℝ s), b v = 0 := by
+lemma exists_separating_vector {dv : AlgWeakDual ℝ V}
+    (hc : dv ∉ topologicalClosure (span ℝ s)) :
+    ∃ v ≠ 0, dv v < 0 ∧ ∀ dv ∈ topologicalClosure (span ℝ s), dv v = 0 := by
   obtain ⟨v, u, hvk, hvs⟩ := geometric_hahn_banach_point_closed
     (topologicalClosure (span ℝ s)).convex (span ℝ s).isClosed_topologicalClosure hc
   have hp : ∀ b ∈ ↑(span ℝ s).topologicalClosure, v b = 0 := by
@@ -146,3 +146,34 @@ lemma exists_separating_vector  {s : Set (AlgWeakDual ℝ V)} {x : AlgWeakDual �
     simp_all [lt_asymm hu]
   exact ⟨StrongWeakDualEquiv.symm v, by simp [hvz],
     by simpa using lt_trans hvk hu, by simpa using hp⟩
+
+/-- Generelized version of span_eq_top_of_ne_zero for infinite vector spaces. -/
+theorem wclosure_span_eq_top_of_ne_zero (h : ∀ v ≠ 0, ∃ dv ∈ s, dv v ≠ 0)
+    : topologicalClosure (span ℝ s) = ⊤ := by
+  apply eq_top_iff'.mpr (fun x => ?_)
+  by_contra! hx
+  have ⟨v, hv, _, hvs⟩ := exists_separating_vector hx
+  obtain ⟨dv, hdvs, hdv⟩ := h v hv
+  exact hdv (hvs dv (subset_closure (subset_span hdvs)))
+
+theorem weak_separating_iff :
+  (∀ v ≠ 0, ∃ dv ∈ s, dv v ≠ 0) ↔ (topologicalClosure (span ℝ s) = ⊤) := by
+  constructor
+  · exact wclosure_span_eq_top_of_ne_zero
+  · intro h v hv
+    by_contra! hc
+    replace hc : ∀ f ∈ (span ℝ s).topologicalClosure, f v = 0 := by
+      intro f hf
+      let p := { f : AlgWeakDual ℝ V | f v = 0 }
+      have hp : IsClosed p := isClosed_eq (eval_continuous (dualPairing ℝ V) v) (by fun_prop)
+      have hpspan : ↑(span ℝ s) ⊆ p := by
+        apply span_induction
+        iterate 2 aesop
+        · intro _ _ _ _ hx hy
+          simpa [p] using by rw [LinearMap.add_apply, hx, hy, add_zero]
+        · intro _ _ _ hx
+          simpa [p] using by rw [LinearMap.smul_apply, hx, smul_eq_mul, mul_zero]
+      exact (closure_minimal hpspan hp) hf
+    replace hc : ∀ dv : AlgWeakDual ℝ V, dv v = 0 := fun dv => hc dv (h ▸ mem_top)
+    obtain ⟨dv, hdv⟩ := exists_dual_vec_ne_zero ℝ v hv
+    exact hdv (hc dv)
