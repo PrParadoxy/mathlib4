@@ -8,7 +8,7 @@ module
 public import Mathlib.LinearAlgebra.PiTensorProduct
 public import Mathlib.LinearAlgebra.PiTensorProduct.Nested
 public import Mathlib.LinearAlgebra.TensorProduct.Associator
-
+public import Mathlib.RingTheory.PiTensorProduct
 /-!
 # PiTensorProducts indexed by sets
 
@@ -283,7 +283,7 @@ theorem extendEnd_tprod (l : End _ (⨂[R] i : S, s i)) (f : (i : T) → s i) :
   simp [extendEnd, LinearEquiv.congrRight]
 
 @[simp]
-theorem partialContract_tprod (l : (⨂[R] i : S, s i) →ₗ[R] R) (f : (i : T) → s i) :
+theorem extendFunctional_tprod (l : (⨂[R] i : S, s i) →ₗ[R] R) (f : (i : T) → s i) :
     extendFunctional hsub l (⨂ₜ[R] i, f i)
     = (l (⨂ₜ[R] i : S, f ⟨i, by aesop⟩)) • ⨂ₜ[R] i : ↑(T \ S), f ⟨i, by aesop⟩ := by
   simp [extendFunctional, LinearEquiv.congrRight]
@@ -397,12 +397,18 @@ variable {ι : Type*} {s : ι → Type*} {R : Type*} {n : Nat} {Sf : Fin n → S
   [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
   [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
 
-def unifyEnds :
-    (⨂[R] k, End R (⨂[R] i : Sf k, s i)) →ₗ[R] End R (⨂[R] i : iUnion Sf, s i) := lift
-  {
+def unifyEnds : (⨂[R] k, End R (⨂[R] i : Sf k, s i)) →ₗ[R] End R (⨂[R] i : iUnion Sf, s i) :=
+  lift {
     toFun E := LinearEquiv.conj (tprodFiniUnionEquiv H) (map E)
     map_update_add' := by simp [PiTensorProduct.map_update_add]
     map_update_smul' := by simp [PiTensorProduct.map_update_smul]
   }
 
-end Fin
+noncomputable def unifyFunctionals :
+    (⨂[R] k, (⨂[R] i : Sf k, s i) →ₗ[R] R) →ₗ[R] ((⨂[R] i : iUnion Sf, s i) →ₗ[R] R) :=
+  lift {
+    toFun F := (constantBaseRingEquiv (Fin n) R).toLinearEquiv.congrRight
+      ((tprodFiniUnionEquiv H).congrLeft _ R (map F))
+    map_update_add' := by simp [PiTensorProduct.map_update_add]
+    map_update_smul' := by simp [PiTensorProduct.map_update_smul]
+  }
