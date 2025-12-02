@@ -417,8 +417,8 @@ index type defines a linear functional for tensors indexed by their union.
 Bundled as a homomorphism from the tensor product of the local functionals to
 the global functionals.
 
-Note: Inherits noncomputability from `constantBaseRingEquiv`, which carries this
-attribute for performance reasons.
+Note: Inherits noncomputability from `PiTensorProduct.constantBaseRingEquiv`,
+which carries this attribute for performance reasons.
 -/
 noncomputable def unifyFunctionals :
     (⨂[R] k, (⨂[R] i : Sf k, s i) →ₗ[R] R) →ₗ[R] ((⨂[R] i : iUnion Sf, s i) →ₗ[R] R) :=
