@@ -176,3 +176,5 @@ theorem weak_separating_iff :
   replace hc : ∀ dv : AlgWeakDual ℝ V, dv v = 0 := fun dv => hc dv (h ▸ mem_top)
   obtain ⟨dv, hdv⟩ := exists_dual_vec_ne_zero ℝ v hv
   exact hdv (hc dv)
+
+#check Fintype

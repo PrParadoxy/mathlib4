@@ -395,3 +395,4 @@ section Fin
 end Fin
 
 end PiTensorProduct
+#check PiTensorProduct.piTensorHomMap₂
