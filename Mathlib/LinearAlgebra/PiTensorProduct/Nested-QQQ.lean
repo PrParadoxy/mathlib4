@@ -69,25 +69,13 @@ variable (s : Finset α)
 
 variable {α : Type*} {β : α → Type*}
 
-lemma Sigma.apply_update'
-    {γ : (a : α) → (i : β a) → Type*}
-    [DecidableEq α]
-    [DecidableEq ((a : α) × β a)]
-    {δ : α → Type*}
-    -- [(a : α) → DecidableEq (β a)]
-    (g : (i : Σ a, β a) → γ i.1 i.2)
-    (j : Σ a, β a)
-    (v : γ j.1 j.2)
-    (f : (a : α) → ((i : β a) → (γ a i)) → δ a) :
-    (fun a ↦ f a (Sigma.curry (update g j v) a)) =
-    update (fun a ↦ f a (Sigma.curry g a)) j.1
-    (f j.1 (fun i : β j.1 ↦ Sigma.curry (update g j v) j.1 i)) := by
-  ext a
-  by_cases h : a = j.1
-  · subst h
-    simp
-  · unfold Sigma.curry
-    simp_all [show ∀ i : β a, ⟨a, i⟩ ≠ j from by grind]
+
+
+-- a Diomand problem exists here. map_update provides `DecidableEq ((k : κ) × T k)` and from
+-- `DecidableEq α` one can create `[(a : α) → DecidableEq (β a)]` to be consumed by
+-- `Sigma.apply_update`. However, `Sigma.curry_update` uses `instDecidableEqSigma`
+-- to create `DecidableEq ((k : κ) × T k)` as opposed to what map_update provides, causing things
+-- to fail. 
 
 lemma Sigma.apply_update {γ : (a : α) → β a → Type*}
     [DecidableEq α]
@@ -105,28 +93,8 @@ lemma Sigma.apply_update {γ : (a : α) → β a → Type*}
   · simp_all [congr_fun (Sigma.curry_update j g v) a]
 
 
-lemma Sigma.apply_update''
-    {γ : (a : α) → (i : β a) → Type*}
-    [DecidableEq α]
-    [DecidableEq ((a : α) × β a)]
-    {δ : α → Type*}
-    -- [(a : α) → DecidableEq (β a)]
-    (g : (i : Σ a, β a) → γ i.1 i.2)
-    (j : Σ a, β a)
-    (v : γ j.1 j.2)
-    (f : (a : α) → ((i : β a) → (γ a i)) → δ a) :
-    (fun a ↦ f a (Sigma.curry (update g j v) a)) =
-    update (fun a ↦ f a (Sigma.curry g a)) j.1
-    (f j.1 (fun i : β j.1 ↦ Sigma.curry (update g j v) j.1 i)) :=
-    funext (fun _ => Sigma.apply_update ..)
 
---      simp [Sigma.apply_update']
-    -- exact congr_arg (Sigma.apply_update' g j v f) a
 
--- This is the same as above, but doesn't evaluate the function at `a`.
--- I would prefer to use the function above (because, I think, there's a good
--- chance it would make it into `Mathlib.Data.Sigma` as a direct analogue of
--- `Function.apply_update`).
 
 
 end Update
@@ -155,7 +123,7 @@ variable [∀ k, AddCommMonoid (M k)] [∀ k, Module R (M k)]
 variable {N : Type*}
 variable [AddCommMonoid N] [Module R N]
 
-variable [DecidableEq κ] [∀ k : κ, DecidableEq (T k)]
+variable [DecidableEq κ]
 /-- Composition of multilinear maps.
 
 If `g` is a multilinear map with index type `κ`, and if for every `k : κ`, we
@@ -167,16 +135,14 @@ def compMultilinearMap
     (g : MultilinearMap R M N) (f : (k : κ) → MultilinearMap R (s k) (M k)) :
       MultilinearMap R (fun j : Σ k, T k ↦ s j.fst j.snd) N where
   toFun m := g fun k ↦ f k (Sigma.curry m k)
-  -- The following works, but uses the non-standard signature of `Sigma.apply_update'`
-  -- map_update_add' := by
-  --    simp [Sigma.apply_update', update_arg, Sigma.curry]
-
-  -- The `Sigma.apply_update` version is very similar, but I couldn't get it to
-  -- work, at least not without `erw` :(
-  --
-  -- Maybe these `DecidableEq` instances again?
-  map_update_add' m j x y := by
+  map_update_add' := by
+    intro inst m j x y
+    have :  ∀ k : κ, DecidableEq (T k) := by
+      intro a b c
+      convert inst ⟨a, b⟩ ⟨a, c⟩
+      simp
     have h v := funext (fun a ↦ Sigma.apply_update m j v (fun k ↦ f k) a)
+    conv_lhs => arg 2; rw [h] -- Diamond problem
     simp [h, update_arg, Sigma.curry]
 
   map_update_smul' m j x y := by
