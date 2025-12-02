@@ -374,7 +374,7 @@ section unifyMaps
 
 variable {ι : Type*} {κ : Type*} {R : Type*} {s : ι → Type*} {Sf : κ → Set ι} {M : κ → Type*}
 variable (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
-  [∀ k, AddCommMonoid (M k)] [CommSemiring R] [∀ k, Module R (M k)] [∀ i, AddCommGroup (s i)]
+  [∀ k, AddCommMonoid (M k)] [CommSemiring R] [∀ k, Module R (M k)] [∀ i, AddCommMonoid (s i)]
   [∀ i, Module R (s i)] [DecidableEq κ] [(k : κ) → DecidableEq ↑(Sf k)]
 
 noncomputable def unifyMaps :
@@ -430,17 +430,15 @@ noncomputable def unifyFunctionals :
   }
 
 
-
-
 variable {ι : Type*} {s : ι → Type*} {R : Type*} {n : Nat} {Sf : Fin n → Set ι}
-  (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
-  [CommSemiring R] [∀ i, AddCommGroup (s i)] [∀ i, Module R (s i)]
-  [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
+    (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
+    [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
+    [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)] [(k : Fin n) → DecidableEq ↑(Sf k)]
 
-noncomputable example [(k : Fin n) → DecidableEq ↑(Sf k)] :
-  (⨂[R] k, End R (⨂[R] i : Sf k, s i)) →ₗ[R] End R (⨂[R] i : iUnion Sf, s i) :=
-  LinearMap.compRight R (M := ⨂[R] (i : ↑(iUnion Sf)), s ↑i)
-    (tprodFiniUnionEquiv H (R := R) (s := s)).toLinearMap ∘ₗ unifyMaps H
+noncomputable example :
+    (⨂[R] k, End R (⨂[R] i : Sf k, s i)) →ₗ[R] End R (⨂[R] i : iUnion Sf, s i) :=
+  (tprodFiniUnionEquiv H).toLinearMap.compRight R
+    (M := ⨂[R] (i : ↑(iUnion Sf)), s ↑i) ∘ₗ unifyMaps H
 
 
 
