@@ -60,42 +60,45 @@ Move to `Equiv.Fin /Equiv.Sum`?  Restructure entirely?
 
 @[expose] public section
 
+
+section Sigma
+
+variable {α : Type*} {β : α → Type*}
+
+/-
+Implementation note:
+
+This is the analogue of `Function.apply_update` for sigma types.
+
+This could fit to `Data.Sigma`, after `Sigma.curry_update`, and would extend the
+parallel treatment of updates / currying for general functions and for functions
+of sigma types.
+
+TBD: Think about `DecidableEq` instances.
+-/
+lemma Sigma.apply_update {γ : (a : α) → β a → Type*}
+    [DecidableEq α]
+    [DecidableEq ((a : α) × β a)]
+    -- Preferable, for compat. w/ `Sigma.curry_update`, but somehow doesn't work below. TBD:
+    -- [(a : α) → DecidableEq (β a)]
+    {δ : α → Type*} (g : (i : Σ a, β a) → γ i.1 i.2) (j : Σ a, β a) (v : γ j.1 j.2)
+    (f : (a : α) → ((i : β a) → (γ a i)) → δ a) (a : α) :
+    f a (Sigma.curry (Function.update g j v) a) =
+    Function.update (fun a ↦ f a (Sigma.curry g a)) j.1
+    (f j.1 (fun i : β j.1 ↦ Sigma.curry (Function.update g j v) j.1 i)) a := by
+  by_cases h : a = j.1
+  · subst h
+    simp
+  · unfold Sigma.curry
+    simp_all [show ∀ i : β a, ⟨a, i⟩ ≠ j from by grind]
+
+end Sigma
+
 section Multilinear
 
 variable {κ : Type*}
 variable {T : κ → Type*}
 variable {s : (k : κ) → (i : T k) → Type*}
-
-section Update
-
-open Function
-
--- This lemma is closely related to `Sigma.curry_update`
-lemma apply_sigma_curry_update [DecidableEq κ] [DecidableEq ((k : κ) × T k)]
-    {β : κ → Type*} (m : (i : Σ k, T k) → s i.1 i.2)
-    (j : Σ k, T k) (v : s j.1 j.2) (f : (k : κ) → ((i : T k) → (s k i)) → β k) :
-    (fun k ↦ f k (Sigma.curry (update m j v) k)) =
-    update (fun k ↦ f k (Sigma.curry m k)) j.1
-    (f j.1 (fun i : T j.1 ↦ Sigma.curry (update m j v) j.1 i)) := by
-  ext k
-  by_cases heq : k = j.1
-  · aesop
-  · unfold Sigma.curry -- Should one add simp lemmas to `Sigma.curry`?
-    simp_all [show ∀ i : T k, ⟨k, i⟩ ≠ j from by grind]
-
--- TBD: Relate.
--- #check Sigma.curry_update
--- theorem Sigma.curry_update' (j : Σ k, T k) (m : (i : Σ k, T k) → s i.1 i.2) (v : s j.1 j.2) :
---     Sigma.curry (Function.update m j v) =
---       Function.update (Sigma.curry m) j.1 (Function.update (Sigma.curry m j.1) j.2 v) := by
---         have apply_sigma_curry_update m j v id
---         sorry
-
-lemma update_arg [∀ k : κ, DecidableEq (T k)] [DecidableEq ((k : κ) × T k)]
-  (m : (i : Σ k, T k) → s i.1 i.2) (j : Σ k, T k) (v : s j.1 j.2) (i : T j.1) :
-  update m j v ⟨j.1, i⟩ = update (fun i : T j.1 ↦ m ⟨j.1, i⟩) j.2 v i := by grind
-
-end Update
 
 variable {R : Type*} [CommSemiring R]
 variable [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
@@ -112,6 +115,16 @@ variable [AddCommMonoid N] [Module R N]
 
 variable [DecidableEq κ] [∀ k : κ, DecidableEq (T k)]
 
+-- -- what's the relation with Sigma.curry_update?
+-- lemma update_arg [DecidableEq ((k : κ) × T k)]
+--   (m : (i : Σ k, T k) → s i.1 i.2) (j : Σ k, T k) (v : s j.1 j.2) (i : T j.1) :
+--   Function.update m j v ⟨j.1, i⟩ = Function.update (fun i : T j.1 ↦ m ⟨j.1, i⟩) j.2 v i :=
+-- by grind
+--     have h1 v i : Sigma.curry (Function.update m j v) j.1 i =
+--         Function.update (Sigma.curry m j.1) j.2 v i := by
+--           unfold Sigma.curry
+--           grind
+
 /-- Composition of multilinear maps.
 
 If `g` is a multilinear map with index type `κ`, and if for every `k : κ`, we
@@ -123,8 +136,16 @@ def compMultilinearMap
     (g : MultilinearMap R M N) (f : (k : κ) → MultilinearMap R (s k) (M k)) :
       MultilinearMap R (fun j : Σ k, T k ↦ s j.fst j.snd) N where
   toFun m := g fun k ↦ f k (Sigma.curry m k)
-  map_update_add' := by simp [apply_sigma_curry_update, Sigma.curry, update_arg]
-  map_update_smul' := by simp [apply_sigma_curry_update, Sigma.curry, update_arg]
+  map_update_add' m j x y := by
+    have h1 v i : Function.update m j v ⟨j.1, i⟩ =
+          Function.update (fun i : T j.1 ↦ m ⟨j.1, i⟩) j.2 v i := by grind
+    have h2 v := funext (fun a ↦ Sigma.apply_update m j v (fun k ↦ f k) a)
+    simp [h1, h2, Sigma.curry]
+  map_update_smul' m j x y := by
+    have h1 v i : Function.update m j v ⟨j.1, i⟩ =
+          Function.update (fun i : T j.1 ↦ m ⟨j.1, i⟩) j.2 v i := by grind
+    have h2 v := funext (fun a ↦ Sigma.apply_update m j v (fun k ↦ f k) a)
+    simp [h1, h2, Sigma.curry]
 
 end Multilinear
 
@@ -147,6 +168,7 @@ theorem tprodTprod_tprod (f : (j : (Σ k, T k)) → s j.1 j.2) :
     tprodTprodHom (⨂ₜ[R] j, f j) = ⨂ₜ[R] k, ⨂ₜ[R] i : T k, f ⟨k, i⟩ := by
   simp [tprodTprodHom, Multilinear.compMultilinearMap_apply]
   rfl -- needed, because `Sigma.curry` has no simp lemmas and won't unfold.
+  -- unfold Sigma.curry; simp only -- this also works.
 
 end tprodTprodHom
 
