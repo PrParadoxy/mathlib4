@@ -89,21 +89,21 @@ lemma Sigma.apply_update'
   · unfold Sigma.curry
     simp_all [show ∀ i : β a, ⟨a, i⟩ ≠ j from by grind]
 
-lemma Sigma.apply_update
-      {γ : ∀ a, β a → Type*}
-      [DecidableEq α]
-      [DecidableEq ((a : α) × β a)]
-      -- [(a : α) → DecidableEq (β a)]
-      {δ : α → Type*}
-      (g : (i : Σ a, β a) → γ i.1 i.2)
-      (j : Σ a, β a)
-      (v : γ j.1 j.2)
-      (f : (a : α) → ((i : β a) → (γ a i)) → δ a)
-      (a : α) :
-      f a (Sigma.curry (update g j v) a) =
-      update (fun a' ↦ f a' (Sigma.curry g a')) j.1
-      (f j.1 (fun i : β j.1 ↦ Sigma.curry (update g j v) j.1 i)) a :=
-  congr_fun (Sigma.apply_update' ..) a
+lemma Sigma.apply_update {γ : (a : α) → β a → Type*}
+    [DecidableEq α]
+
+    [(a : α) → DecidableEq (β a)]
+    -- Preferable, for compat. w/ `Sigma.curry_update`, but somehow doesn't work below. TBD:
+    -- [(a : α) → DecidableEq (β a)]
+    {δ : α → Type*} (g : (i : Σ a, β a) → γ i.1 i.2) (j : Σ a, β a) (v : γ j.1 j.2)
+    (f : (a : α) → ((i : β a) → (γ a i)) → δ a) (a : α) :
+    f a (Sigma.curry (Function.update g j v) a) =
+    Function.update (fun a ↦ f a (Sigma.curry g a)) j.1
+    (f j.1 (fun i : β j.1 ↦ Sigma.curry (Function.update g j v) j.1 i)) a := by
+  by_cases h : a = j.1
+  · aesop
+  · simp_all [congr_fun (Sigma.curry_update j g v) a]
+
 
 lemma Sigma.apply_update''
     {γ : (a : α) → (i : β a) → Type*}
