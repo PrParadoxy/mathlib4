@@ -390,13 +390,16 @@ end unifyMaps
 section Fin
 
 open Module
--- TBD: We can now define a `unifyEnd` and `unifyFunctional`. Like "Fig. 4a" (or
--- whatever) in Reinhard's paper, but with a finite # of blocks.
+
 variable {ι : Type*} {s : ι → Type*} {R : Type*} {n : Nat} {Sf : Fin n → Set ι}
   (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
   [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
   [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
 
+/--
+A finite collection of endomorphisms defined for disjoint subsets of the
+index type defines an endomorphism for tensors indexed by the union.
+-/
 def unifyEnds : (⨂[R] k, End R (⨂[R] i : Sf k, s i)) →ₗ[R] End R (⨂[R] i : iUnion Sf, s i) :=
   lift {
     toFun E := LinearEquiv.conj (tprodFiniUnionEquiv H) (map E)
@@ -404,6 +407,13 @@ def unifyEnds : (⨂[R] k, End R (⨂[R] i : Sf k, s i)) →ₗ[R] End R (⨂[R]
     map_update_smul' := by simp [PiTensorProduct.map_update_smul]
   }
 
+/--
+A finite collection of linear functinals defined for disjoint subsets of the
+index type defines a linear functional for tensors indexed by the union.
+
+Note: Inherits noncomputability from `constantBaseRingEquiv`, which carries this
+attribute for performance reasons.
+-/
 noncomputable def unifyFunctionals :
     (⨂[R] k, (⨂[R] i : Sf k, s i) →ₗ[R] R) →ₗ[R] ((⨂[R] i : iUnion Sf, s i) →ₗ[R] R) :=
   lift {
@@ -412,3 +422,7 @@ noncomputable def unifyFunctionals :
     map_update_add' := by simp [PiTensorProduct.map_update_add]
     map_update_smul' := by simp [PiTensorProduct.map_update_smul]
   }
+
+end Fin
+
+end PiTensorProduct
