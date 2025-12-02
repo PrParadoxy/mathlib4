@@ -249,26 +249,18 @@ theorem tprodFiniteTprodEquiv_symm_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) 
     tprodFiniteTprodEquiv.symm (⨂ₜ[R] j : (Σ k, Tf k), f j) = (⨂ₜ[R] k, ⨂ₜ[R] i, f ⟨k, i⟩) := by
   simp [LinearEquiv.symm_apply_eq]
 
+/-- The totally pure tensors (i.e. products of product tensors) span a nested tensor
+product, if the outer index type is finite. -/
 theorem span_tprodFiniteTprod_eq_top :
-  (span R (range (fun (f : (k : ι) → (i : Tf k) → s k i) ↦ (⨂ₜ[R] k, ⨂ₜ[R] i, f k i))))
-    = (⊤ : Submodule R _) := by
-  rw [← tprodFiniteTprodEquiv (R := R) (s := s).symm.range,
-    LinearMap.range_eq_map, ← span_tprod_eq_top, ← span_image]
-  congr with f
-  simp only [mem_range, LinearEquiv.coe_coe, mem_image, exists_exists_eq_and,
-    tprodFiniteTprodEquiv_symm_tprod]
-  constructor
-  · intro ⟨y, hy⟩
-    rw [←hy]
-    use (fun j => y j.1 j.2)
-  · intro ⟨y, hy⟩
-    rw [←hy]
-    use (fun j k => y ⟨j, k⟩)
+  span R (range fun f : (k : ι) → (i : Tf k) → s k i ↦ ⨂ₜ[R] k, ⨂ₜ[R] i, f k i) = ⊤ := by
+  rw [eq_top_iff, ←tprodFiniteTprodEquiv.symm.range, LinearMap.range_eq_map,
+    ←span_tprod_eq_top, ←span_image, LinearEquiv.coe_coe]
+  gcongr
+  intro f
+  simp only [mem_range, mem_image, exists_exists_eq_and, tprodFiniteTprodEquiv_symm_tprod]
+  intro ⟨y, hy⟩
+  use (fun j k ↦ y ⟨j, k⟩)
 
--- TBD: How does that relate to `Submodule.iSup_induction`? Does it follow from that theorem?
--- # Yes, it is provable from Submodule.iSup_induction. but Submodule.iSup_induction requires
--- # specifying p in the argument anyways and its membership proof will be more complicated
--- # So ultimately it doesn't help. span_induction in that sense is easier to read.
 @[elab_as_elim]
 protected theorem nested_induction_on
     {motive : (⨂[R] k, ⨂[R] i, s k i) → Prop}
