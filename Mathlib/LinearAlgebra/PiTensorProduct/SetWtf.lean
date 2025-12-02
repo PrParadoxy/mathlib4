@@ -39,6 +39,12 @@ example : tmulInsertEquiv h₀ (x ⊗ₜ[R] v) ∈ S := sorry
 -- had the tensors on rhs of `tmulInsertEquiv` were indexed by `(({i₀} : Finset ι) ∪ F).toSet`
 -- there would've been no issue.
 
+-- It works for normal sets though:
+variable (S₁ : Set ι) (T : Set (⨂[R] i : ↑(insert i₀ S₁), s i))
+  (h₀ : i₀ ∉ S₁) (v : (⨂[R] i : S₁, s i))
+example : tmulInsertEquiv h₀ (x ⊗ₜ[R] v) ∈ T := sorry
+
+
 
 
 section singletonSetEquiv
