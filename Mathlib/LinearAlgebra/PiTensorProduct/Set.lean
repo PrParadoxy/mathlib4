@@ -429,6 +429,29 @@ noncomputable def unifyFunctionals :
     map_update_smul' := by simp [PiTensorProduct.map_update_smul]
   }
 
+
+
+
+variable {ι : Type*} {s : ι → Type*} {R : Type*} {n : Nat} {Sf : Fin n → Set ι}
+  (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
+  [CommSemiring R] [∀ i, AddCommGroup (s i)] [∀ i, Module R (s i)]
+  [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
+
+noncomputable example [(k : Fin n) → DecidableEq ↑(Sf k)] :
+
+  (⨂[R] k, End R (⨂[R] i : Sf k, s i)) →ₗ[R] End R (⨂[R] i : iUnion Sf, s i) := by
+
+  have h := unifyMaps H (R := R) (s := s) (M := fun k => (⨂[R] i : Sf k, s i))
+  have q := tprodFiniUnionEquiv H (R := R) (s := s) -- note that
+
+  have compRight_q :=
+    LinearMap.compRight R (M := ⨂[R] (i : ↑(iUnion Sf)), s ↑i) q.toLinearMap
+
+  apply compRight_q ∘ₗ h
+
+
+
+
 end Fin
 
 end PiTensorProduct
