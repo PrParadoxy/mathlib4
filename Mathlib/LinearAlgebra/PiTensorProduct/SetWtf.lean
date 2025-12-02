@@ -12,6 +12,8 @@ variable (F : Finset ι) [DecidableEq ι] {i₀} (h₀ : i₀ ∉ F) (x : s i₀
 -- Tensor product indexed by a Finset are definitionally the same as tensors indexed by the
 -- same Finset coerced into a set.
 example : (⨂[R] i : F, s i) = ⨂[R] i : (F : Set ι), s i := rfl
+-- # right. the sets get coerced to the respective `Subtype`s
+#reduce(types:=true)  (⨂[R] i : F, s i)
 
 -- After `tmulInsertEquiv`, the tensors on rhs are indexed by `({i₀} : Set ι) ∪ F.toSet`
 #check tmulInsertEquiv h₀ (R := R) (s := s) _
