@@ -7,7 +7,7 @@ import Mathlib.Analysis.LocallyConvex.Separation
 open Module Topology WeakBilin Submodule
 
 variable (R : Type*) [CommSemiring R]
-variable (V : Type*) [AddCommGroup V] [Module R V]
+variable (V : Type*) [AddCommMonoid V] [Module R V]
 
 /-- A type synonym for `Dual R W`, equipping it with the weak topology. -/
 abbrev AlgWeakDual := WeakBilin (dualPairing R V)
@@ -24,7 +24,7 @@ namespace AlgWeakDual
 
 variable {R : Type*} [CommSemiring R] [TopologicalSpace R]
   [T2Space R] [ContinuousConstSMul R R] [ContinuousAdd R]
-variable {V : Type*} [AddCommGroup V] [Module R V]
+variable {V : Type*} [AddCommMonoid V] [Module R V]
 
 theorem coe_isclosed_embedding :
     IsClosedEmbedding (DFunLike.coe : AlgWeakDual R V → (V → R)) :=
@@ -157,7 +157,7 @@ theorem wclosure_span_eq_top_of_ne_zero (h : ∀ v ≠ 0, ∃ dv ∈ s, dv v ≠
   exact hdv (hvs dv (subset_closure (subset_span hdvs)))
 
 theorem weak_separating_iff :
-  (∀ v ≠ 0, ∃ dv ∈ s, dv v ≠ 0) ↔ (topologicalClosure (span ℝ s) = ⊤) := by
+    (∀ v ≠ 0, ∃ dv ∈ s, dv v ≠ 0) ↔ (topologicalClosure (span ℝ s) = ⊤) := by
   refine ⟨wclosure_span_eq_top_of_ne_zero, ?_⟩
   intro h v hv
   by_contra! hc
