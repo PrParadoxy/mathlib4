@@ -74,11 +74,13 @@ instance decEqSigma [DecidableEq α] [inst : DecidableEq ((k : α) × β k)]
   convert fun a b c => inst ⟨a, b⟩ ⟨a, c⟩
   simp
 
--- a Diamond problem exists here. map_update provides `DecidableEq ((k : κ) × T k)` and from
--- `DecidableEq α` one can create `[(a : α) → DecidableEq (β a)]` through `instance decEqSigma`
--- to be consumed by `Sigma.apply_update`. However, `Sigma.curry_update` uses `instDecidableEqSigma`
+-- # Why Sigma.apply_update doesn't work natively:
+-- map_update provides `DecidableEq ((k : κ) × T k)` and from `DecidableEq α` one can create
+-- `[(a : α) → DecidableEq (β a)]` through `instance decEqSigma` to be consumed by
+-- `Sigma.apply_update`.  However, `Sigma.curry_update` uses `instDecidableEqSigma`
 -- to create `DecidableEq ((k : κ) × T k)` as opposed to what map_update provides, causing things
--- to fail.
+-- to fail. ultimately, `instDecidableEqSigma` and instance of map_update are the same, because
+-- they carry no date. So one can in principle make `Sigma.apply_update` work.
 
 lemma Sigma.apply_update {γ : (a : α) → β a → Type*}
     [DecidableEq α]
