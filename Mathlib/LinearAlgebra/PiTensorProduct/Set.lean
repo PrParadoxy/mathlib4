@@ -383,6 +383,14 @@ noncomputable def unifyMaps :
     map_update_smul' := by simp [PiTensorProduct.map_update_smul, LinearMap.smul_comp]
   }
 
+theorem unifyMaps_tprod (L : (k : κ) → (i : Sf k) → s i →ₗ[R] M k) (f : (i : (iUnion Sf)) → s i) :
+    unifyMaps H (⨂ₜ[R] k, map (L k)) (⨂ₜ[R] k , f k)
+    = ⨂ₜ[R] i, ⨂ₜ[R] j, L i j (f ((unionEqSigmaOfDisjoint H).symm ⟨i, j⟩)) := by
+  simp only [unifyMaps, lift.tprod, MultilinearMap.coe_mk, LinearMap.coe_comp, Function.comp_apply]
+  conv_lhs => arg 2; arg 2; apply reindex_tprod
+  conv_lhs => arg 2; apply tprodTprodHom_tprod
+  simp
+
 end unifyMaps
 
 section Fin

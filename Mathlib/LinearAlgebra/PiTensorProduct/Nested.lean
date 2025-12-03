@@ -166,7 +166,7 @@ variable {κ : Type*} {R : Type*} {T : (k : κ) → Type*} {s : (k : κ) → (i 
 def tprodTprodHom : (⨂[R] j : (Σ k, T k), s j.1 j.2) →ₗ[R] (⨂[R] k, ⨂[R] i, s k i) :=
   lift (Multilinear.compMultilinearMap (tprod R) (fun _ ↦ tprod R))
 
-theorem tprodTprod_tprod (f : (j : (Σ k, T k)) → s j.1 j.2) :
+theorem tprodTprodHom_tprod (f : (j : (Σ k, T k)) → s j.1 j.2) :
     tprodTprodHom (⨂ₜ[R] j, f j) = ⨂ₜ[R] k, ⨂ₜ[R] i : T k, f ⟨k, i⟩ := by
   simp [tprodTprodHom, Multilinear.compMultilinearMap_apply]
   rfl -- needed, because `Sigma.curry` has no simp lemmas and won't unfold.
