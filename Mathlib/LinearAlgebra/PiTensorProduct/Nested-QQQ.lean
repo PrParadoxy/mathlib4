@@ -92,7 +92,9 @@ lemma Sigma.apply_update {γ : (a : α) → β a → Type*}
   · aesop
   · simp_all [congr_fun (Sigma.curry_update j g v) a]
 
-
+instance [DecidableEq α] [inst : DecidableEq ((k : α) × β k)] : (a : α) → DecidableEq (β a) := by
+  convert fun a b c => inst ⟨a, b⟩ ⟨a, c⟩
+  simp
 
 lemma Sigma.apply_update_working {γ : (a : α) → β a → Type*}
     [DecidableEq α]
@@ -107,10 +109,7 @@ lemma Sigma.apply_update_working {γ : (a : α) → β a → Type*}
     (f j.1 (fun i : β j.1 ↦ Sigma.curry (Function.update g j v) j.1 i)) a := by
   by_cases h : a = j.1
   · aesop
-  · have : (a : α) → DecidableEq (β a) := by
-      convert fun a b c => inst ⟨a, b⟩ ⟨a, c⟩
-      simp
-    have := congr_fun (Sigma.curry_update j g v) a
+  · have := congr_fun (Sigma.curry_update j g v) a
     simp_all
     rw [←this]
     congr
@@ -157,21 +156,10 @@ def compMultilinearMap
     (g : MultilinearMap R M N) (f : (k : κ) → MultilinearMap R (s k) (M k)) :
       MultilinearMap R (fun j : Σ k, T k ↦ s j.fst j.snd) N where
   toFun m := g fun k ↦ f k (Sigma.curry m k)
-  map_update_add' := by
-    intro inst m j x y
-    have :  ∀ k : κ, DecidableEq (T k) := by
-      intro a b c
-      convert inst ⟨a, b⟩ ⟨a, c⟩
-      simp
+  map_update_add' m j x y := by
     have h v := funext (fun a ↦ Sigma.apply_update_working m j v (fun k ↦ f k) a)
     simp [h, update_arg, Sigma.curry]
-
-  map_update_smul' := by
-    intro inst  m j x y
-    have :  ∀ k : κ, DecidableEq (T k) := by
-      intro a b c
-      convert inst ⟨a, b⟩ ⟨a, c⟩
-      simp
+  map_update_smul' m j x y := by
     have h v := funext (fun a ↦ Sigma.apply_update_working m j v (fun k ↦ f k) a)
     simp [h, update_arg, Sigma.curry]
 
