@@ -139,18 +139,16 @@ def compMultilinearMap
   toFun m := g fun k ↦ f k (Sigma.curry m k)
   map_update_add':= by
     intro instDecSigma m j x y
-    have h2 v := funext (fun a ↦ Sigma.apply_update m j v (fun k ↦ f k) a)
     rw [Subsingleton.elim instDecSigma Sigma.instDecidableEqSigma] at *
-    simp only [h2]
+    simp only [fun v => funext (fun a ↦ Sigma.apply_update m j v (fun k ↦ f k) a)]
     simp [Sigma.curry_update]
 
   map_update_smul' := by
     intro instDecSigma m j x y
-    have h2 v := funext (fun a ↦ Sigma.apply_update m j v (fun k ↦ f k) a)
     rw [Subsingleton.elim instDecSigma Sigma.instDecidableEqSigma] at *
-    simp only [h2]
+    simp only [fun v => funext (fun a ↦ Sigma.apply_update m j v (fun k ↦ f k) a)]
     simp [Sigma.curry_update]
-    
+
 end Multilinear
 
 
