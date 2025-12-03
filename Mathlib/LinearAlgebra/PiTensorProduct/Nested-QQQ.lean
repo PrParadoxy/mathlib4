@@ -93,7 +93,7 @@ lemma Sigma.apply_update {γ : (a : α) → β a → Type*}
   · simp_all [congr_fun (Sigma.curry_update j g v) a]
 
 
--- Somehow `grind` can solve it. How?!
+
 lemma Sigma.apply_update_working {γ : (a : α) → β a → Type*}
     [DecidableEq α]
     [inst : DecidableEq ((k : α) × β k)]
@@ -113,8 +113,9 @@ lemma Sigma.apply_update_working {γ : (a : α) → β a → Type*}
     have := congr_fun (Sigma.curry_update j g v) a
     simp_all
     rw [←this]
-    congr with a b
-    grind
+    congr
+    apply Subsingleton.elim
+
 
 
 
