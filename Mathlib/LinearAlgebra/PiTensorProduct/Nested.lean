@@ -142,7 +142,7 @@ def tprodTprodHom : (⨂[R] j : (Σ k, T k), s j.1 j.2) →ₗ[R] (⨂[R] k, ⨂
 
 theorem tprodTprodHom_tprod (f : (j : (Σ k, T k)) → s j.1 j.2) :
     tprodTprodHom (⨂ₜ[R] j, f j) = ⨂ₜ[R] k, ⨂ₜ[R] i : T k, f ⟨k, i⟩ := by
-  simp [tprodTprodHom, Multilinear.compMultilinearMap_apply]
+  rw [tprodTprodHom, lift.tprod, Multilinear.compMultilinearMap_apply]
   rfl -- needed, because `Sigma.curry` has no simp lemmas and won't unfold.
   -- unfold Sigma.curry; simp only -- this also works.
 
