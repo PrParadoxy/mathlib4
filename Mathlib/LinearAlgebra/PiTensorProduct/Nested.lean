@@ -73,14 +73,8 @@ This is the analogue of `Function.apply_update` for sigma types.
 This could fit to `Data.Sigma`, after `Sigma.curry_update`, and would extend the
 parallel treatment of updates / currying for general functions and for functions
 of sigma types.
-
-TBD: Think about `DecidableEq` instances.
 -/
-lemma Sigma.apply_update {γ : (a : α) → β a → Type*}
-    [DecidableEq α]
-    [DecidableEq ((a : α) × β a)]
-    -- Preferable, for compat. w/ `Sigma.curry_update`, but somehow doesn't work below. TBD:
-    -- [(a : α) → DecidableEq (β a)]
+theorem Sigma.apply_update {γ : (a : α) → β a → Type*} [DecidableEq α] [(a : α) → DecidableEq (β a)]
     {δ : α → Type*} (g : (i : Σ a, β a) → γ i.1 i.2) (j : Σ a, β a) (v : γ j.1 j.2)
     (f : (a : α) → ((i : β a) → (γ a i)) → δ a) (a : α) :
     f a (Sigma.curry (Function.update g j v) a) =
@@ -89,11 +83,7 @@ lemma Sigma.apply_update {γ : (a : α) → β a → Type*}
   by_cases h : a = j.1
   · subst h
     simp
-  · unfold Sigma.curry
-    simp_all [show ∀ i : β a, ⟨a, i⟩ ≠ j from by grind]
-
-
-
+  · simp_all [congr_fun (Sigma.curry_update j g v) a]
 
 end Sigma
 
@@ -143,11 +133,16 @@ def compMultilinearMap
     have h1 v i : Function.update m j v ⟨j.1, i⟩ =
           Function.update (fun i : T j.1 ↦ m ⟨j.1, i⟩) j.2 v i := by grind
     have h2 v := funext (fun a ↦ Sigma.apply_update m j v (fun k ↦ f k) a)
+    rename_i instDecSigma
+    rw [Subsingleton.elim instDecSigma Sigma.instDecidableEqSigma] at *
     simp [h1, h2, Sigma.curry]
+
   map_update_smul' m j x y := by
     have h1 v i : Function.update m j v ⟨j.1, i⟩ =
           Function.update (fun i : T j.1 ↦ m ⟨j.1, i⟩) j.2 v i := by grind
     have h2 v := funext (fun a ↦ Sigma.apply_update m j v (fun k ↦ f k) a)
+    rename_i instDecSigma
+    rw [Subsingleton.elim instDecSigma Sigma.instDecidableEqSigma] at *
     simp [h1, h2, Sigma.curry]
 
 end Multilinear
