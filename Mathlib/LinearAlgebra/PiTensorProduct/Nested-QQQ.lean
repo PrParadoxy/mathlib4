@@ -69,13 +69,13 @@ variable (s : Finset α)
 
 variable {α : Type*} {β : α → Type*}
 
-instance [DecidableEq α] [inst : DecidableEq ((k : α) × β k)] : (a : α) → DecidableEq (β a) := by
+instance d [DecidableEq α] [inst : DecidableEq ((k : α) × β k)] : (a : α) → DecidableEq (β a) := by
   convert fun a b c => inst ⟨a, b⟩ ⟨a, c⟩
   simp
 
 -- a Diomand problem exists here. map_update provides `DecidableEq ((k : κ) × T k)` and from
--- `DecidableEq α` one can create `[(a : α) → DecidableEq (β a)]` to be consumed by
--- `Sigma.apply_update`. However, `Sigma.curry_update` uses `instDecidableEqSigma`
+-- `DecidableEq α` one can create `[(a : α) → DecidableEq (β a)]` through `instance d`
+-- to be consumed by `Sigma.apply_update`. However, `Sigma.curry_update` uses `instDecidableEqSigma`
 -- to create `DecidableEq ((k : κ) × T k)` as opposed to what map_update provides, causing things
 -- to fail.
 
@@ -105,7 +105,7 @@ lemma Sigma.apply_update_working {γ : (a : α) → β a → Type*}
     simp_all only [ne_eq, not_false_eq_true, update_of_ne]
     rw [←this]
     congr
-    apply Subsingleton.elim -- instances carry no data, so it works.
+    apply Subsingleton.elim -- prop instances carry no data, so it works.
 
 
 
