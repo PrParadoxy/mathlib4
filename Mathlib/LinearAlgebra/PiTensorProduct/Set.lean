@@ -434,23 +434,10 @@ theorem unifyEnds_tprod (E : (k : Fin n) → (i : Sf k) → s i →ₗ[R] s i) (
     = ⨂ₜ[R] i, E ((iUnionSigmaEquiv H).symm i).1 ((iUnionSigmaEquiv H).symm i).2 (f i) := by
   simp [unifyEnds, LinearEquiv.conj_apply, iUnionSigmaEquiv]
 
-
-
--- example (E : (k : Fin n) → (i : Sf k) → s i →ₗ[R] s i) (f : (i : (iUnion Sf)) → s i) : True := by
-
---   set q := unifyEnds H (⨂ₜ[R] k, map (E k)) (⨂ₜ[R] k , f k) with hs
---   simp [unifyEnds, LinearEquiv.conj_apply] at hs
-
--- example (F : (k : Fin n) → (i : Sf k) → s i →ₗ[R] R) (f : (i : (iUnion Sf)) → s i) : True := by
---   let g := fun i => ⨂ₜ[R] j, F i j
---   have := fun k => map (F k)
-
---   set q := unifyFunctionals H (⨂ₜ[R] k : Fin n,  map (R := R) (⨂ₜ[R] j : ↑(Sf k), F k j))
---       (⨂ₜ[R] i, f i)
-
-
-
+@[simp]
+theorem unifyFunctionals_tprod (F : (k : Fin n) → (⨂[R] i : Sf k, s i) →ₗ[R] R)
+  (f : (i : iUnion Sf) → s i) :
+    unifyFunctionals H (⨂ₜ[R] k, F k) (⨂ₜ[R] i, f i) = ∏ i, (F i) (⨂ₜ[R] i, f ⟨i, by aesop⟩) := by
+  simp [unifyFunctionals, LinearEquiv.congrRight, LinearEquiv.congrLeft]
 
 end Fin
-
-end PiTensorProduct
