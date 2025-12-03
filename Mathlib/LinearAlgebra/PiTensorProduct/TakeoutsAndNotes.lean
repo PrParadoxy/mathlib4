@@ -551,3 +551,9 @@ noncomputable def unifMaps_ml'' [DecidableEq κ] [∀ k : κ, DecidableEq (Sf k)
 end Set
 
 end PiTensorProduct
+
+
+-- -- Isn't that kinda missing?
+-- -- @[simp, grind =]
+-- theorem Sigma.curry_apply {α : Type*} {β : α → Type*} {γ : ∀ a, β a → Type*}
+--     (f : ∀ x : Sigma β, γ x.1 x.2) (x : α) (y : β x) : Sigma.curry f x y = f ⟨x, y⟩ := by rfl

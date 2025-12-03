@@ -58,13 +58,6 @@ section Sigma
 
 variable {α : Type*} {β : α → Type*}
 
-#check Function.curry_apply
-
--- -- Isn't that kinda missing?
--- -- @[simp, grind =]
--- theorem Sigma.curry_apply {α : Type*} {β : α → Type*} {γ : ∀ a, β a → Type*}
---     (f : ∀ x : Sigma β, γ x.1 x.2) (x : α) (y : β x) : Sigma.curry f x y = f ⟨x, y⟩ := by rfl
-
 /-
 Implementation note:
 
@@ -85,9 +78,6 @@ theorem Sigma.apply_update {γ : (a : α) → β a → Type*} [DecidableEq α] [
   -- · subst h
   --   simp
   -- · simp_all [Sigma.curry_update]
---  rw [congr_fun (Sigma.curry_update j g v) a]
---  convert Function.apply_update f ..
---  simp [Sigma.curry_update]
 
 end Sigma
 
@@ -126,23 +116,15 @@ def compMultilinearMap
   map_update_add' := by
     intro hDecEqSigma m j
     rw [Subsingleton.elim hDecEqSigma Sigma.instDecidableEqSigma]
-    simp_rw [funext (fun a ↦ Sigma.apply_update _ _ _ (fun k ↦ f k) a), Sigma.curry_update]
+    simp_rw [funext (fun a ↦ Sigma.apply_update m j _ (fun k ↦ f k) a), Sigma.curry_update]
     simp
   map_update_smul' := by
     intro hDecEqSigma m j
     rw [Subsingleton.elim hDecEqSigma Sigma.instDecidableEqSigma]
-    simp_rw [funext (fun a ↦ Sigma.apply_update _ _ _ (fun k ↦ f k) a), Sigma.curry_update]
+    simp_rw [funext (fun a ↦ Sigma.apply_update m j _ (fun k ↦ f k) a), Sigma.curry_update]
     simp
 
 end Multilinear
-
-
-    rw [funext (fun a ↦ Sigma.apply_update m j _ (fun k ↦ f k) a)]
-    rw [funext (fun a ↦ Sigma.apply_update m j _ (fun k ↦ f k) a)]
-    rw [Sigma.curry_update]
-    rw [Sigma.curry_update]
-    simp only [Function.update_self, MultilinearMap.map_update_smul]
-
 
 open Fin Set Submodule
 open scoped TensorProduct
