@@ -75,7 +75,7 @@ variable {α : Type*} {β : α → Type*}
 -- `DecidableEq α` one can create `[(a : α) → DecidableEq (β a)]` to be consumed by
 -- `Sigma.apply_update`. However, `Sigma.curry_update` uses `instDecidableEqSigma`
 -- to create `DecidableEq ((k : κ) × T k)` as opposed to what map_update provides, causing things
--- to fail. 
+-- to fail.
 
 lemma Sigma.apply_update {γ : (a : α) → β a → Type*}
     [DecidableEq α]
@@ -93,7 +93,28 @@ lemma Sigma.apply_update {γ : (a : α) → β a → Type*}
   · simp_all [congr_fun (Sigma.curry_update j g v) a]
 
 
-
+-- Somehow `grind` can solve it. How?!
+lemma Sigma.apply_update_working {γ : (a : α) → β a → Type*}
+    [DecidableEq α]
+    [inst : DecidableEq ((k : α) × β k)]
+    -- [(a : α) → DecidableEq (β a)]
+    -- Preferable, for compat. w/ `Sigma.curry_update`, but somehow doesn't work below. TBD:
+    -- [(a : α) → DecidableEq (β a)]
+    {δ : α → Type*} (g : (i : Σ a, β a) → γ i.1 i.2) (j : Σ a, β a) (v : γ j.1 j.2)
+    (f : (a : α) → ((i : β a) → (γ a i)) → δ a) (a : α) :
+    f a (Sigma.curry (Function.update g j v) a) =
+    Function.update (fun a ↦ f a (Sigma.curry g a)) j.1
+    (f j.1 (fun i : β j.1 ↦ Sigma.curry (Function.update g j v) j.1 i)) a := by
+  by_cases h : a = j.1
+  · aesop
+  · have : (a : α) → DecidableEq (β a) := by
+      convert fun a b c => inst ⟨a, b⟩ ⟨a, c⟩
+      simp
+    have := congr_fun (Sigma.curry_update j g v) a
+    simp_all
+    rw [←this]
+    congr with a b
+    grind
 
 
 
@@ -141,12 +162,16 @@ def compMultilinearMap
       intro a b c
       convert inst ⟨a, b⟩ ⟨a, c⟩
       simp
-    have h v := funext (fun a ↦ Sigma.apply_update m j v (fun k ↦ f k) a)
-    conv_lhs => arg 2; rw [h] -- Diamond problem
+    have h v := funext (fun a ↦ Sigma.apply_update_working m j v (fun k ↦ f k) a)
     simp [h, update_arg, Sigma.curry]
 
-  map_update_smul' m j x y := by
-    have h v := funext (fun a ↦ Sigma.apply_update m j v (fun k ↦ f k) a)
+  map_update_smul' := by
+    intro inst  m j x y
+    have :  ∀ k : κ, DecidableEq (T k) := by
+      intro a b c
+      convert inst ⟨a, b⟩ ⟨a, c⟩
+      simp
+    have h v := funext (fun a ↦ Sigma.apply_update_working m j v (fun k ↦ f k) a)
     simp [h, update_arg, Sigma.curry]
 
 end Multilinear
