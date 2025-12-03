@@ -69,12 +69,13 @@ variable (s : Finset α)
 
 variable {α : Type*} {β : α → Type*}
 
-instance d [DecidableEq α] [inst : DecidableEq ((k : α) × β k)] : (a : α) → DecidableEq (β a) := by
+instance decEqSigma [DecidableEq α] [inst : DecidableEq ((k : α) × β k)]
+  : (a : α) → DecidableEq (β a) := by
   convert fun a b c => inst ⟨a, b⟩ ⟨a, c⟩
   simp
 
--- a Diomand problem exists here. map_update provides `DecidableEq ((k : κ) × T k)` and from
--- `DecidableEq α` one can create `[(a : α) → DecidableEq (β a)]` through `instance d`
+-- a Diamond problem exists here. map_update provides `DecidableEq ((k : κ) × T k)` and from
+-- `DecidableEq α` one can create `[(a : α) → DecidableEq (β a)]` through `instance decEqSigma`
 -- to be consumed by `Sigma.apply_update`. However, `Sigma.curry_update` uses `instDecidableEqSigma`
 -- to create `DecidableEq ((k : κ) × T k)` as opposed to what map_update provides, causing things
 -- to fail.
