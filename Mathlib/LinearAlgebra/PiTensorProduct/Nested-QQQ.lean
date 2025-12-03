@@ -69,7 +69,9 @@ variable (s : Finset α)
 
 variable {α : Type*} {β : α → Type*}
 
-
+instance [DecidableEq α] [inst : DecidableEq ((k : α) × β k)] : (a : α) → DecidableEq (β a) := by
+  convert fun a b c => inst ⟨a, b⟩ ⟨a, c⟩
+  simp
 
 -- a Diomand problem exists here. map_update provides `DecidableEq ((k : κ) × T k)` and from
 -- `DecidableEq α` one can create `[(a : α) → DecidableEq (β a)]` to be consumed by
@@ -79,10 +81,7 @@ variable {α : Type*} {β : α → Type*}
 
 lemma Sigma.apply_update {γ : (a : α) → β a → Type*}
     [DecidableEq α]
-
     [(a : α) → DecidableEq (β a)]
-    -- Preferable, for compat. w/ `Sigma.curry_update`, but somehow doesn't work below. TBD:
-    -- [(a : α) → DecidableEq (β a)]
     {δ : α → Type*} (g : (i : Σ a, β a) → γ i.1 i.2) (j : Σ a, β a) (v : γ j.1 j.2)
     (f : (a : α) → ((i : β a) → (γ a i)) → δ a) (a : α) :
     f a (Sigma.curry (Function.update g j v) a) =
@@ -92,16 +91,9 @@ lemma Sigma.apply_update {γ : (a : α) → β a → Type*}
   · aesop
   · simp_all [congr_fun (Sigma.curry_update j g v) a]
 
-instance [DecidableEq α] [inst : DecidableEq ((k : α) × β k)] : (a : α) → DecidableEq (β a) := by
-  convert fun a b c => inst ⟨a, b⟩ ⟨a, c⟩
-  simp
-
 lemma Sigma.apply_update_working {γ : (a : α) → β a → Type*}
     [DecidableEq α]
     [inst : DecidableEq ((k : α) × β k)]
-    -- [(a : α) → DecidableEq (β a)]
-    -- Preferable, for compat. w/ `Sigma.curry_update`, but somehow doesn't work below. TBD:
-    -- [(a : α) → DecidableEq (β a)]
     {δ : α → Type*} (g : (i : Σ a, β a) → γ i.1 i.2) (j : Σ a, β a) (v : γ j.1 j.2)
     (f : (a : α) → ((i : β a) → (γ a i)) → δ a) (a : α) :
     f a (Sigma.curry (Function.update g j v) a) =
@@ -110,10 +102,10 @@ lemma Sigma.apply_update_working {γ : (a : α) → β a → Type*}
   by_cases h : a = j.1
   · aesop
   · have := congr_fun (Sigma.curry_update j g v) a
-    simp_all
+    simp_all only [ne_eq, not_false_eq_true, update_of_ne]
     rw [←this]
     congr
-    apply Subsingleton.elim
+    apply Subsingleton.elim -- instances carry no data, so it works.
 
 
 
