@@ -126,12 +126,12 @@ def compMultilinearMap
   map_update_add' := by
     intro hDecEqSigma m j
     rw [Subsingleton.elim hDecEqSigma Sigma.instDecidableEqSigma]
-    simp only [fun v ↦ funext (fun a ↦ Sigma.apply_update m j v (fun k ↦ f k) a)]
+    simp only [funext (fun a ↦ Sigma.apply_update _ _ _ (fun k ↦ f k) a)]
     simp [Sigma.curry_update]
   map_update_smul' := by
     intro hDecEqSigma m j
     rw [Subsingleton.elim hDecEqSigma Sigma.instDecidableEqSigma]
-    simp only [fun v ↦ funext (fun a ↦ Sigma.apply_update m j v (fun k ↦ f k) a)]
+    simp only [funext (fun a ↦ Sigma.apply_update _ _ _ (fun k ↦ f k) a)]
     simp [Sigma.curry_update]
 
 end Multilinear
