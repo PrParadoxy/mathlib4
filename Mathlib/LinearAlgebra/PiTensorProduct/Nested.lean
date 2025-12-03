@@ -51,19 +51,19 @@ Replace by other construction? Keep here? Mark `protected`? Add "_aux" to name?
 Move to `Equiv.Fin /Equiv.Sum`?  Restructure entirely?
 -/
 
--- -- doesn't really help. :(
---@[simp, grind =]
---theorem Sigma.curry_apply {α : Type*} {β : α → Type*} {γ : ∀ a, β a → Type*}
---    (f : ∀ x : Sigma β, γ x.1 x.2) (x : α) (y : β x) :  Sigma.curry f x y = f ⟨x, y⟩ := by rfl
-
--- # What happened to tprodiUnionEquiv?
 
 @[expose] public section
 
-#check Function.apply_update
 section Sigma
 
 variable {α : Type*} {β : α → Type*}
+
+#check Function.curry_apply
+
+-- -- Isn't that kinda missing?
+-- -- @[simp, grind =]
+-- theorem Sigma.curry_apply {α : Type*} {β : α → Type*} {γ : ∀ a, β a → Type*}
+--     (f : ∀ x : Sigma β, γ x.1 x.2) (x : α) (y : β x) : Sigma.curry f x y = f ⟨x, y⟩ := by rfl
 
 /-
 Implementation note:
@@ -80,18 +80,13 @@ theorem Sigma.apply_update {γ : (a : α) → β a → Type*} [DecidableEq α] [
     f a (Sigma.curry (Function.update g j v) a) =
     Function.update (fun a ↦ f a (Sigma.curry g a)) j.1
     (f j.1 (fun i : β j.1 ↦ Sigma.curry (Function.update g j v) j.1 i)) a := by
-  rw [congr_fun (Sigma.curry_update j g v) a]
-  convert Function.apply_update f ..
-  simp [Sigma.curry_update]
-
-
-
-  -- apply Function.apply_update (f := f) (j := a)
-
-  -- by_cases h : a = j.1
-  -- · subst h
-  --   simp
-  -- · simp_all [congr_fun (Sigma.curry_update j g v) a]
+  by_cases h : a = j.1
+  · subst h
+    simp
+  · simp_all [Sigma.curry_update]
+--  rw [congr_fun (Sigma.curry_update j g v) a]
+--  convert Function.apply_update f ..
+--  simp [Sigma.curry_update]
 
 end Sigma
 
@@ -116,16 +111,6 @@ variable [AddCommMonoid N] [Module R N]
 
 variable [DecidableEq κ] [∀ k : κ, DecidableEq (T k)]
 
--- -- what's the relation with Sigma.curry_update?
--- lemma update_arg [DecidableEq ((k : κ) × T k)]
---   (m : (i : Σ k, T k) → s i.1 i.2) (j : Σ k, T k) (v : s j.1 j.2) (i : T j.1) :
---   Function.update m j v ⟨j.1, i⟩ = Function.update (fun i : T j.1 ↦ m ⟨j.1, i⟩) j.2 v i :=
--- by grind
---     have h1 v i : Sigma.curry (Function.update m j v) j.1 i =
---         Function.update (Sigma.curry m j.1) j.2 v i := by
---           unfold Sigma.curry
---           grind
-
 /-- Composition of multilinear maps.
 
 If `g` is a multilinear map with index type `κ`, and if for every `k : κ`, we
@@ -137,16 +122,15 @@ def compMultilinearMap
     (g : MultilinearMap R M N) (f : (k : κ) → MultilinearMap R (s k) (M k)) :
       MultilinearMap R (fun j : Σ k, T k ↦ s j.fst j.snd) N where
   toFun m := g fun k ↦ f k (Sigma.curry m k)
-  map_update_add':= by
-    intro instDecSigma m j x y
-    rw [Subsingleton.elim instDecSigma Sigma.instDecidableEqSigma] at *
-    simp only [fun v => funext (fun a ↦ Sigma.apply_update m j v (fun k ↦ f k) a)]
+  map_update_add' := by
+    intro hDecEqSigma m j
+    rw [Subsingleton.elim hDecEqSigma Sigma.instDecidableEqSigma]
+    simp only [fun v ↦ funext (fun a ↦ Sigma.apply_update m j v (fun k ↦ f k) a)]
     simp [Sigma.curry_update]
-
   map_update_smul' := by
-    intro instDecSigma m j x y
-    rw [Subsingleton.elim instDecSigma Sigma.instDecidableEqSigma] at *
-    simp only [fun v => funext (fun a ↦ Sigma.apply_update m j v (fun k ↦ f k) a)]
+    intro hDecEqSigma m j
+    rw [Subsingleton.elim hDecEqSigma Sigma.instDecidableEqSigma]
+    simp only [fun v ↦ funext (fun a ↦ Sigma.apply_update m j v (fun k ↦ f k) a)]
     simp [Sigma.curry_update]
 
 end Multilinear
