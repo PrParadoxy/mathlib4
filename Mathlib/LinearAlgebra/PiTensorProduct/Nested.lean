@@ -60,7 +60,7 @@ Move to `Equiv.Fin /Equiv.Sum`?  Restructure entirely?
 
 @[expose] public section
 
-
+#check Function.apply_update
 section Sigma
 
 variable {α : Type*} {β : α → Type*}
@@ -80,10 +80,18 @@ theorem Sigma.apply_update {γ : (a : α) → β a → Type*} [DecidableEq α] [
     f a (Sigma.curry (Function.update g j v) a) =
     Function.update (fun a ↦ f a (Sigma.curry g a)) j.1
     (f j.1 (fun i : β j.1 ↦ Sigma.curry (Function.update g j v) j.1 i)) a := by
-  by_cases h : a = j.1
-  · subst h
-    simp
-  · simp_all [congr_fun (Sigma.curry_update j g v) a]
+  rw [fun a => congr_fun (Sigma.curry_update j g v) a]
+  convert Function.apply_update f (curry g) j.fst (Function.update (curry g j.fst) j.snd v) a
+  simp [Sigma.curry_update]
+
+
+
+  -- apply Function.apply_update (f := f) (j := a)
+
+  -- by_cases h : a = j.1
+  -- · subst h
+  --   simp
+  -- · simp_all [congr_fun (Sigma.curry_update j g v) a]
 
 end Sigma
 
