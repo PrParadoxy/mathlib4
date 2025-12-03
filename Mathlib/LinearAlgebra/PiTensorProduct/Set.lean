@@ -428,15 +428,25 @@ noncomputable def unifyFunctionals :
   }
 
 
-variable {ι : Type*} {s : ι → Type*} {R : Type*} {n : Nat} {Sf : Fin n → Set ι}
-    (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
-    [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
-    [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)] [(k : Fin n) → DecidableEq ↑(Sf k)]
+@[simp]
+theorem unifyEnds_tprod (E : (k : Fin n) → (i : Sf k) → s i →ₗ[R] s i) (f : (i : (iUnion Sf)) → s i)
+  : unifyEnds H (⨂ₜ[R] k, map (E k)) (⨂ₜ[R] k , f k)
+    = ⨂ₜ[R] i, E ((iUnionSigmaEquiv H).symm i).1 ((iUnionSigmaEquiv H).symm i).2 (f i) := by
+  simp [unifyEnds, LinearEquiv.conj_apply, iUnionSigmaEquiv]
 
-noncomputable example :
-    (⨂[R] k, End R (⨂[R] i : Sf k, s i)) →ₗ[R] End R (⨂[R] i : iUnion Sf, s i) :=
-  (tprodFiniUnionEquiv H).toLinearMap.compRight R
-    (M := ⨂[R] (i : ↑(iUnion Sf)), s ↑i) ∘ₗ unifyMaps H
+
+
+-- example (E : (k : Fin n) → (i : Sf k) → s i →ₗ[R] s i) (f : (i : (iUnion Sf)) → s i) : True := by
+
+--   set q := unifyEnds H (⨂ₜ[R] k, map (E k)) (⨂ₜ[R] k , f k) with hs
+--   simp [unifyEnds, LinearEquiv.conj_apply] at hs
+
+-- example (F : (k : Fin n) → (i : Sf k) → s i →ₗ[R] R) (f : (i : (iUnion Sf)) → s i) : True := by
+--   let g := fun i => ⨂ₜ[R] j, F i j
+--   have := fun k => map (F k)
+
+--   set q := unifyFunctionals H (⨂ₜ[R] k : Fin n,  map (R := R) (⨂ₜ[R] j : ↑(Sf k), F k j))
+--       (⨂ₜ[R] i, f i)
 
 
 
