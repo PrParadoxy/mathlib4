@@ -337,6 +337,7 @@ variable {ι : Type*} {s : ι → Type*} {R : Type*} {n : Nat} {Sf : Fin n → S
 
 -- TBD: What's the non-computable library version?
 -- it is `unionEqSigmaOfDisjoint`
+-- See `Equiv.Perm.viaFintypeEmbedding` doc string.
 private def iUnionSigmaEquiv : (Σ k, Sf k) ≃ iUnion Sf where
   toFun s := ⟨s.2, by aesop⟩
   invFun s := ⟨(Fin.find (↑s ∈ Sf ·)).get
@@ -450,3 +451,4 @@ theorem unifyFunctionals_tprod (F : (k : Fin n) → (⨂[R] i : Sf k, s i) →�
   simp [unifyFunctionals, LinearEquiv.congrRight, LinearEquiv.congrLeft]
 
 end Fin
+#check Equiv.sigmaAssoc
