@@ -61,23 +61,28 @@ variable {α : Type*} {β : α → Type*}
 /-
 Implementation note:
 
-This is the analogue of `Function.apply_update` for sigma types.
+A version of `Function.apply_update` in the setting of `Sigma.curry_update`.
 
-This could fit to `Data.Sigma`, after `Sigma.curry_update`, and would extend the
-parallel treatment of updates / currying for general functions and for functions
-of sigma types.
+`Function.apply_update` describes the change of `f i (g i)` when `g` is updated.
+
+In this version, `g` is defined on a sigma type, and we describe the change of
+`f a (b ↦ g ⟨a, b⟩)` when `g` is updated. As in `Sigma.curry_update`, the
+update of `⟨a, b⟩` is performed consecutively first for `a`, then for `b`.
 -/
-theorem Sigma.apply_update {γ : (a : α) → β a → Type*} [DecidableEq α] [(a : α) → DecidableEq (β a)]
+theorem Sigma.apply_curry_update {γ : (a : α) → β a → Type*}
+    [DecidableEq α] [(a : α) → DecidableEq (β a)]
     {δ : α → Type*} (g : (i : Σ a, β a) → γ i.1 i.2) (j : Σ a, β a) (v : γ j.1 j.2)
-    (f : (a : α) → ((i : β a) → (γ a i)) → δ a) (a : α) :
+    (f : (a : α) → ((b : β a) → (γ a b)) → δ a) (a : α) :
     f a (Sigma.curry (Function.update g j v) a) =
     Function.update (fun a ↦ f a (Sigma.curry g a)) j.1
     (f j.1 (fun i : β j.1 ↦ Sigma.curry (Function.update g j v) j.1 i)) a := by
-  by_cases h : a = j.1
-  · subst h
-    simp
-  · simp_all [Sigma.curry_update]
-  -- by_cases a = j.1 <;> aesop (add safe forward Sigma.curry_update)
+  by_cases a = j.1 <;> aesop (add safe forward Sigma.curry_update)
+-- -- Alternative:
+-- -- Slightly longer proof, but more reflective of the idioms used in `Logic/Function/Basic.lean`
+--  by_cases h : a = j.1
+--  · subst h
+--    simp
+--  · simp [h, Sigma.curry_update]
 
 end Sigma
 
@@ -116,12 +121,12 @@ def compMultilinearMap
   map_update_add' := by
     intro hDecEqSigma m j
     rw [Subsingleton.elim hDecEqSigma Sigma.instDecidableEqSigma]
-    simp_rw [funext (fun a ↦ Sigma.apply_update m j _ (fun k ↦ f k) a), Sigma.curry_update]
+    simp_rw [funext (fun a ↦ Sigma.apply_curry_update m j _ (fun k ↦ f k) a), Sigma.curry_update]
     simp
   map_update_smul' := by
     intro hDecEqSigma m j
     rw [Subsingleton.elim hDecEqSigma Sigma.instDecidableEqSigma]
-    simp_rw [funext (fun a ↦ Sigma.apply_update m j _ (fun k ↦ f k) a), Sigma.curry_update]
+    simp_rw [funext (fun a ↦ Sigma.apply_curry_update m j _ (fun k ↦ f k) a), Sigma.curry_update]
     simp
 
 end Multilinear
