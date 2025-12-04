@@ -73,11 +73,11 @@ theorem Sigma.apply_update {γ : (a : α) → β a → Type*} [DecidableEq α] [
     f a (Sigma.curry (Function.update g j v) a) =
     Function.update (fun a ↦ f a (Sigma.curry g a)) j.1
     (f j.1 (fun i : β j.1 ↦ Sigma.curry (Function.update g j v) j.1 i)) a := by
-  by_cases a = j.1 <;> aesop (add safe forward Sigma.curry_update)
-  -- by_cases h : a = j.1
-  -- · subst h
-  --   simp
-  -- · simp_all [Sigma.curry_update]
+  by_cases h : a = j.1
+  · subst h
+    simp
+  · simp_all [Sigma.curry_update]
+  -- by_cases a = j.1 <;> aesop (add safe forward Sigma.curry_update)
 
 end Sigma
 
@@ -196,7 +196,7 @@ theorem tprodFinTprodEquiv_tprod (f : (k : Fin n) → (i : Tf k) → s k i) :
     simp only [tprodFinTprodEquiv, Equiv.symm_symm, finSumFinEquiv_apply_left, trans_apply]
 
     -- Strategy: Repeatedly move equivalences around to obtain the form
-    -- `(complicated terms) = aSingleEquiv tprod`, then simp away `aSingleEquiv`.
+    -- `(complex terms) = aSingleEquiv tprod`, then simp away `aSingleEquiv`.
     -- Start with final reindex & tmulEquivDep:
     rw [symm_apply_eq, reindex_tprod, ←eq_symm_apply]
     conv_rhs => apply tmulEquivDep_symm_apply
@@ -240,7 +240,7 @@ theorem tprodFiniteTprodEquiv_tprod (f : (k : ι) → (i : Tf k) → s k i) :
   simp only [tprodFiniteTprodEquiv, Equiv.symm_symm, LinearEquiv.trans_apply,
     reindex_tprod, Equiv.sigmaCongrLeft_apply, tprodFinTprodEquiv_tprod, LinearEquiv.symm_apply_eq]
   conv_rhs => apply reindex_tprod
-  congr
+  simp
 
 @[simp]
 theorem tprodFiniteTprodEquiv_symm_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :

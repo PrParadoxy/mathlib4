@@ -438,7 +438,7 @@ noncomputable def unifyFunctionals :
 
 @[simp]
 theorem unifyEnds_tprod (E : (k : Fin n) → (i : Sf k) → s i →ₗ[R] s i) (f : (i : (iUnion Sf)) → s i)
-  : unifyEnds H (⨂ₜ[R] k, map (E k)) (⨂ₜ[R] k , f k)
+  : unifyEnds H (⨂ₜ[R] k, map (E k)) (⨂ₜ[R] k, f k)
     = ⨂ₜ[R] i, E ((iUnionSigmaEquiv H).symm i).1 ((iUnionSigmaEquiv H).symm i).2 (f i) := by
   simp [unifyEnds, LinearEquiv.conj_apply, iUnionSigmaEquiv]
 
