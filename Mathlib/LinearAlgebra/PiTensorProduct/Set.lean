@@ -428,6 +428,8 @@ the global functionals.
 Note: Inherits noncomputability from `PiTensorProduct.constantBaseRingEquiv`,
 which carries this attribute for performance reasons.
 -/
+-- `the performance issue is no longer true and they are open to PRs that remove noncomputable mark`
+-- `https://leanprover.zulipchat.com/#narrow/channel/287929-mathlib4/topic/Why.20PiTensorProduct.2Econgr.20is.20marked.20noncomputable.3F`
 noncomputable def unifyFunctionals :
     (⨂[R] k, (⨂[R] i : Sf k, s i) →ₗ[R] R) →ₗ[R] ((⨂[R] i : iUnion Sf, s i) →ₗ[R] R) :=
   lift {
@@ -451,4 +453,3 @@ theorem unifyFunctionals_tprod (F : (k : Fin n) → (⨂[R] i : Sf k, s i) →�
   simp [unifyFunctionals, LinearEquiv.congrRight, LinearEquiv.congrLeft]
 
 end Fin
-#check Equiv.sigmaAssoc
