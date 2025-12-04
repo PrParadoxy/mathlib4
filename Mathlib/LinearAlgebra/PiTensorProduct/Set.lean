@@ -452,4 +452,12 @@ theorem unifyFunctionals_tprod (F : (k : Fin n) → (⨂[R] i : Sf k, s i) →�
     unifyFunctionals H (⨂ₜ[R] k, F k) (⨂ₜ[R] i, f i) = ∏ i, (F i) (⨂ₜ[R] i, f ⟨i, by aesop⟩) := by
   simp [unifyFunctionals, LinearEquiv.congrRight, LinearEquiv.congrLeft]
 
+@[simp]
+theorem unifyFunctionals_fintype_tprod (F : (k : Fin n) → (i : Sf k) → s i →ₗ[R] R)
+    (f : (i : (iUnion Sf)) → s i) [∀ k, Fintype (Sf k)] :
+    unifyFunctionals H
+      (⨂ₜ[R] k, (lift (MultilinearMap.mkPiAlgebra R (Sf k) R)) ∘ₗ map (F k)) (⨂ₜ[R] i, f i)
+    =  ∏ i, ∏ j, (F i j) (f ⟨j, by aesop⟩) := by
+  simp [unifyFunctionals, LinearEquiv.congrRight, LinearEquiv.congrLeft]
+
 end Fin
