@@ -336,6 +336,7 @@ variable {ι : Type*} {s : ι → Type*} {R : Type*} {n : Nat} {Sf : Fin n → S
   [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
 
 -- TBD: What's the non-computable library version?
+-- it is `unionEqSigmaOfDisjoint`
 private def iUnionSigmaEquiv : (Σ k, Sf k) ≃ iUnion Sf where
   toFun s := ⟨s.2, by aesop⟩
   invFun s := ⟨(Fin.find (↑s ∈ Sf ·)).get
