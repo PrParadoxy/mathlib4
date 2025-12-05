@@ -207,8 +207,7 @@ def tmulInsertEquiv :
 theorem tmulInsertEquiv_tprod (x : s i₀) (f : (i : S) → s i) :
     (tmulInsertEquiv h₀) (x ⊗ₜ[R] (⨂ₜ[R] i, f i)) = ⨂ₜ[R] i : ↥(insert i₀ S),
       if h : i.val ∈ ({i₀} : Set ι) then cast (by aesop) x else f ⟨i, by aesop⟩ := by
-  rw [tmulInsertEquiv, LinearEquiv.trans_apply,
-    TensorProduct.congr_tmul, singletonEquiv_symm_tprod]
+  rw [tmulInsertEquiv, LinearEquiv.trans_apply, TensorProduct.congr_tmul, singletonEquiv_symm_tprod]
   apply tmulUnionEquiv_tprod
 
 @[simp]

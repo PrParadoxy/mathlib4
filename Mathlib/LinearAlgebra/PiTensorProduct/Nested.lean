@@ -145,6 +145,7 @@ variable {κ : Type*} {R : Type*} {T : (k : κ) → Type*} {s : (k : κ) → (i 
 def tprodTprodHom : (⨂[R] j : (Σ k, T k), s j.1 j.2) →ₗ[R] (⨂[R] k, ⨂[R] i, s k i) :=
   lift (Multilinear.compMultilinearMap (tprod R) (fun _ ↦ tprod R))
 
+@[simp]
 theorem tprodTprodHom_tprod (f : (j : (Σ k, T k)) → s j.1 j.2) :
     tprodTprodHom (⨂ₜ[R] j, f j) = ⨂ₜ[R] k, ⨂ₜ[R] i : T k, f ⟨k, i⟩ := by
   rw [tprodTprodHom, lift.tprod, Multilinear.compMultilinearMap_apply]
