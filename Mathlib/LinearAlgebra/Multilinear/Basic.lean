@@ -403,6 +403,37 @@ theorem comp_linearEquiv_eq_zero_iff (g : MultilinearMap R M₁' M₂) (f : ∀ 
   set f' := fun i => (f i : M₁ i →ₗ[R] M₁' i)
   rw [← zero_compLinearMap f', compLinearMap_inj f' fun i => (f i).surjective]
 
+
+section compMultilinear
+
+variable {β : ι → Type*}
+variable {N : (i : ι) → (b : β i) → Type*}
+variable [∀ i, ∀ b, AddCommMonoid (N i b)] [∀ i, ∀ b, Module R (N i b)]
+
+/-- Composition of multilinear maps.
+
+If `g` is a multilinear map with index type `κ`, and if for every `k : κ`, we
+have a multilinear map `f k` with index type `T k`, then
+  `m ↦ g (f₁ m_11 m_12 ...) (f₂ m_21 m_22 ...) ...`
+is multilinear with index type `(Σ k, T k)`. -/
+@[simps]
+def compMultilinearMap [DecidableEq ι] [∀ i : ι, DecidableEq (β i)]
+    (g : MultilinearMap R M₁ M₂) (f : (i : ι) → MultilinearMap R (N i) (M₁ i)) :
+      MultilinearMap R (fun j : Σ i, β i ↦ N j.fst j.snd) M₂ where
+  toFun m := g fun i ↦ f i (Sigma.curry m i)
+  map_update_add' := by
+    intro hDecEqSigma m j
+    rw [Subsingleton.elim hDecEqSigma Sigma.instDecidableEqSigma]
+    simp_rw [funext (fun i ↦ Sigma.apply_curry_update m j _ (fun i' ↦ f i') i), Sigma.curry_update]
+    simp
+  map_update_smul' := by
+    intro hDecEqSigma m j
+    rw [Subsingleton.elim hDecEqSigma Sigma.instDecidableEqSigma]
+    simp_rw [funext (fun i ↦ Sigma.apply_curry_update m j _ (fun i' ↦ f i') i), Sigma.curry_update]
+    simp
+
+end compMultilinear
+
 end
 
 /-- If one adds to a vector `m'` another vector `m`, but only for coordinates in a finset `t`, then
@@ -754,7 +785,7 @@ lemma linearDeriv_apply [DecidableEq ι] [Fintype ι] (f : MultilinearMap R M₁
     (x y : (i : ι) → M₁ i) :
     f.linearDeriv x y = ∑ i, f (update x i (y i)) := by
   unfold linearDeriv
-  simp only [LinearMap.coe_sum, LinearMap.coe_comp, LinearMap.coe_proj, Finset.sum_apply,
+  simp only [LinearMap.coeFn_sum, LinearMap.coe_comp, LinearMap.coe_proj, Finset.sum_apply,
     Function.comp_apply, Function.eval, toLinearMap_apply]
 
 end Semiring
@@ -1360,7 +1391,7 @@ lemma map_add_sub_map_add_sub_linearDeriv [DecidableEq ι] [Fintype ι] (x h h' 
     f (x + h) - f (x + h') - f.linearDeriv x (h - h') =
     ∑ s with 2 ≤ #s, (f (s.piecewise h x) - f (s.piecewise h' x)) := by
   simp_rw [map_add_eq_map_add_linearDeriv_add, add_assoc, add_sub_add_comm, sub_self, zero_add,
-    ← map_sub, add_sub_cancel_left, sum_sub_distrib]
+    ← LinearMap.map_sub, add_sub_cancel_left, sum_sub_distrib]
 
 end AddCommGroup
 
