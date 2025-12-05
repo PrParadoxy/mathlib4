@@ -67,7 +67,7 @@ A version of `Function.apply_update` in the setting of `Sigma.curry_update`.
 
 In this version, `g` is defined on a sigma type, and we describe the change of
 `f a (b ↦ g ⟨a, b⟩)` when `g` is updated. As in `Sigma.curry_update`, the
-update of `⟨a, b⟩` is performed consecutively first for `a`, then for `b`.
+arguments of `⟨a, b⟩` are updated consecutively.
 -/
 theorem Sigma.apply_curry_update {γ : (a : α) → β a → Type*}
     [DecidableEq α] [(a : α) → DecidableEq (β a)]
@@ -149,8 +149,8 @@ def tprodTprodHom : (⨂[R] j : (Σ k, T k), s j.1 j.2) →ₗ[R] (⨂[R] k, ⨂
 theorem tprodTprodHom_tprod (f : (j : (Σ k, T k)) → s j.1 j.2) :
     tprodTprodHom (⨂ₜ[R] j, f j) = ⨂ₜ[R] k, ⨂ₜ[R] i : T k, f ⟨k, i⟩ := by
   rw [tprodTprodHom, lift.tprod, Multilinear.compMultilinearMap_apply]
-  rfl -- needed, because `Sigma.curry` has no simp lemmas and won't unfold.
-  -- unfold Sigma.curry; simp only -- this also works.
+  unfold Sigma.curry -- seems unavoidable
+  dsimp
 
 end tprodTprodHom
 
