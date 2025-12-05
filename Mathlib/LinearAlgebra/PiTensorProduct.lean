@@ -808,8 +808,8 @@ def subsingletonEquivDep : (⨂[R] i : ι, s i) ≃ₗ[R] s i₀ :=
   LinearEquiv.ofLinear
     (lift
       { toFun f := f i₀
-        map_update_add' := by aesop (add safe forward Subsingleton.allEq)
-        map_update_smul' := by aesop (add safe forward Subsingleton.allEq) })
+        map_update_add' m i := by rw [Subsingleton.elim i i₀]; simp
+        map_update_smul' m i := by rw [Subsingleton.elim i i₀]; simp })
     ({ toFun x := tprod R (update ↑0 i₀ x)
        map_add' := by simp
        map_smul' := by simp })
@@ -817,7 +817,7 @@ def subsingletonEquivDep : (⨂[R] i : ι, s i) ≃ₗ[R] s i₀ :=
     (by
       ext f
       have h : update ↑0 i₀ (f i₀) = f := by
-        ext j; cases Subsingleton.elim j i₀; rfl
+        ext i; rw [Subsingleton.elim i i₀]; simp
       simp [h])
 
 @[simp]
