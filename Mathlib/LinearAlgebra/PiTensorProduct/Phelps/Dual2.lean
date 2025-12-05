@@ -3,13 +3,14 @@ import Mathlib.LinearAlgebra.Dual.Lemmas
 import Mathlib.Analysis.Normed.Field.Lemmas
 import Mathlib.Analysis.LocallyConvex.WeakDual
 import Mathlib.Analysis.LocallyConvex.Separation
+import Mathlib.LinearAlgebra.PiTensorProduct
 
 open Module Topology WeakBilin Submodule
 
 variable (R : Type*) [CommSemiring R]
 variable (V : Type*) [AddCommMonoid V] [Module R V]
 
-/-- A type synonym for `Dual R W`, equipping it with the weak topology. -/
+/-- A type synonym for `Dual R W` equipped with the weak topology. -/
 abbrev AlgWeakDual := WeakBilin (dualPairing R V)
 
 instance : DFunLike (AlgWeakDual R V) V fun _ => R where
@@ -128,7 +129,6 @@ noncomputable def StrongWeakDualEquiv : V ≃ₗ[R] StrongDual R (AlgWeakDual R 
     rw [← LinearEquiv.apply_symm_apply StrongWeakDualEquiv v, StrongWeakDualEquiv_apply]
   rfl
 
-
 variable {V : Type*} [AddCommGroup V] [Module ℝ V] {s : Set (AlgWeakDual ℝ V)}
 
 lemma exists_separating_vector {dv : AlgWeakDual ℝ V}
@@ -177,4 +177,72 @@ theorem weak_separating_iff :
   obtain ⟨dv, hdv⟩ := exists_dual_vec_ne_zero ℝ v hv
   exact hdv (hc dv)
 
-#check Fintype
+
+
+/- ##########################################################  -/
+
+/- # The following is a draft. -/
+
+/- ##########################################################  -/
+
+
+open PiTensorProduct
+open scoped TensorProduct
+
+variable {ι : Type*} [Fintype ι]
+variable {R : Type*} [CommRing R]
+variable {V : ι → Type*} [∀ i, AddCommGroup (V i)] [∀ i, Module R (V i)]
+
+open Finset Function in
+/-- Embedding of a family of dual vectors to a tensor product dual -/
+def embedPiDual (dv : (i : ι) → AlgWeakDual R (V i)) : AlgWeakDual R (⨂[R] i, V i) :=
+ lift (
+    { toFun vf := ∏ i: ι, (dv i) (vf i)
+      map_update_add' _ i _ _  := by
+        simpa [Function.update] using Eq.symm (prod_add_prod_eq (mem_univ i) (by simp)
+          (by intro _ _ hij; simp [hij]) (by intro _ _ hij; simp [hij]))
+      map_update_smul' vf i r vi := by
+        simp only [prod_eq_mul_prod_diff_singleton
+            (mem_univ i) (fun x => (dv x) (update vf i (r • vi) x)),
+          Function.update_self, map_smul, smul_eq_mul,
+          prod_eq_mul_prod_diff_singleton
+            (mem_univ i) (fun x => (dv x) (update vf i vi x)), ← mul_assoc]
+        congr! 2
+        aesop
+    }
+  )
+
+@[simp] theorem embedPiDual_apply (dv : (i : ι) → AlgWeakDual R (V i)) (vf : (i : ι) → V i) :
+    embedPiDual dv (⨂ₜ[R] i, vf i) =  ∏ i: ι, (dv i) (vf i) := by
+  rw [embedPiDual, lift.tprod]
+  simp
+
+
+
+variable [(i : ι) → Module ℝ (V i)] (Sf : (i : ι) → Set (AlgWeakDual ℝ (V i)))
+
+-- This is why the proof for sliency failed:
+theorem saliency
+    (h : ∀ i, ∀ v : (V i), v ≠ 0 → ∃ dv ∈ Sf i, dv v ≠ 0)
+    : topologicalClosure (span ℝ (embedPiDual '' (Set.pi Set.univ Sf))) = ⊤ := by
+  ext i
+  simp
+  by_contra! hc
+  obtain ⟨v, hv₁, hv₂, hv₃⟩ := exists_separating_vector hc
+  induction v using PiTensorProduct.induction_on with
+  | smul_tprod r f =>
+    have hf : ∀ i, f i ≠ 0 := fun i h => by
+      have := zero_tprodCoeff' r f i h
+      simp_all
+    choose dv hdv using fun i => h i (f i) (hf i)
+    replace hv₃ := hv₃ (embedPiDual dv) (by
+      apply subset_closure (subset_span (Set.mem_image_of_mem _ _))
+      simp [hdv])
+    have : ∏ i, (dv i) (f i) ≠ 0 := by
+      refine Finset.prod_ne_zero_iff.mpr ?_
+      simp [hdv]
+    simp_all
+  | add a b ha hb =>
+    -- not provable when a ≠ 0 ∧ b ≠ 0.
+    sorry
+
