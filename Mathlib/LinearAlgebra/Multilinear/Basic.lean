@@ -293,11 +293,11 @@ def restr {k n : ℕ} (f : MultilinearMap R (fun _ : Fin n => M') M₂) (s : Fin
     (hk : #s = k) (z : M') : MultilinearMap R (fun _ : Fin k => M') M₂ where
   toFun v := f fun j => if h : j ∈ s then v ((s.orderIsoOfFin hk).symm ⟨j, h⟩) else z
   map_update_add' v i x y := by
-    let equiv : Fin k ≃ {x // x ∈ s} := (s.orderIsoOfFin hk).toEquiv
+    let equiv := (s.orderIsoOfFin hk).toEquiv
     have := (dite_comp_equiv_update (γ := M') equiv)
     simp_all [equiv]
   map_update_smul' v i c x := by
-    let equiv : Fin k ≃ {x // x ∈ s} := (s.orderIsoOfFin hk).toEquiv
+    let equiv := (s.orderIsoOfFin hk).toEquiv
     have := (dite_comp_equiv_update (γ := M') equiv)
     simp_all [equiv]
 
