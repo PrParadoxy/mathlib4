@@ -325,7 +325,7 @@ lemma nonempty_lifts (x : ⨂[R] i, s i) : Set.Nonempty (lifts x) := by
   existsi @Quotient.out _ (addConGen (PiTensorProduct.Eqv R s)).toSetoid x
   simp only [lifts, Set.mem_setOf_eq]
   rw [← AddCon.quot_mk_eq_coe]
-  erw [Quot.out_eq]
+  apply Quot.out_eq
 
 /-- The empty list lifts the element `0` of `⨂[R] i, s i`.
 -/
