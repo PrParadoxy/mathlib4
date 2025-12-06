@@ -410,12 +410,12 @@ variable {β : ι → Type*}
 variable {N : (i : ι) → (b : β i) → Type*}
 variable [∀ i, ∀ b, AddCommMonoid (N i b)] [∀ i, ∀ b, Module R (N i b)]
 
-/-- Composition of multilinear maps.
+/-- Composition of multilinear maps. If `g` is multilinear, and if for every `i : ι`,
+we have a multilinear map `f i` with index type `β i`, then
 
-If `g` is a multilinear map with index type `κ`, and if for every `k : κ`, we
-have a multilinear map `f k` with index type `T k`, then
   `m ↦ g (f₁ m_11 m_12 ...) (f₂ m_21 m_22 ...) ...`
-is multilinear with index type `(Σ k, T k)`. -/
+
+is multilinear with index type `(Σ i, β i)`. -/
 @[simps]
 def compMultilinearMap [DecidableEq ι] [∀ i : ι, DecidableEq (β i)]
     (g : MultilinearMap R M₁ M₂) (f : (i : ι) → MultilinearMap R (N i) (M₁ i)) :
