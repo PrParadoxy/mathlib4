@@ -64,8 +64,6 @@ fields, but can become quite subtle for `AddCommMonoid`s.
 
 -/
 
-
-
 open PiTensorProduct
 open scoped TensorProduct
 
@@ -181,8 +179,7 @@ theorem tmulUnifyEquiv_tprod_symm (av : (i : T) → s i) :
     (tmulUnifyEquiv hsub).symm (⨂ₜ[R] i, av i) =
       (⨂ₜ[R] i : S, av ⟨i, by aesop⟩) ⊗ₜ (⨂ₜ[R] i : ↥(T \ S), av ⟨i, by aesop⟩) := by
   rw [LinearEquiv.symm_apply_eq, tmulUnifyEquiv_tprod]
-  congr
-  aesop
+  grind
 
 end tmulUnifyEquiv
 
@@ -311,9 +308,7 @@ theorem extendTensor_trans [(i : ι) → Decidable (i ∈ T)] {U : Set ι} (hsub
   ext f
   simp only [extendTensor, LinearMap.compMultilinearMap_apply, LinearMap.coe_comp,
     LinearMap.coe_mk, AddHom.coe_mk, Function.comp_apply, tmulUnifyEquiv_tprod]
-  congr
-  ext j
-  split_ifs <;> tauto
+  grind
 
 end ExtendTensor
 
