@@ -329,11 +329,12 @@ variable {ι : Type*} {s : ι → Type*} {R : Type*} {n : Nat} {Sf : Fin n → S
 -- See `Equiv.Perm.viaFintypeEmbedding` doc string.
 -- Broken by https://github.com/leanprover-community/mathlib4/pull/30037
 -- Hopefully that's good news!
+
 private def iUnionSigmaEquiv : (Σ k, Sf k) ≃ iUnion Sf where
   toFun s := ⟨s.2, by aesop⟩
-  invFun s := ⟨(Fin.find (↑s ∈ Sf ·)).get
-        (Fin.isSome_find_iff.mpr ⟨_, (mem_iUnion.mp s.prop).choose_spec⟩),
-      ⟨s, by simp [Fin.find_spec (↑s ∈ Sf ·)]⟩⟩
+  invFun s :=
+    have h := (mem_iUnion.mp s.prop)
+    ⟨Fin.find _ h, ⟨s, Fin.find_spec h⟩⟩
   left_inv := by
     simp_intro s
     generalize_proofs _ h
@@ -345,6 +346,12 @@ private def iUnionSigmaEquiv : (Σ k, Sf k) ≃ iUnion Sf where
 def tprodFiniUnionEquiv :
     (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : (iUnion Sf), s i) :=
   (tprodFinTprodEquiv ≪≫ₗ reindex R _ (iUnionSigmaEquiv H))
+
+-- example  (f : (k : Fin n) → (i : Sf k) → s i) : True := by
+--   set q := tprodFiniUnionEquiv H (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) with hq
+--   simp only [tprodFiniUnionEquiv, LinearEquiv.trans_apply, tprodFinTprodEquiv_tprod] at hq
+--   erw [reindex_tprod] at hq
+--   simp [iUnionSigmaEquiv] at hq
 
 @[simp]
 theorem tprodFiniUnionEquiv_tprod (f : (k : Fin n) → (i : Sf k) → s i) :
