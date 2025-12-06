@@ -323,26 +323,12 @@ variable {n : Nat} {Sf : Fin n → Set ι}
 variable (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
 variable [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
 
-<<<<<<< HEAD
--- TBD: What's the non-computable library version?
--- it is `unionEqSigmaOfDisjoint`
--- See `Equiv.Perm.viaFintypeEmbedding` doc string.
--- Broken by https://github.com/leanprover-community/mathlib4/pull/30037
--- Hopefully that's good news!
-
-private def iUnionSigmaEquiv : (Σ k, Sf k) ≃ iUnion Sf where
-  toFun s := ⟨s.2, by aesop⟩
-  invFun s :=
-    ⟨Fin.find .., ⟨s, Fin.find_spec (mem_iUnion.mp s.prop)⟩⟩
-  left_inv := by
-=======
 /-- Computable version of `Set.unionEqSigmaOfDisjoint` -/
 def iUnionSigmaEquiv : iUnion Sf ≃ (Σ k, Sf k) where
   toFun s := ⟨Fin.find .., ⟨s, Fin.find_spec (mem_iUnion.mp s.prop)⟩⟩
   invFun s := ⟨s.2, by aesop⟩
   left_inv := by simp [Function.LeftInverse]
   right_inv := by
->>>>>>> defbfd428d (refactored stuff)
     intro s
     simp only
     generalize_proofs _ h
