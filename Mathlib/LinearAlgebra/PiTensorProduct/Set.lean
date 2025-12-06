@@ -332,6 +332,8 @@ variable {ι : Type*} {s : ι → Type*} {R : Type*} {n : Nat} {Sf : Fin n → S
 -- TBD: What's the non-computable library version?
 -- it is `unionEqSigmaOfDisjoint`
 -- See `Equiv.Perm.viaFintypeEmbedding` doc string.
+-- Broken by https://github.com/leanprover-community/mathlib4/pull/30037
+-- Hopefully that's good news!
 private def iUnionSigmaEquiv : (Σ k, Sf k) ≃ iUnion Sf where
   toFun s := ⟨s.2, by aesop⟩
   invFun s := ⟨(Fin.find (↑s ∈ Sf ·)).get

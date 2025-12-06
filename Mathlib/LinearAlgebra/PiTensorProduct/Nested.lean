@@ -67,19 +67,6 @@ namespace PiTensorProduct
 
 section Fin
 
-#check Equiv.sigmaNatSucc
-
--- # This should be moved under Equiv.sigmaNatSucc
-/-- Split off last summand of a sigma type over `Fin n.succ` -/
-def sigmaFinSuccEquiv {n : Nat} {t : Fin n.succ → Type*} :
-  (Σ k : Fin n.succ, t k) ≃ (Σ k : Fin n, t k.castSucc) ⊕ t (last n) := {
-    toFun x :=
-      if h : x.1 = last n then .inr (h ▸ x.2) else .inl ⟨⟨x.1, lt_last_iff_ne_last.mpr h⟩, x.2⟩
-    invFun := Sum.rec (fun y ↦ ⟨y.1.castSucc, y.2⟩) (⟨last n, ·⟩)
-    left_inv _ := by aesop
-    right_inv _ := by aesop
-  }
-
 section TprodFinTrodEquiv
 
 variable {n : Nat} {Tf : Fin n → Type*}
