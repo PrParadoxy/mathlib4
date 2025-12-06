@@ -419,7 +419,7 @@ is multilinear with index type `(Σ i, β i)`. -/
 @[simps]
 def compMultilinearMap [DecidableEq ι] [∀ i : ι, DecidableEq (β i)]
     (g : MultilinearMap R M₁ M₂) (f : (i : ι) → MultilinearMap R (N i) (M₁ i)) :
-      MultilinearMap R (fun j : Σ i, β i ↦ N j.fst j.snd) M₂ where
+    MultilinearMap R (fun j : Σ i, β i ↦ N j.fst j.snd) M₂ where
   toFun m := g fun i ↦ f i (Sigma.curry m i)
   map_update_add' := by
     intro hDecEqSigma m j
