@@ -58,78 +58,6 @@ section Sigma
 
 variable {α : Type*} {β : α → Type*}
 
-/-
-Implementation note:
-
-A version of `Function.apply_update` in the setting of `Sigma.curry_update`.
-
-`Function.apply_update` describes the change of `f i (g i)` when `g` is updated.
-
-In this version, `g` is defined on a sigma type, and we describe the change of
-`f a (b ↦ g ⟨a, b⟩)` when `g` is updated. As in `Sigma.curry_update`, the
-arguments of `⟨a, b⟩` are updated consecutively.
--/
-theorem Sigma.apply_curry_update {γ : (a : α) → β a → Type*}
-    [DecidableEq α] [(a : α) → DecidableEq (β a)]
-    {δ : α → Type*} (g : (i : Σ a, β a) → γ i.1 i.2) (j : Σ a, β a) (v : γ j.1 j.2)
-    (f : (a : α) → ((b : β a) → (γ a b)) → δ a) (a : α) :
-    f a (Sigma.curry (Function.update g j v) a) =
-    Function.update (fun a ↦ f a (Sigma.curry g a)) j.1
-    (f j.1 (fun i : β j.1 ↦ Sigma.curry (Function.update g j v) j.1 i)) a := by
-  by_cases a = j.1 <;> aesop (add safe forward Sigma.curry_update)
--- -- Alternative:
--- -- Slightly longer proof, but more reflective of the idioms used in `Logic/Function/Basic.lean`
---  by_cases h : a = j.1
---  · subst h
---    simp
---  · simp [h, Sigma.curry_update]
-
-end Sigma
-
-section Multilinear
-
-variable {κ : Type*}
-variable {T : κ → Type*}
-variable {s : (k : κ) → (i : T k) → Type*}
-
-variable {R : Type*} [CommSemiring R]
-variable [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
-
-section Multilinear
-
-namespace Multilinear
-
-variable {M : κ → Type*}
-variable [∀ k, AddCommMonoid (M k)] [∀ k, Module R (M k)]
-
-variable {N : Type*}
-variable [AddCommMonoid N] [Module R N]
-
-variable [DecidableEq κ] [∀ k : κ, DecidableEq (T k)]
-
-/-- Composition of multilinear maps.
-
-If `g` is a multilinear map with index type `κ`, and if for every `k : κ`, we
-have a multilinear map `f k` with index type `T k`, then
-  `m ↦ g (f₁ m_11 m_12 ...) (f₂ m_21 m_22 ...) ...`
-is multilinear with index type `(Σ k, T k)`. -/
-@[simps]
-def compMultilinearMap
-    (g : MultilinearMap R M N) (f : (k : κ) → MultilinearMap R (s k) (M k)) :
-      MultilinearMap R (fun j : Σ k, T k ↦ s j.fst j.snd) N where
-  toFun m := g fun k ↦ f k (Sigma.curry m k)
-  map_update_add' := by
-    intro hDecEqSigma m j
-    rw [Subsingleton.elim hDecEqSigma Sigma.instDecidableEqSigma]
-    simp_rw [funext (fun a ↦ Sigma.apply_curry_update m j _ (fun k ↦ f k) a), Sigma.curry_update]
-    simp
-  map_update_smul' := by
-    intro hDecEqSigma m j
-    rw [Subsingleton.elim hDecEqSigma Sigma.instDecidableEqSigma]
-    simp_rw [funext (fun a ↦ Sigma.apply_curry_update m j _ (fun k ↦ f k) a), Sigma.curry_update]
-    simp
-
-end Multilinear
 
 open Fin Set Submodule
 open scoped TensorProduct
@@ -143,12 +71,12 @@ variable {κ : Type*} {R : Type*} {T : (k : κ) → Type*} {s : (k : κ) → (i 
   [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
 
 def tprodTprodHom : (⨂[R] j : (Σ k, T k), s j.1 j.2) →ₗ[R] (⨂[R] k, ⨂[R] i, s k i) :=
-  lift (Multilinear.compMultilinearMap (tprod R) (fun _ ↦ tprod R))
+  lift (MultilinearMap.compMultilinearMap (tprod R) (fun _ ↦ tprod R))
 
 @[simp]
 theorem tprodTprodHom_tprod (f : (j : (Σ k, T k)) → s j.1 j.2) :
     tprodTprodHom (⨂ₜ[R] j, f j) = ⨂ₜ[R] k, ⨂ₜ[R] i : T k, f ⟨k, i⟩ := by
-  rw [tprodTprodHom, lift.tprod, Multilinear.compMultilinearMap_apply]
+  rw [tprodTprodHom, lift.tprod, MultilinearMap.compMultilinearMap_apply]
   unfold Sigma.curry -- seems unavoidable
   dsimp
 

@@ -424,12 +424,12 @@ def compMultilinearMap [DecidableEq ι] [∀ i : ι, DecidableEq (β i)]
   map_update_add' := by
     intro hDecEqSigma m j
     rw [Subsingleton.elim hDecEqSigma Sigma.instDecidableEqSigma]
-    simp_rw [funext (fun i ↦ Sigma.apply_curry_update m j _ (fun i' ↦ f i') i), Sigma.curry_update]
+    simp_rw [funext (fun i ↦ Sigma.apply_curry_update (fun i' ↦ f i') m j _ i), Sigma.curry_update]
     simp
   map_update_smul' := by
     intro hDecEqSigma m j
     rw [Subsingleton.elim hDecEqSigma Sigma.instDecidableEqSigma]
-    simp_rw [funext (fun i ↦ Sigma.apply_curry_update m j _ (fun i' ↦ f i') i), Sigma.curry_update]
+    simp_rw [funext (fun i ↦ Sigma.apply_curry_update (fun i' ↦ f i') m j _ i), Sigma.curry_update]
     simp
 
 end compMultilinear

@@ -89,6 +89,19 @@ theorem univEquiv_tprod (f : (i : ι) → s i) : univEquiv (⨂ₜ[R] i, f i) = 
 theorem univEquiv_symm_tprod (f : (i : ι) → s i) :
     univEquiv.symm (⨂ₜ[R] i : ↥univ, f i) = (⨂ₜ[R] i, f i) := by simp [LinearEquiv.symm_apply_eq]
 
+/-- Tensors indexed by a singleton set `{i₀}` are equivalent to vectors in `s i₀`. -/
+def singletonSetEquiv (i₀ : ι) : (⨂[R] i : ({i₀} : Set ι), s i) ≃ₗ[R] s i₀ :=
+  subsingletonEquivDep (⟨i₀, by simp⟩ : ({i₀} : Set ι))
+
+@[simp]
+theorem singletonEquiv_tprod (i₀ : ι) (f : (i : ({i₀} : Set ι)) → s i) :
+    singletonSetEquiv i₀ (⨂ₜ[R] i, f i) = f ⟨i₀, by simp⟩ := by simp [singletonSetEquiv]
+
+@[simp]
+theorem singletonEquiv_symm_tprod (i₀ : ι) (x : s i₀) :
+    (singletonSetEquiv i₀).symm x = (⨂ₜ[R] i : ({i₀} : Set ι), cast (by aesop) x) := by
+  rw [LinearEquiv.symm_apply_eq, singletonEquiv_tprod, cast_eq]
+
 section tmulUnionEquiv
 
 variable {S₁ S₂ : Set ι} (hdisj : Disjoint S₁ S₂) [(i : ι) → Decidable (i ∈ S₁)]
@@ -118,6 +131,7 @@ theorem tmulUnionEquiv_tprod (lv : (i : S₁) → s i) (rv : (i : S₂) → s i)
   · simp [disjoint_right.mp hdisj i.property]
 
 end tmulUnionEquiv
+
 
 section tmulBipartitionEquiv
 
@@ -171,25 +185,6 @@ theorem tmulUnifyEquiv_tprod_symm (av : (i : T) → s i) :
   aesop
 
 end tmulUnifyEquiv
-
-section singletonSetEquiv
-
-variable (i₀ : ι)
-
-/-- Tensors indexed by a singleton set `{i₀}` are equivalent to vectors in `s i₀`. -/
-def singletonSetEquiv : (⨂[R] i : ({i₀} : Set ι), s i) ≃ₗ[R] s i₀ :=
-  subsingletonEquivDep (⟨i₀, by simp⟩ : ({i₀} : Set ι))
-
-@[simp]
-theorem singletonEquiv_tprod (f : (i : ({i₀} : Set ι)) → s i) :
-    singletonSetEquiv i₀ (⨂ₜ[R] i, f i) = f ⟨i₀, by simp⟩ := by simp [singletonSetEquiv]
-
-@[simp]
-theorem singletonEquiv_symm_tprod (x : s i₀) :
-    (singletonSetEquiv i₀).symm x = (⨂ₜ[R] i : ({i₀} : Set ι), cast (by aesop) x) := by
-  rw [LinearEquiv.symm_apply_eq, singletonEquiv_tprod, cast_eq]
-
-end singletonSetEquiv
 
 section tmulInsertEquiv
 

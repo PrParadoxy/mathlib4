@@ -159,6 +159,8 @@ theorem Sigma.curry_uncurry {γ : ∀ a, β a → Type*} (f : ∀ (x) (y : β x)
     Sigma.curry (Sigma.uncurry f) = f :=
   rfl
 
+-- `Function.curry_update`: `f i x`
+-- `Sigma.curry_update`: `i f x`
 theorem Sigma.curry_update {γ : ∀ a, β a → Type*} [DecidableEq α] [∀ a, DecidableEq (β a)]
     (i : Σ a, β a) (f : (i : Σ a, β a) → γ i.1 i.2) (x : γ i.1 i.2) :
     Sigma.curry (Function.update f i x) =
@@ -187,11 +189,13 @@ A version of `Function.apply_update` in the setting of `Sigma.curry_update`.
 In this version, `g` is defined on a sigma type, and we describe the change of
 `f a (b ↦ g ⟨a, b⟩)` when `g` is updated. As in `Sigma.curry_update`, the
 arguments of `⟨a, b⟩` are updated consecutively.
+
+Follows argument order of `Function.apply_update`
 -/
 theorem Sigma.apply_curry_update {γ : (a : α) → β a → Type*} {δ : α → Type*}
     [DecidableEq α] [(a : α) → DecidableEq (β a)]
-    (i : Σ a, β a) (g : (i : Σ a, β a) → γ i.1 i.2) (x : γ i.1 i.2)
-    (f : (a : α) → ((b : β a) → (γ a b)) → δ a) (a : α) :
+    (f : (a : α) → ((b : β a) → (γ a b)) → δ a) (g : (i : Σ a, β a) → γ i.1 i.2)
+    (i : Σ a, β a) (x : γ i.1 i.2) (a : α) :
     f a (Sigma.curry (Function.update g i x) a) =
       Function.update (fun a ↦ f a (Sigma.curry g a)) i.1
       (f i.1 (fun j : β i.1 ↦ Sigma.curry (Function.update g i x) i.1 j)) a := by
