@@ -319,11 +319,11 @@ section iUnion
 open Fin Set Submodule
 open scoped TensorProduct
 
-variable {ι : Type*} {s : ι → Type*} {R : Type*} {n : Nat} {Sf : Fin n → Set ι}
-  (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
-  [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
-  [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
+variable {n : Nat} {Sf : Fin n → Set ι}
+variable (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
+variable [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
 
+<<<<<<< HEAD
 -- TBD: What's the non-computable library version?
 -- it is `unionEqSigmaOfDisjoint`
 -- See `Equiv.Perm.viaFintypeEmbedding` doc string.
@@ -335,28 +335,32 @@ private def iUnionSigmaEquiv : (Σ k, Sf k) ≃ iUnion Sf where
   invFun s :=
     ⟨Fin.find .., ⟨s, Fin.find_spec (mem_iUnion.mp s.prop)⟩⟩
   left_inv := by
+=======
+/-- Computable version of `Set.unionEqSigmaOfDisjoint` -/
+def iUnionSigmaEquiv : iUnion Sf ≃ (Σ k, Sf k) where
+  toFun s := ⟨Fin.find .., ⟨s, Fin.find_spec (mem_iUnion.mp s.prop)⟩⟩
+  invFun s := ⟨s.2, by aesop⟩
+  left_inv := by simp [Function.LeftInverse]
+  right_inv := by
+>>>>>>> defbfd428d (refactored stuff)
     intro s
     simp only
     generalize_proofs _ h
     congr!
     by_contra hc
     exact (H hc).ne_of_mem h s.2.prop rfl
-  right_inv := by simp [Function.RightInverse, Function.LeftInverse]
 
+/-- Given a family `k : Fin n → S k` of disjoint sets, the product of tensors
+indexed by the `S k` is equivalent to tensors indexed by the union of the sets.
+-/
 def tprodFiniUnionEquiv :
     (⨂[R] k, (⨂[R] i : Sf k, s i)) ≃ₗ[R] (⨂[R] i : (iUnion Sf), s i) :=
-  (tprodFinTprodEquiv ≪≫ₗ reindex R _ (iUnionSigmaEquiv H))
-
--- example  (f : (k : Fin n) → (i : Sf k) → s i) : True := by
---   set q := tprodFiniUnionEquiv H (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) with hq
---   simp only [tprodFiniUnionEquiv, LinearEquiv.trans_apply, tprodFinTprodEquiv_tprod] at hq
---   erw [reindex_tprod] at hq
---   simp [iUnionSigmaEquiv] at hq
+  (tprodFinTprodEquiv ≪≫ₗ reindex R _ (iUnionSigmaEquiv H).symm)
 
 @[simp]
 theorem tprodFiniUnionEquiv_tprod (f : (k : Fin n) → (i : Sf k) → s i) :
     tprodFiniUnionEquiv H (⨂ₜ[R] k, ⨂ₜ[R] i, f k i)
-    = ⨂ₜ[R] i, f ((iUnionSigmaEquiv H).symm i).fst ((iUnionSigmaEquiv H).symm i).snd := by
+    = ⨂ₜ[R] i, f ((iUnionSigmaEquiv H) i).fst ((iUnionSigmaEquiv H) i).snd := by
   simp only [tprodFiniUnionEquiv, LinearEquiv.trans_apply, tprodFinTprodEquiv_tprod]
   apply reindex_tprod
 
@@ -375,6 +379,12 @@ variable (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
   [∀ k, AddCommMonoid (M k)] [CommSemiring R] [∀ k, Module R (M k)] [∀ i, AddCommMonoid (s i)]
   [∀ i, Module R (s i)] [DecidableEq κ] [(k : κ) → DecidableEq ↑(Sf k)]
 
+/--
+A family of linear maps defined for disjoint subsets of the index type defines
+an endomorphism for tensors indexed by their union.
+
+Bundled as a homomorphism from the tensor product of the local endomorphisms to
+the global endomorphisms. -/
 noncomputable def unifyMaps :
     (⨂[R] k, (⨂[R] i : Sf k, s i) →ₗ[R] (M k)) →ₗ[R]
       ((⨂[R] i : iUnion Sf, s i) →ₗ[R] (⨂[R] k, M k)) := lift {
@@ -428,8 +438,6 @@ the global functionals.
 Note: Inherits noncomputability from `PiTensorProduct.constantBaseRingEquiv`,
 which carries this attribute for performance reasons.
 -/
--- `the performance issue is no longer true and they are open to PRs that remove noncomputable mark`
--- `https://leanprover.zulipchat.com/#narrow/channel/287929-mathlib4/topic/Why.20PiTensorProduct.2Econgr.20is.20marked.20noncomputable.3F`
 noncomputable def unifyFunctionals :
     (⨂[R] k, (⨂[R] i : Sf k, s i) →ₗ[R] R) →ₗ[R] ((⨂[R] i : iUnion Sf, s i) →ₗ[R] R) :=
   lift {
@@ -443,7 +451,7 @@ noncomputable def unifyFunctionals :
 @[simp]
 theorem unifyEnds_tprod (E : (k : Fin n) → (i : Sf k) → s i →ₗ[R] s i) (f : (i : (iUnion Sf)) → s i)
   : unifyEnds H (⨂ₜ[R] k, map (E k)) (⨂ₜ[R] k, f k)
-    = ⨂ₜ[R] i, E ((iUnionSigmaEquiv H).symm i).1 ((iUnionSigmaEquiv H).symm i).2 (f i) := by
+    = ⨂ₜ[R] i, E ((iUnionSigmaEquiv H) i).1 ((iUnionSigmaEquiv H) i).2 (f i) := by
   simp [unifyEnds, LinearEquiv.conj_apply, iUnionSigmaEquiv]
 
 @[simp]
@@ -461,3 +469,5 @@ theorem unifyFunctionals_fintype_tprod (F : (k : Fin n) → (i : Sf k) → s i �
   simp [unifyFunctionals, LinearEquiv.congrRight, LinearEquiv.congrLeft]
 
 end Fin
+
+#lint

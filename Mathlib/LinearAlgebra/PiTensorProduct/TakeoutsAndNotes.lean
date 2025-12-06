@@ -551,3 +551,26 @@ noncomputable def unifMaps_ml'' [DecidableEq κ] [∀ k : κ, DecidableEq (Sf k)
 end Set
 
 end PiTensorProduct
+
+@[elab_as_elim]
+protected theorem nested_induction_on
+    {motive : (⨂[R] k, ⨂[R] i, s k i) → Prop}
+    (smul_tprod_tprod : ∀ (r : R) (f : ∀ k, ∀ i, s k i), motive (r • ⨂ₜ[R] k, ⨂ₜ[R] i, (f k i)))
+    (add : ∀ (x y), motive x → motive y → motive (x + y))
+    (z : ⨂[R] k, ⨂[R] i, s k i) : motive z := by
+  have h := span_tprodFiniteTprod_eq_top (s := s) (R := R) ▸ mem_top (x := z)
+  let p := fun z =>
+    fun (_ : z ∈ span R (range
+      fun f : (k : ι) → (i : Tf k) → s k i ↦ ⨂ₜ[R] k, ⨂ₜ[R] i, f k i)) =>
+        ∀ r : R, motive (r • z)
+  suffices hp : p z h by simpa [p] using hp 1
+  induction h using span_induction with
+  | mem x h =>
+    intro r
+    obtain ⟨y, hy⟩ := mem_range.mp h
+    simpa [hy] using smul_tprod_tprod r y
+  | smul r _ _ hx =>
+    intro r'
+    simpa [←smul_assoc] using hx (r' • r)
+  | zero => simpa [p] using smul_tprod_tprod 0 0
+  | add => simp_all [p]

@@ -51,32 +51,49 @@ Replace by other construction? Keep here? Mark `protected`? Add "_aux" to name?
 Move to `Equiv.Fin /Equiv.Sum`?  Restructure entirely?
 -/
 
+open PiTensorProduct
+open scoped TensorProduct
 
 @[expose] public section
 
-section Sigma
-
-variable {α : Type*} {β : α → Type*}
-
-
-open Fin Set Submodule
-open scoped TensorProduct
-
 namespace PiTensorProduct
 
+variable {ι : Type*} {R : Type*}
+variable [CommSemiring R]
 
-section Fin
+section tprodTprodHom
+
+variable {β : ι → Type*}
+variable {s : (i : ι) → (i : β i) → Type*}
+variable [∀ i, ∀ b, AddCommMonoid (s i b)] [∀ i, ∀ b, Module R (s i b)]
+variable [DecidableEq ι] [∀ i : ι, DecidableEq (β i)]
+
+/-- The homomorphism that sends pure tensors indexed by a sigma type to totally pure
+tensors in a nested `PiTensorProduct`. -/
+def tprodTprodHom : (⨂[R] j : (Σ k, β k), s j.1 j.2) →ₗ[R] (⨂[R] k, ⨂[R] i, s k i) :=
+  lift (MultilinearMap.compMultilinearMap (tprod R) (fun _ ↦ tprod R))
+
+theorem tprodTprodHom_tprod (f : (j : (Σ i, β i)) → s j.1 j.2) :
+    tprodTprodHom (⨂ₜ[R] j, f j) = ⨂ₜ[R] i, ⨂ₜ[R] b : β i, f ⟨i, b⟩ := by
+  simp [tprodTprodHom]
+  unfold Sigma.curry
+  dsimp
+
+end tprodTprodHom
+
 
 section TprodFinTrodEquiv
 
-variable {n : Nat} {Tf : Fin n → Type*}
-variable {R : Type*} {s : (k : Fin n) → (i : Tf k) → Type*}
-  [CommSemiring R] [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
+open Fin
+
+variable {n : Nat} {β : Fin n → Type*}
+variable {s : (k : Fin n) → (i : β k) → Type*}
+variable [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
 
 /-- A nested `PiTensorProduct` with outer index of type `Fin n` is equivalent to
 a single `PiTensorProduct` over a sigma type. -/
 def tprodFinTprodEquiv :
-    (⨂[R] k, ⨂[R] i, s k i) ≃ₗ[R] (⨂[R] j : (Σ k, Tf k), s j.1 j.2) := by
+    (⨂[R] k, ⨂[R] i, s k i) ≃ₗ[R] (⨂[R] j : (Σ k, β k), s j.1 j.2) := by
   induction n with
   | zero => exact (isEmptyEquiv _) ≪≫ₗ (isEmptyEquiv _).symm
   | succ m ih => exact
@@ -85,20 +102,19 @@ def tprodFinTprodEquiv :
       -- Use `ih` on lhs; remove outer PiTP on rhs, thereby exposing inner PiTP:
       (TensorProduct.congr ih (subsingletonEquivDep ↑0)) ≪≫ₗ
       -- Convert to single PiTP:
-      (tmulEquivDep R (fun j => s (sigmaFinSuccEquiv.symm j).1 (sigmaFinSuccEquiv.symm j).2)) ≪≫ₗ
-      (reindex R (fun j => s j.fst j.snd) sigmaFinSuccEquiv).symm
+      (tmulEquivDep R (fun j ↦ s (sigmaFinSuccEquiv.symm j).1 (sigmaFinSuccEquiv.symm j).2)) ≪≫ₗ
+      (reindex R (fun j ↦ s j.fst j.snd) sigmaFinSuccEquiv).symm
 
 open LinearEquiv in
 @[simp]
-theorem tprodFinTprodEquiv_tprod (f : (k : Fin n) → (i : Tf k) → s k i) :
-    tprodFinTprodEquiv (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) = ⨂ₜ[R] j : (Σ k, Tf k), f j.1 j.2 := by
+theorem tprodFinTprodEquiv_tprod (f : (k : Fin n) → (i : β k) → s k i) :
+    tprodFinTprodEquiv (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) = ⨂ₜ[R] j : (Σ k, β k), f j.1 j.2 := by
   induction n with
   | zero =>
     simp only [tprodFinTprodEquiv, Nat.rec_zero, trans_apply,
       symm_apply_eq, isEmptyEquiv_apply_tprod]
   | succ m ih =>
     simp only [tprodFinTprodEquiv, Equiv.symm_symm, finSumFinEquiv_apply_left, trans_apply]
-
     -- Strategy: Repeatedly move equivalences around to obtain the form
     -- `(complex terms) = aSingleEquiv tprod`, then simp away `aSingleEquiv`.
     -- Start with final reindex & tmulEquivDep:
@@ -112,82 +128,57 @@ theorem tprodFinTprodEquiv_tprod (f : (k : Fin n) → (i : Tf k) → s k i) :
     -- Middle congruence & subsingletonEquivDep:
     simp only [eq_symm_apply, finSumFinEquiv_apply_left,
       TensorProduct.congr_tmul, subsingletonEquivDep_apply_tprod]
-
-    exact (congr_arg (· ⊗ₜ[R] (⨂ₜ[R] i : Tf (last m), f (last m) i))
+    --
+    exact (congr_arg (· ⊗ₜ[R] (⨂ₜ[R] i : β (last m), f (last m) i))
       (ih (fun k i ↦ f k.castSucc i)))
 
 @[simp]
-theorem tprodFinTprodEquiv_symm_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
-    tprodFinTprodEquiv.symm (⨂ₜ[R] j : (Σ k, Tf k), f j) = (⨂ₜ[R] k, ⨂ₜ[R] i, Sigma.curry f k i)
+theorem tprodFinTprodEquiv_symm_tprod (f : (j : (Σ k, β k)) → s j.1 j.2) :
+    tprodFinTprodEquiv.symm (⨂ₜ[R] j : (Σ k, β k), f j) = (⨂ₜ[R] k, ⨂ₜ[R] i, Sigma.curry f k i)
     := by simp [LinearEquiv.symm_apply_eq, Sigma.curry]
 
 end TprodFinTrodEquiv
 
-
 section tprodFiniteTprodEquiv
 
--- TBD: Settle on `ι` vs `κ` for outer type
+variable {ι : Type*} [Finite ι] {β : ι → Type*}
+variable {s : (k : ι) → (i : β k) → Type*}
+variable [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
 
-variable {ι : Type*} [Finite ι] {Tf : ι → Type*}
-variable {R : Type*} {s : (k : ι) → (i : Tf k) → Type*}
-  [CommSemiring R] [∀ k, ∀ i, AddCommMonoid (s k i)] [∀ k, ∀ i, Module R (s k i)]
-
+/-- A nested `PiTensorProduct` with finite outer index type is equivalent to
+a single `PiTensorProduct` over a sigma type. -/
 noncomputable def tprodFiniteTprodEquiv :
-    (⨂[R] k, ⨂[R] i, s k i) ≃ₗ[R] (⨂[R] j : (Σ k, Tf k), s j.1 j.2) :=
+    (⨂[R] k, ⨂[R] i, s k i) ≃ₗ[R] (⨂[R] j : (Σ k, β k), s j.1 j.2) :=
   let e := Classical.choice (Finite.exists_equiv_fin ι).choose_spec
   let f := (Equiv.sigmaCongrLeft e.symm).symm
   reindex _ _ e ≪≫ₗ tprodFinTprodEquiv ≪≫ₗ (reindex R (fun i ↦ s i.fst i.snd) f).symm
 
 @[simp]
-theorem tprodFiniteTprodEquiv_tprod (f : (k : ι) → (i : Tf k) → s k i) :
-    tprodFiniteTprodEquiv (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) = ⨂ₜ[R] j : (Σ k, Tf k), f j.fst j.snd := by
+theorem tprodFiniteTprodEquiv_tprod (f : (k : ι) → (i : β k) → s k i) :
+    tprodFiniteTprodEquiv (⨂ₜ[R] k, ⨂ₜ[R] i, f k i) = ⨂ₜ[R] j : (Σ k, β k), f j.fst j.snd := by
   simp only [tprodFiniteTprodEquiv, Equiv.symm_symm, LinearEquiv.trans_apply,
     reindex_tprod, Equiv.sigmaCongrLeft_apply, tprodFinTprodEquiv_tprod, LinearEquiv.symm_apply_eq]
   conv_rhs => apply reindex_tprod
   simp
 
 @[simp]
-theorem tprodFiniteTprodEquiv_symm_tprod (f : (j : (Σ k, Tf k)) → s j.1 j.2) :
-    tprodFiniteTprodEquiv.symm (⨂ₜ[R] j : (Σ k, Tf k), f j) = (⨂ₜ[R] k, ⨂ₜ[R] i, f ⟨k, i⟩) := by
+theorem tprodFiniteTprodEquiv_symm_tprod (f : (j : (Σ k, β k)) → s j.1 j.2) :
+    tprodFiniteTprodEquiv.symm (⨂ₜ[R] j : (Σ k, β k), f j) = (⨂ₜ[R] k, ⨂ₜ[R] i, f ⟨k, i⟩) := by
   simp [LinearEquiv.symm_apply_eq]
 
 /-- The totally pure tensors (i.e. products of product tensors) span a nested tensor
 product, if the outer index type is finite. -/
 theorem span_tprodFiniteTprod_eq_top :
-  span R (range fun f : (k : ι) → (i : Tf k) → s k i ↦ ⨂ₜ[R] k, ⨂ₜ[R] i, f k i) = ⊤ := by
+  Submodule.span R
+    (Set.range fun f : (k : ι) → (i : β k) → s k i ↦ ⨂ₜ[R] k, ⨂ₜ[R] i, f k i) = ⊤ := by
   rw [eq_top_iff, ←tprodFiniteTprodEquiv.symm.range, LinearMap.range_eq_map,
-    ←span_tprod_eq_top, ←span_image, LinearEquiv.coe_coe]
+    ←span_tprod_eq_top, ←Submodule.span_image, LinearEquiv.coe_coe]
   gcongr
   intro f
-  simp only [mem_range, mem_image, exists_exists_eq_and, tprodFiniteTprodEquiv_symm_tprod]
+  simp only [Set.mem_range, Set.mem_image, exists_exists_eq_and, tprodFiniteTprodEquiv_symm_tprod]
   intro ⟨y, hy⟩
   use (fun j k ↦ y ⟨j, k⟩)
 
-@[elab_as_elim]
-protected theorem nested_induction_on
-    {motive : (⨂[R] k, ⨂[R] i, s k i) → Prop}
-    (smul_tprod_tprod : ∀ (r : R) (f : ∀ k, ∀ i, s k i), motive (r • ⨂ₜ[R] k, ⨂ₜ[R] i, (f k i)))
-    (add : ∀ (x y), motive x → motive y → motive (x + y))
-    (z : ⨂[R] k, ⨂[R] i, s k i) : motive z := by
-  have h := span_tprodFiniteTprod_eq_top (s := s) (R := R) ▸ mem_top (x := z)
-  let p := fun z =>
-    fun (_ : z ∈ span R (range
-      fun f : (k : ι) → (i : Tf k) → s k i ↦ ⨂ₜ[R] k, ⨂ₜ[R] i, f k i)) =>
-        ∀ r : R, motive (r • z)
-  suffices hp : p z h by simpa [p] using hp 1
-  induction h using span_induction with
-  | mem x h =>
-    intro r
-    obtain ⟨y, hy⟩ := mem_range.mp h
-    simpa [hy] using smul_tprod_tprod r y
-  | smul r _ _ hx =>
-    intro r'
-    simpa [←smul_assoc] using hx (r' • r)
-  | zero => simpa [p] using smul_tprod_tprod 0 0
-  | add => simp_all [p]
-
 end tprodFiniteTprodEquiv
-
-end Fin
 
 end PiTensorProduct

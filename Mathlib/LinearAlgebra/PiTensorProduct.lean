@@ -907,30 +907,6 @@ theorem tmulEquiv_symm_apply (a : ι ⊕ ι₂ → M) :
 
 end tmulEquiv
 
-section tprodTprodHom
-
-variable {β : ι → Type*}
-variable {s : (i : ι) → (i : β i) → Type*}
-variable [∀ i, ∀ b, AddCommMonoid (s i b)] [∀ i, ∀ b, Module R (s i b)]
-variable [DecidableEq ι] [∀ i : ι, DecidableEq (β i)]
-
-variable {R}
-
-/-- The homomorphism that sends pure tensors indexed by a sigma type to totally pure
-tensors in a nested `PiTensorProduct`. -/
-def tprodTprodHom : (⨂[R] j : (Σ k, β k), s j.1 j.2) →ₗ[R] (⨂[R] k, ⨂[R] i, s k i) :=
-  lift (MultilinearMap.compMultilinearMap (tprod R) (fun _ ↦ tprod R))
-
-theorem tprodTprodHom_tprod (f : (j : (Σ i, β i)) → s j.1 j.2) :
-    tprodTprodHom (⨂ₜ[R] j, f j) = ⨂ₜ[R] i, ⨂ₜ[R] b : β i, f ⟨i, b⟩ := by
-  simp [tprodTprodHom]
-  unfold Sigma.curry
-  dsimp
-
-#check Function.curry
-
-end tprodTprodHom
-
 end Multilinear
 
 end PiTensorProduct
