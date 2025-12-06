@@ -916,15 +916,13 @@ variable [DecidableEq ι] [∀ i : ι, DecidableEq (β i)]
 
 variable {R}
 
-/-- Homomorphism sending pure tensors indexed by a sigma type to totally pure
+/-- The homomorphism that sends pure tensors indexed by a sigma type to totally pure
 tensors in a nested `PiTensorProduct`. -/
 def tprodTprodHom : (⨂[R] j : (Σ k, β k), s j.1 j.2) →ₗ[R] (⨂[R] k, ⨂[R] i, s k i) :=
   lift (MultilinearMap.compMultilinearMap (tprod R) (fun _ ↦ tprod R))
 
--- TBD: Should this have the simp attribute? Arguably, the lhs is simpler.
 theorem tprodTprodHom_tprod (f : (j : (Σ i, β i)) → s j.1 j.2) :
     tprodTprodHom (⨂ₜ[R] j, f j) = ⨂ₜ[R] i, ⨂ₜ[R] b : β i, f ⟨i, b⟩ := by
-    --tprodTprodHom (⨂ₜ[R] j, f j) = ⨂ₜ[R] i, ⨂ₜ[R] b : β i, Sigma.curry f i b := by
   simp [tprodTprodHom]
   unfold Sigma.curry
   dsimp
