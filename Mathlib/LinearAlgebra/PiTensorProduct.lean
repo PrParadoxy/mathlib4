@@ -907,6 +907,25 @@ theorem tmulEquiv_symm_apply (a : ι ⊕ ι₂ → M) :
 
 end tmulEquiv
 
+section tprodTprodHom
+
+variable {β : ι → Type*}
+variable {s : (i : ι) → (i : β i) → Type*}
+variable [∀ i, ∀ b, AddCommMonoid (s i b)] [∀ i, ∀ b, Module R (s i b)]
+variable [DecidableEq ι] [∀ i : ι, DecidableEq (β i)]
+
+variable {R}
+
+def tprodTprodHom : (⨂[R] j : (Σ k, β k), s j.1 j.2) →ₗ[R] (⨂[R] k, ⨂[R] i, s k i) :=
+  lift (MultilinearMap.compMultilinearMap (tprod R) (fun _ ↦ tprod R))
+
+@[simp]
+theorem tprodTprodHom_tprod (f : (j : (Σ k, β k)) → s j.1 j.2) :
+    tprodTprodHom (⨂ₜ[R] j, f j) = ⨂ₜ[R] i, ⨂ₜ[R] b : β i, Sigma.curry f i b := by
+  simp [tprodTprodHom]
+
+end tprodTprodHom
+
 end Multilinear
 
 end PiTensorProduct
