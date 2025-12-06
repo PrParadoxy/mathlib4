@@ -432,7 +432,7 @@ noncomputable def unifyFunctionals :
   lift {
     toFun F := (constantBaseRingEquiv (Fin n) R).toLinearEquiv.congrRight
       ((tprodFiniUnionEquiv H).congrLeft _ R (map F))
-    map_update_add' := by simp [PiTensorProduct.map_update_add]
+    map_update_add' := by simp [PiTensorProduct.map_update_add, map_add]
     map_update_smul' := by simp [PiTensorProduct.map_update_smul]
   }
 
