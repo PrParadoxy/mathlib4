@@ -293,13 +293,11 @@ def restr {k n : ℕ} (f : MultilinearMap R (fun _ : Fin n => M') M₂) (s : Fin
     (hk : #s = k) (z : M') : MultilinearMap R (fun _ : Fin k => M') M₂ where
   toFun v := f fun j => if h : j ∈ s then v ((s.orderIsoOfFin hk).symm ⟨j, h⟩) else z
   map_update_add' v i x y := by
-    let equiv : Fin k ≃ {x // x ∈ s} := (s.orderIsoOfFin hk).toEquiv
-    have := (dite_comp_equiv_update (γ := M') equiv)
-    simp_all [equiv]
+    have := dite_comp_equiv_update (γ := M') ((s.orderIsoOfFin hk).toEquiv)
+    simp_all
   map_update_smul' v i c x := by
-    let equiv : Fin k ≃ {x // x ∈ s} := (s.orderIsoOfFin hk).toEquiv
-    have := (dite_comp_equiv_update (γ := M') equiv)
-    simp_all [equiv]
+    have := dite_comp_equiv_update (γ := M') ((s.orderIsoOfFin hk).toEquiv)
+    simp_all
 
 /-- In the specific case of multilinear maps on spaces indexed by `Fin (n+1)`, where one can build
 an element of `∀ (i : Fin (n+1)), M i` using `cons`, one can express directly the additivity of a
