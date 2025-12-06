@@ -292,17 +292,10 @@ we use is the canonical (increasing) bijection. -/
 def restr {k n : ℕ} (f : MultilinearMap R (fun _ : Fin n => M') M₂) (s : Finset (Fin n))
     (hk : #s = k) (z : M') : MultilinearMap R (fun _ : Fin k => M') M₂ where
   toFun v := f fun j => if h : j ∈ s then v ((s.orderIsoOfFin hk).symm ⟨j, h⟩) else z
-<<<<<<< HEAD
-  map_update_add' v i x y := by
-    have := dite_comp_equiv_update (γ := M') (s.orderIsoOfFin hk).toEquiv
-    simp_all
-  map_update_smul' v i c x := by
-=======
   map_update_add' := by
     have := dite_comp_equiv_update (γ := M') (s.orderIsoOfFin hk).toEquiv
     simp_all
   map_update_smul' := by
->>>>>>> a266d440e5 (.)
     have := dite_comp_equiv_update (γ := M') (s.orderIsoOfFin hk).toEquiv
     simp_all
 
