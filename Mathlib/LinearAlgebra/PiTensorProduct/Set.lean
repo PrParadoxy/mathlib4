@@ -360,17 +360,14 @@ end iUnion
 
 section unifyMaps
 
-variable {ι : Type*} {κ : Type*} {R : Type*} {s : ι → Type*} {Sf : κ → Set ι} {M : κ → Type*}
+variable {κ : Type*} {s : ι → Type*} {Sf : κ → Set ι} {M : κ → Type*}
 variable (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
-  [∀ k, AddCommMonoid (M k)] [CommSemiring R] [∀ k, Module R (M k)] [∀ i, AddCommMonoid (s i)]
+  [∀ k, AddCommMonoid (M k)] [∀ k, Module R (M k)] [∀ i, AddCommMonoid (s i)]
   [∀ i, Module R (s i)] [DecidableEq κ] [(k : κ) → DecidableEq ↑(Sf k)]
 
-/--
-A family of linear maps defined for disjoint subsets of the index type defines
-an endomorphism for tensors indexed by their union.
-
-Bundled as a homomorphism from the tensor product of the local endomorphisms to
-the global endomorphisms. -/
+/-- Given a family of disjoint sets `S k`, and a family of linear maps from tensors
+indexed by `S k`, one obtains a linear map defined on tensors indexed by the
+union of the `S k`. -/
 noncomputable def unifyMaps :
     (⨂[R] k, (⨂[R] i : Sf k, s i) →ₗ[R] (M k)) →ₗ[R]
       ((⨂[R] i : iUnion Sf, s i) →ₗ[R] (⨂[R] k, M k)) := lift {
@@ -393,7 +390,7 @@ section Fin
 
 open Module
 
-variable {ι : Type*} {s : ι → Type*} {R : Type*} {n : Nat} {Sf : Fin n → Set ι}
+variable {ι : Type*} {s : ι → Type*} {n : Nat} {Sf : Fin n → Set ι}
   (H : Pairwise fun k l => Disjoint (Sf k) (Sf l))
   [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
   [hd : ∀ i, ∀ x, Decidable (x ∈ Sf i)]
@@ -446,14 +443,6 @@ theorem unifyFunctionals_tprod (F : (k : Fin n) → (⨂[R] i : Sf k, s i) →�
     unifyFunctionals H (⨂ₜ[R] k, F k) (⨂ₜ[R] i, f i) = ∏ i, (F i) (⨂ₜ[R] i, f ⟨i, by aesop⟩) := by
   simp [unifyFunctionals, LinearEquiv.congrRight, LinearEquiv.congrLeft]
 
-@[simp]
-theorem unifyFunctionals_fintype_tprod (F : (k : Fin n) → (i : Sf k) → s i →ₗ[R] R)
-    (f : (i : (iUnion Sf)) → s i) [∀ k, Fintype (Sf k)] :
-    unifyFunctionals H
-      (⨂ₜ[R] k, (lift (MultilinearMap.mkPiAlgebra R (Sf k) R)) ∘ₗ map (F k)) (⨂ₜ[R] i, f i)
-    =  ∏ i, ∏ j, (F i j) (f ⟨j, by aesop⟩) := by
-  simp [unifyFunctionals, LinearEquiv.congrRight, LinearEquiv.congrLeft]
-
 end Fin
 
-#lint
+end PiTensorProduct

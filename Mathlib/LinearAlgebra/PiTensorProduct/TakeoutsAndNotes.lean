@@ -574,3 +574,11 @@ protected theorem nested_induction_on
     simpa [←smul_assoc] using hx (r' • r)
   | zero => simpa [p] using smul_tprod_tprod 0 0
   | add => simp_all [p]
+
+@[simp]
+theorem unifyFunctionals_fintype_tprod (F : (k : Fin n) → (i : Sf k) → s i →ₗ[R] R)
+    (f : (i : (iUnion Sf)) → s i) [∀ k, Fintype (Sf k)] :
+    unifyFunctionals H
+      (⨂ₜ[R] k, (lift (MultilinearMap.mkPiAlgebra R (Sf k) R)) ∘ₗ map (F k)) (⨂ₜ[R] i, f i)
+    =  ∏ i, ∏ j, (F i j) (f ⟨j, by aesop⟩) := by
+  simp [unifyFunctionals, LinearEquiv.congrRight, LinearEquiv.congrLeft]
