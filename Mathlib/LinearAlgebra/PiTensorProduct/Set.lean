@@ -333,8 +333,7 @@ variable {ι : Type*} {s : ι → Type*} {R : Type*} {n : Nat} {Sf : Fin n → S
 private def iUnionSigmaEquiv : (Σ k, Sf k) ≃ iUnion Sf where
   toFun s := ⟨s.2, by aesop⟩
   invFun s :=
-    have h := (mem_iUnion.mp s.prop)
-    ⟨Fin.find _ h, ⟨s, Fin.find_spec h⟩⟩
+    ⟨Fin.find .., ⟨s, Fin.find_spec (mem_iUnion.mp s.prop)⟩⟩
   left_inv := by
     simp_intro s
     generalize_proofs _ h
