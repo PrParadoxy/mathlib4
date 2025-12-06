@@ -335,7 +335,8 @@ private def iUnionSigmaEquiv : (Σ k, Sf k) ≃ iUnion Sf where
   invFun s :=
     ⟨Fin.find .., ⟨s, Fin.find_spec (mem_iUnion.mp s.prop)⟩⟩
   left_inv := by
-    simp_intro s
+    intro s
+    simp only
     generalize_proofs _ h
     congr!
     by_contra hc
