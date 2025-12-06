@@ -411,7 +411,9 @@ the global endomorphisms.
 def unifyEnds : (⨂[R] k, End R (⨂[R] i : Sf k, s i)) →ₗ[R] End R (⨂[R] i : iUnion Sf, s i) :=
   lift {
     toFun E := LinearEquiv.conj (tprodFiniUnionEquiv H) (map E)
-    map_update_add' := by simp [PiTensorProduct.map_update_add]
+    map_update_add' := by
+      simp only [PiTensorProduct.map_update_add]
+      simp [map_add, implies_true]
     map_update_smul' := by simp [PiTensorProduct.map_update_smul]
   }
 
@@ -432,7 +434,7 @@ noncomputable def unifyFunctionals :
   lift {
     toFun F := (constantBaseRingEquiv (Fin n) R).toLinearEquiv.congrRight
       ((tprodFiniUnionEquiv H).congrLeft _ R (map F))
-    map_update_add' := by simp [PiTensorProduct.map_update_add, map_add]
+    map_update_add' := by simp [-LinearEquiv.congrLeft_apply, PiTensorProduct.map_update_add]
     map_update_smul' := by simp [PiTensorProduct.map_update_smul]
   }
 

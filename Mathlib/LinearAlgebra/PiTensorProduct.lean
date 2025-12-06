@@ -921,8 +921,13 @@ def tprodTprodHom : (⨂[R] j : (Σ k, β k), s j.1 j.2) →ₗ[R] (⨂[R] k, �
 
 -- TBD: Should this have the simp attribute? Arguably, the lhs is simpler.
 theorem tprodTprodHom_tprod (f : (j : (Σ i, β i)) → s j.1 j.2) :
-    tprodTprodHom (⨂ₜ[R] j, f j) = ⨂ₜ[R] i, ⨂ₜ[R] b : β i, Sigma.curry f i b := by
+    tprodTprodHom (⨂ₜ[R] j, f j) = ⨂ₜ[R] i, ⨂ₜ[R] b : β i, f ⟨i, b⟩ := by
+    --tprodTprodHom (⨂ₜ[R] j, f j) = ⨂ₜ[R] i, ⨂ₜ[R] b : β i, Sigma.curry f i b := by
   simp [tprodTprodHom]
+  unfold Sigma.curry
+  dsimp
+
+#check Function.curry
 
 end tprodTprodHom
 
