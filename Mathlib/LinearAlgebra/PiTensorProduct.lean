@@ -407,7 +407,7 @@ theorem liftAux_tprod (φ : MultilinearMap R s E) (f : Π i, s i) : liftAux φ (
   -- dsimp [FreeAddMonoid.lift, FreeAddMonoid.sumAux]
   -- show _ • _ = _
   -- rw [one_smul]
-  erw [AddCon.lift_coe]
+  conv_lhs => apply AddCon.lift_coe
   simp
 
 theorem liftAux_tprodCoeff (φ : MultilinearMap R s E) (z : R) (f : Π i, s i) :
