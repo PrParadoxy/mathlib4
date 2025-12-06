@@ -65,9 +65,9 @@ open scoped TensorProduct
 namespace PiTensorProduct
 
 
-
-
 section Fin
+
+#check Equiv.sigmaNatSucc
 
 -- # This should be moved under Equiv.sigmaNatSucc
 /-- Split off last summand of a sigma type over `Fin n.succ` -/
@@ -79,7 +79,6 @@ def sigmaFinSuccEquiv {n : Nat} {t : Fin n.succ → Type*} :
     left_inv _ := by aesop
     right_inv _ := by aesop
   }
-
 
 section TprodFinTrodEquiv
 
