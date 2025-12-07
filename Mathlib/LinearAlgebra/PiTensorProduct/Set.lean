@@ -9,6 +9,7 @@ public import Mathlib.LinearAlgebra.PiTensorProduct
 public import Mathlib.LinearAlgebra.PiTensorProduct.Nested
 public import Mathlib.LinearAlgebra.TensorProduct.Associator
 public import Mathlib.RingTheory.PiTensorProduct
+
 /-!
 # PiTensorProducts indexed by sets
 
@@ -31,7 +32,6 @@ Definition...           ...pertains to
 `tmulUnifyEquiv`        `S ∪ (T \ S)`
 `tmulInsertEquiv`       `{i₀} ∪ S`
 
-
 * Given sets `S ⊆ T`, linear functions defined on tensors indexed by `S` can be
 extended to tensors indexed by `T`, by acting trivially on `T \ S`:
 
@@ -44,23 +44,10 @@ Definition...           ...pertains to
 a tensor with index set `S` can be extended to a tensor with index set `T`, by
 padding with the vectors provided by `s₀` on `T \ S`.
 
-## Implementation notes
-
-Our goal was to enable the implementation of a type of "tensors that agree with
-a default element on all but finitely many indices", a concept used e.g. to
-define "infinite tensor products" in the theory of C^* algebras. These can
-now be constructed as inductive limits using the properties of `extendTensor` proven
-in this file. (This theory is WIP.)
-
-The "set point of view" to tensor indices is also natural in contexts where the
-index type has an independent meaning. In quantum mechanics, e.g., `ι` would be
-the type of distinguishable degrees of freedom of a system.
-
 ## TODO
 
-* Seek feedback
-* Injectivity lemmas for the extensions. These are easy for vector spaces over
-fields, but can become quite subtle for `AddCommMonoid`s.
+* Injectivity lemmas for the extensions. These are easy for vector spaces, but
+can become quite subtle for `AddCommMonoid`s.
 
 -/
 
@@ -102,18 +89,18 @@ theorem singletonEquiv_symm_tprod (i₀ : ι) (x : s i₀) :
 
 section tmulUnionEquiv
 
-variable {S₁ S₂ : Set ι} (hdisj : Disjoint S₁ S₂) [(i : ι) → Decidable (i ∈ S₁)]
+variable {S₁ S₂ : Set ι} (H : Disjoint S₁ S₂) [(i : ι) → Decidable (i ∈ S₁)]
 
 /-- Tensors indexed by a set `S₁` times tensors indexed by a disjoint set `S₂`
 are isomorphic to tensors indexed by the union `S₁ ∪ S₂`. -/
 def tmulUnionEquiv :
     ((⨂[R] (i₁ : S₁), s i₁) ⊗[R] (⨂[R] (i₂ : S₂), s i₂)) ≃ₗ[R] ⨂[R] (i : ↥(S₁ ∪ S₂)), s i :=
-  (tmulEquivDep R (fun i ↦ s ((Equiv.Set.union hdisj).symm i))) ≪≫ₗ
-  (reindex R (fun i : ↥(S₁ ∪ S₂) ↦ s i) (Equiv.Set.union hdisj)).symm
+  (tmulEquivDep R (fun i ↦ s ((Equiv.Set.union H).symm i))) ≪≫ₗ
+  (reindex R (fun i : ↥(S₁ ∪ S₂) ↦ s i) (Equiv.Set.union H)).symm
 
 @[simp]
 theorem tmulUnionEquiv_symm_tprod (f : (i : ↥(S₁ ∪ S₂)) → s i) :
-    (tmulUnionEquiv hdisj).symm (⨂ₜ[R] i, f i) =
+    (tmulUnionEquiv H).symm (⨂ₜ[R] i, f i) =
       (⨂ₜ[R] i : S₁, f ⟨i, by aesop⟩) ⊗ₜ (⨂ₜ[R] i : S₂, f ⟨i, by aesop⟩) := by
   simp only [tmulUnionEquiv, LinearEquiv.trans_symm, LinearEquiv.symm_symm,
       LinearEquiv.trans_apply, reindex_tprod]
@@ -121,12 +108,12 @@ theorem tmulUnionEquiv_symm_tprod (f : (i : ↥(S₁ ∪ S₂)) → s i) :
 
 @[simp]
 theorem tmulUnionEquiv_tprod (lv : (i : S₁) → s i) (rv : (i : S₂) → s i) :
-    (tmulUnionEquiv hdisj) ((⨂ₜ[R] i : S₁, lv i) ⊗ₜ (⨂ₜ[R] i : S₂, rv i)) =
+    (tmulUnionEquiv H) ((⨂ₜ[R] i : S₁, lv i) ⊗ₜ (⨂ₜ[R] i : S₂, rv i)) =
       ⨂ₜ[R] j : ↥(S₁ ∪ S₂), if h : ↑j ∈ S₁ then lv ⟨j, h⟩ else rv ⟨j, by aesop⟩ := by
   rw [←LinearEquiv.eq_symm_apply, tmulUnionEquiv_symm_tprod]
   congr with i
   · simp
-  · simp [disjoint_right.mp hdisj i.property]
+  · simp [disjoint_right.mp H i.property]
 
 end tmulUnionEquiv
 
@@ -254,8 +241,8 @@ on tensors with index set `T`. Bundled as a homomorphism of linear maps. -/
 def extendEnd : End R (⨂[R] i : S, s i) →ₗ[R] End R (⨂[R] i : T, s i) :=
   (tmulUnifyEquiv hsub).congrRight.toLinearMap ∘ₗ extendLinearHom hsub
 
-/-- Partial contraction: a functional on tensors with index set `S ⊆ T` contracts
-tensors with index set `T` to tensors with index set `T \ S`. Bundled as a linear map. -/
+/-- A functional on tensors with index set `S ⊆ T` contracts tensors with index
+set `T` to tensors with index set `T \ S`. Bundled as a linear map. -/
 def extendFunctional :
     ((⨂[R] i : S, s i) →ₗ[R] R) →ₗ[R] (⨂[R] i : T, s i) →ₗ[R] ⨂[R] (i₂ : ↑(T \ S)), s i₂ :=
    (TensorProduct.lid _ _).congrRight.toLinearMap ∘ₗ (extendLinearHom hsub)
@@ -323,7 +310,10 @@ variable {n : Nat} {S : Fin n → Set ι}
 variable (H : Pairwise fun k l ↦ Disjoint (S k) (S l))
 variable [hd : ∀ i, ∀ x, Decidable (x ∈ S i)]
 
-/-- Computable version of `Set.unionEqSigmaOfDisjoint` -/
+/-- A computable equivalence between a disjoint unite of sets indexed by `Fin n`,
+and a dependent sum.
+
+A more general, but non-computable, version is `Set.unionEqSigmaOfDisjoint`. -/
 def iUnionSigmaEquiv : iUnion S ≃ (Σ k, S k) where
   toFun s := ⟨Fin.find .., ⟨s, Fin.find_spec (mem_iUnion.mp s.prop)⟩⟩
   invFun s := ⟨s.2, by aesop⟩
@@ -336,8 +326,7 @@ def iUnionSigmaEquiv : iUnion S ≃ (Σ k, S k) where
     exact (H hc).ne_of_mem h s.2.prop rfl
 
 /-- Given a family `k : Fin n → S k` of disjoint sets, the product of tensors
-indexed by the `S k` is equivalent to tensors indexed by the union of the sets.
--/
+indexed by the `S k` is equivalent to tensors indexed by the union of the sets. -/
 def tprodFiniUnionEquiv :
     (⨂[R] k, (⨂[R] i : S k, s i)) ≃ₗ[R] (⨂[R] i : (iUnion S), s i) :=
   (tprodFinTprodEquiv ≪≫ₗ reindex R _ (iUnionSigmaEquiv H).symm)
@@ -390,35 +379,29 @@ section Fin
 open Module
 
 variable {n : Nat} {S : Fin n → Set ι}
-variable (H : Pairwise fun k l => Disjoint (S k) (S l))
+variable (H : Pairwise fun k l ↦ Disjoint (S k) (S l))
 variable [hd : ∀ i, ∀ x, Decidable (x ∈ S i)]
 
-/--
-A finite family of endomorphisms defined for disjoint subsets of the
+/-- A finite family of endomorphisms defined for disjoint subsets of the
 index type defines an endomorphism for tensors indexed by their union.
 
 Bundled as a homomorphism from the tensor product of the local endomorphisms to
-the global endomorphisms.
--/
+the global endomorphisms. -/
 def unifyEnds : (⨂[R] k, End R (⨂[R] i : S k, s i)) →ₗ[R] End R (⨂[R] i : iUnion S, s i) :=
   lift {
     toFun E := LinearEquiv.conj (tprodFiniUnionEquiv H) (map E)
-    map_update_add' := by
-      simp only [PiTensorProduct.map_update_add]
-      simp [map_add, implies_true]
+    map_update_add' := by simp [-LinearEquiv.congrLeft_apply, PiTensorProduct.map_update_add]
     map_update_smul' := by simp [PiTensorProduct.map_update_smul]
   }
 
-/--
-A finite family of linear functionals defined for disjoint subsets of the
+/-- A finite family of linear functionals defined for disjoint subsets of the
 index type defines a linear functional for tensors indexed by their union.
 
 Bundled as a homomorphism from the tensor product of the local functionals to
 the global functionals.
 
 Note: Inherits noncomputability from `PiTensorProduct.constantBaseRingEquiv`,
-which carries this attribute for performance reasons.
--/
+which carries this attribute for performance reasons.  -/
 noncomputable def unifyFunctionals :
     (⨂[R] k, (⨂[R] i : S k, s i) →ₗ[R] R) →ₗ[R] ((⨂[R] i : iUnion S, s i) →ₗ[R] R) :=
   lift {

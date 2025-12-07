@@ -582,3 +582,17 @@ theorem unifyFunctionals_fintype_tprod (F : (k : Fin n) → (i : Sf k) → s i �
       (⨂ₜ[R] k, (lift (MultilinearMap.mkPiAlgebra R (Sf k) R)) ∘ₗ map (F k)) (⨂ₜ[R] i, f i)
     =  ∏ i, ∏ j, (F i j) (f ⟨j, by aesop⟩) := by
   simp [unifyFunctionals, LinearEquiv.congrRight, LinearEquiv.congrLeft]
+
+/-
+## Implementation notes
+
+Our goal was to enable the implementation of a type of "tensors that agree with
+a default element on all but finitely many indices", a concept used e.g. to
+define "infinite tensor products" in the theory of C^* algebras. These can
+now be constructed as inductive limits using the properties of `extendTensor` proven
+in this file. (This theory is WIP.)
+
+The "set point of view" to tensor indices is also natural in contexts where the
+index type has an independent meaning. In quantum mechanics, e.g., `ι` would be
+the type of distinguishable degrees of freedom of a system.
+-/
