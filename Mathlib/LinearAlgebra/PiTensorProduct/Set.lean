@@ -320,7 +320,7 @@ open Fin Set Submodule
 open scoped TensorProduct
 
 variable {n : Nat} {S : Fin n → Set ι}
-variable (H : Pairwise fun k l => Disjoint (S k) (S l))
+variable (H : Pairwise fun k l ↦ Disjoint (S k) (S l))
 variable [hd : ∀ i, ∀ x, Decidable (x ∈ S i)]
 
 /-- Computable version of `Set.unionEqSigmaOfDisjoint` -/
@@ -328,8 +328,7 @@ def iUnionSigmaEquiv : iUnion S ≃ (Σ k, S k) where
   toFun s := ⟨Fin.find .., ⟨s, Fin.find_spec (mem_iUnion.mp s.prop)⟩⟩
   invFun s := ⟨s.2, by aesop⟩
   left_inv := by simp [Function.LeftInverse]
-  right_inv := by
-    intro s
+  right_inv s := by
     simp only
     generalize_proofs _ h
     congr!
@@ -360,10 +359,10 @@ end iUnion
 
 section unifyMaps
 
-variable {κ : Type*} {s : ι → Type*} {S : κ → Set ι} {M : κ → Type*}
+variable {κ : Type*} {S : κ → Set ι} {M : κ → Type*}
 variable (H : Pairwise fun k l => Disjoint (S k) (S l))
-  [∀ k, AddCommMonoid (M k)] [∀ k, Module R (M k)] [∀ i, AddCommMonoid (s i)]
-  [∀ i, Module R (s i)] [DecidableEq κ] [(k : κ) → DecidableEq ↑(S k)]
+variable [∀ k, AddCommMonoid (M k)] [∀ k, Module R (M k)]
+variable [DecidableEq κ] [(k : κ) → DecidableEq ↑(S k)]
 
 /-- Given a family of disjoint sets `S k`, and a family of linear maps from tensors
 indexed by `S k`, one obtains a linear map defined on tensors indexed by the
@@ -390,10 +389,9 @@ section Fin
 
 open Module
 
-variable {ι : Type*} {s : ι → Type*} {n : Nat} {S : Fin n → Set ι}
-  (H : Pairwise fun k l => Disjoint (S k) (S l))
-  [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
-  [hd : ∀ i, ∀ x, Decidable (x ∈ S i)]
+variable {n : Nat} {S : Fin n → Set ι}
+variable (H : Pairwise fun k l => Disjoint (S k) (S l))
+variable [hd : ∀ i, ∀ x, Decidable (x ∈ S i)]
 
 /--
 A finite family of endomorphisms defined for disjoint subsets of the
