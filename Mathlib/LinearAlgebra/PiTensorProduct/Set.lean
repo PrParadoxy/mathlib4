@@ -48,7 +48,6 @@ padding with the vectors provided by `s₀` on `T \ S`.
 
 * Injectivity lemmas for the extensions. These are easy for vector spaces, but
 can become quite subtle for `AddCommMonoid`s.
-
 -/
 
 open PiTensorProduct
@@ -205,7 +204,7 @@ variable {M : Type*} [AddCommMonoid M] [Module R M]
 variable (e : Equiv.Perm ι)
 
 /-- An equivalence `e : Equiv.Perm ι` maps tensors indexed by a set `S` to
-tensors indexed by `e '' S` -/
+tensors indexed by `e '' S`. -/
 def permSetEquiv : (⨂[R] _ : S, M) ≃ₗ[R] ⨂[R] _ : (e '' S), M :=
   reindex R (fun _ ↦ M) (Equiv.image e S)
 
@@ -270,8 +269,6 @@ end LinearMap
 
 section ExtendTensor
 
-open TensorProduct
-
 variable {s₀ : (i : ι) → s i}
 
 /-- Given a family of distinguished elements `s₀ : (i : ι) → s i` and sets `S ⊆ T`,
@@ -303,7 +300,6 @@ end Extensions
 
 section iUnion
 
-open Fin Set Submodule
 open scoped TensorProduct
 
 variable {n : Nat} {S : Fin n → Set ι}
@@ -401,7 +397,7 @@ Bundled as a homomorphism from the tensor product of the local functionals to
 the global functionals.
 
 Note: Inherits noncomputability from `PiTensorProduct.constantBaseRingEquiv`,
-which carries this attribute for performance reasons.  -/
+which carries this attribute for performance reasons. -/
 noncomputable def unifyFunctionals :
     (⨂[R] k, (⨂[R] i : S k, s i) →ₗ[R] R) →ₗ[R] ((⨂[R] i : iUnion S, s i) →ₗ[R] R) :=
   lift {
