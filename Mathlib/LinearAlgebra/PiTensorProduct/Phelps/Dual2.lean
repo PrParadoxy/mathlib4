@@ -86,7 +86,6 @@ variable {V : Type*} [AddCommGroup V] [Module R V]
 
 theorem eval_dualpairing_surjective :
     Function.Surjective (eval (dualPairing R V)) := by
-  simp [Function.Surjective]
   intro f
   let U := f ⁻¹' (Metric.ball 0 1)
   have hU: U ∈ nhds (0 : AlgWeakDual R V) := ContinuousAt.preimage_mem_nhds
@@ -245,4 +244,3 @@ theorem saliency
   | add a b ha hb =>
     -- not provable when a ≠ 0 ∧ b ≠ 0.
     sorry
-
