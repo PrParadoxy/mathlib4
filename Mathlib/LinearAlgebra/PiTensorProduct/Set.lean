@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Davood Tehrani, David Gross. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Davood Tehrani, David Gross
+Authors: Davood H.H. Tehrani, David Gross
 -/
 module
 
@@ -39,6 +39,10 @@ Definition...           ...pertains to
 `extendLinear`          `⨂ S → M`
 `extendEnd`             `⨂ S → ⨂ S`
 `extendFunctional`      `⨂ S → R`
+
+* Likewise, `unifyLinear`, `unifyEnd`, and `unifyFunctional` map families of
+linear maps defined for disjoint subsets to linear maps on tensors indexed by
+their union.
 
 * `extendTensor`: Given a family of distinguished elements `s₀ : (i : ι) → s i`,
 a tensor with index set `S` can be extended to a tensor with index set `T`, by
@@ -83,7 +87,7 @@ theorem singletonEquiv_tprod (i₀ : ι) (f : (i : ({i₀} : Set ι)) → s i) :
 
 @[simp]
 theorem singletonEquiv_symm_tprod (i₀ : ι) (x : s i₀) :
-    (singletonSetEquiv i₀).symm x = (⨂ₜ[R] i : ({i₀} : Set ι), cast (by aesop) x) := by
+    (singletonSetEquiv i₀).symm x = (⨂ₜ[R] i : ({i₀} : Set ι), cast (by grind) x) := by
   rw [LinearEquiv.symm_apply_eq, singletonEquiv_tprod, cast_eq]
 
 section tmulUnionEquiv
@@ -100,7 +104,7 @@ def tmulUnionEquiv :
 @[simp]
 theorem tmulUnionEquiv_symm_tprod (f : (i : ↥(S₁ ∪ S₂)) → s i) :
     (tmulUnionEquiv H).symm (⨂ₜ[R] i, f i) =
-      (⨂ₜ[R] i : S₁, f ⟨i, by aesop⟩) ⊗ₜ (⨂ₜ[R] i : S₂, f ⟨i, by aesop⟩) := by
+      (⨂ₜ[R] i : S₁, f ⟨i, by grind⟩) ⊗ₜ (⨂ₜ[R] i : S₂, f ⟨i, by grind⟩) := by
   simp only [tmulUnionEquiv, LinearEquiv.trans_symm, LinearEquiv.symm_symm,
       LinearEquiv.trans_apply, reindex_tprod]
   apply tmulEquivDep_symm_apply
@@ -108,7 +112,7 @@ theorem tmulUnionEquiv_symm_tprod (f : (i : ↥(S₁ ∪ S₂)) → s i) :
 @[simp]
 theorem tmulUnionEquiv_tprod (lv : (i : S₁) → s i) (rv : (i : S₂) → s i) :
     (tmulUnionEquiv H) ((⨂ₜ[R] i : S₁, lv i) ⊗ₜ (⨂ₜ[R] i : S₂, rv i)) =
-      ⨂ₜ[R] j : ↥(S₁ ∪ S₂), if h : ↑j ∈ S₁ then lv ⟨j, h⟩ else rv ⟨j, by aesop⟩ := by
+      ⨂ₜ[R] j : ↥(S₁ ∪ S₂), if h : ↑j ∈ S₁ then lv ⟨j, h⟩ else rv ⟨j, by grind⟩ := by
   rw [←LinearEquiv.eq_symm_apply, tmulUnionEquiv_symm_tprod]
   congr with i
   · simp
@@ -130,7 +134,7 @@ def tmulBipartitionEquiv : (⨂[R] i₁ : S, s i₁) ⊗[R] (⨂[R] i₂ : ↥S�
 @[simp]
 theorem tmulBipartitionEquiv_tprod (lv : (i : S) → s i) (rv : (i : ↥Sᶜ) → s i) :
     tmulBipartitionEquiv ((⨂ₜ[R] i : S, lv i) ⊗ₜ (⨂ₜ[R] i : ↥Sᶜ, rv i)) =
-      ⨂ₜ[R] j, if h : j ∈ S then lv ⟨j, h⟩ else rv ⟨j, by aesop⟩ := by
+      ⨂ₜ[R] j, if h : j ∈ S then lv ⟨j, h⟩ else rv ⟨j, by grind⟩ := by
   rw [tmulBipartitionEquiv, LinearEquiv.trans_apply, tmulUnionEquiv_tprod]
   apply reindex_tprod
 
@@ -156,14 +160,14 @@ def tmulUnifyEquiv :
 @[simp]
 theorem tmulUnifyEquiv_tprod (lv : (i : S) → s i) (rv : (i : ↑(T \ S)) → s i) :
     tmulUnifyEquiv hsub ((⨂ₜ[R] i, lv i) ⊗ₜ (⨂ₜ[R] i, rv i)) =
-      ⨂ₜ[R] i : T, if h : ↑i ∈ S then lv ⟨↑i, by aesop⟩ else rv ⟨↑i, by aesop⟩ := by
+      ⨂ₜ[R] i : T, if h : ↑i ∈ S then lv ⟨i, by grind⟩ else rv ⟨i, by grind⟩ := by
   rw [tmulUnifyEquiv, LinearEquiv.trans_apply, tmulUnionEquiv_tprod]
   apply reindex_tprod
 
 @[simp]
 theorem tmulUnifyEquiv_tprod_symm (av : (i : T) → s i) :
     (tmulUnifyEquiv hsub).symm (⨂ₜ[R] i, av i) =
-      (⨂ₜ[R] i : S, av ⟨i, by aesop⟩) ⊗ₜ (⨂ₜ[R] i : ↥(T \ S), av ⟨i, by aesop⟩) := by
+      (⨂ₜ[R] i : S, av ⟨i, by grind⟩) ⊗ₜ (⨂ₜ[R] i : ↥(T \ S), av ⟨i, by grind⟩) := by
   rw [LinearEquiv.symm_apply_eq, tmulUnifyEquiv_tprod]
   grind
 
@@ -184,7 +188,7 @@ def tmulInsertEquiv :
 @[simp]
 theorem tmulInsertEquiv_tprod (x : s i₀) (f : (i : S) → s i) :
     (tmulInsertEquiv h₀) (x ⊗ₜ[R] (⨂ₜ[R] i, f i)) = ⨂ₜ[R] i : ↥(insert i₀ S),
-      if h : i.val ∈ ({i₀} : Set ι) then cast (by aesop) x else f ⟨i, by aesop⟩ := by
+      if h : i.val ∈ ({i₀} : Set ι) then cast (by grind) x else f ⟨i, by grind⟩ := by
   rw [tmulInsertEquiv, LinearEquiv.trans_apply, TensorProduct.congr_tmul, singletonEquiv_symm_tprod]
   apply tmulUnionEquiv_tprod
 
@@ -231,7 +235,7 @@ variable {M : Type*} [AddCommMonoid M] [Module R M]
 /-- A linear map on tensors with index set `S ⊆ T` extends to a linear map
 on tensors with index set `T`. Bundled as a homomorphism of linear maps. -/
 def extendLinearHom : ((⨂[R] i : S, s i) →ₗ[R] M) →ₗ[R]
-    ((⨂[R] i : T, s i) →ₗ[R] (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂))) :=
+    (⨂[R] i : T, s i) →ₗ[R] (M ⊗[R] (⨂[R] (i₂ : ↑(T \ S)), s i₂)) :=
   let TmS := ⨂[R] (i : ↑(T \ S)), s i
   ((tmulUnifyEquiv hsub).congrLeft (M:=M ⊗[R] TmS) R).toLinearMap ∘ₗ LinearMap.rTensorHom TmS
 
@@ -244,25 +248,25 @@ def extendEnd : End R (⨂[R] i : S, s i) →ₗ[R] End R (⨂[R] i : T, s i) :=
 set `T` to tensors with index set `T \ S`. Bundled as a linear map. -/
 def extendFunctional :
     ((⨂[R] i : S, s i) →ₗ[R] R) →ₗ[R] (⨂[R] i : T, s i) →ₗ[R] ⨂[R] (i₂ : ↑(T \ S)), s i₂ :=
-   (TensorProduct.lid _ _).congrRight.toLinearMap ∘ₗ (extendLinearHom hsub)
+  (TensorProduct.lid R _).congrRight.toLinearMap ∘ₗ (extendLinearHom hsub)
 
 @[simp]
 theorem extendLinear_tprod (l : (⨂[R] i : S, s i) →ₗ[R] M) (f : (i : T) → s i) :
     extendLinearHom hsub l (⨂ₜ[R] i, f i)
-    = l (⨂ₜ[R] i₁ : S, f ⟨i₁, by aesop⟩) ⊗ₜ[R] (⨂ₜ[R] i₂ : ↑(T \ S), f ⟨i₂, by aesop⟩) := by
+    = l (⨂ₜ[R] i₁ : S, f ⟨i₁, by grind⟩) ⊗ₜ[R] (⨂ₜ[R] i₂ : ↑(T \ S), f ⟨i₂, by grind⟩) := by
   simp [extendLinearHom, LinearEquiv.congrLeft]
 
 @[simp]
 theorem extendEnd_tprod (l : End _ (⨂[R] i : S, s i)) (f : (i : T) → s i) :
     extendEnd hsub l (⨂ₜ[R] i, f i)
-    = (tmulUnifyEquiv hsub) (l (⨂ₜ[R] i₁ : S, f ⟨i₁, by aesop⟩)
-      ⊗ₜ[R] (⨂ₜ[R] i₂ : ↑(T \ S), f ⟨↑i₂, by aesop⟩)) := by
+    = (tmulUnifyEquiv hsub) (l (⨂ₜ[R] i₁ : S, f ⟨i₁, by grind⟩)
+      ⊗ₜ[R] (⨂ₜ[R] i₂ : ↑(T \ S), f ⟨i₂, by grind⟩)) := by
   simp [extendEnd, LinearEquiv.congrRight]
 
 @[simp]
 theorem extendFunctional_tprod (l : (⨂[R] i : S, s i) →ₗ[R] R) (f : (i : T) → s i) :
     extendFunctional hsub l (⨂ₜ[R] i, f i)
-    = (l (⨂ₜ[R] i : S, f ⟨i, by aesop⟩)) • ⨂ₜ[R] i : ↑(T \ S), f ⟨i, by aesop⟩ := by
+    = (l (⨂ₜ[R] i : S, f ⟨i, by grind⟩)) • ⨂ₜ[R] i : ↑(T \ S), f ⟨i, by grind⟩ := by
   simp [extendFunctional, LinearEquiv.congrRight]
 
 end LinearMap
@@ -274,7 +278,7 @@ variable {s₀ : (i : ι) → s i}
 /-- Given a family of distinguished elements `s₀ : (i : ι) → s i` and sets `S ⊆ T`,
 map a tensor with index set `S` to a tensor with index set `T`, by padding with vectors
 provided by `s₀` on `T \ S`. -/
-def extendTensor (s₀ : (i : ι) → s i) : (⨂[R] (i : S), s i) →ₗ[R] (⨂[R] (i : T), s i) where
+def extendTensor (s₀ : (i : ι) → s i) : (⨂[R] (i : S), s i) →ₗ[R] ⨂[R] (i : T), s i where
   toFun t := (tmulUnifyEquiv hsub) (t ⊗ₜ[R] (⨂ₜ[R] i : ↥(T \ S), s₀ i))
   map_add' := by simp [TensorProduct.add_tmul]
   map_smul' := by simp [←TensorProduct.smul_tmul']
@@ -306,11 +310,24 @@ variable {n : Nat} {S : Fin n → Set ι}
 variable (H : Pairwise fun k l ↦ Disjoint (S k) (S l))
 variable [hd : ∀ i, ∀ x, Decidable (x ∈ S i)]
 
-/-- A computable equivalence between a disjoint unite of sets indexed by `Fin n`,
+/-
+## RFC
+
+The equiv `tprodFiniUnionEquiv: (⨂[R] k, (⨂[R] i : S k, s i)) ≃ₗ[R] (⨂[R] i : (iUnion S), s i)`
+below is computable. The price for that is to make the outer index type `Fin n` and to include a
+computable equivalence `iUnionSigmaEquiv: iUnion S ≃ (Σ k, S k)`.
+
+Options:
+* Remove `iUnionSigmaEquiv`, make `tprodfiniUnionEquiv` noncomputable, and assume `Finite ι`.
+* Keep things as they are and put `iUnionSigmaEquiv` somewhere else. (Where?)
+* Provide both a computable version for `Fin n` and a noncomputable version for `Finit ι`
+-/
+
+/-- A computable equivalence between a disjoint unions of sets indexed by `Fin n`,
 and a dependent sum.
 
-A more general, but non-computable, version is `Set.unionEqSigmaOfDisjoint`. -/
-def iUnionSigmaEquiv : iUnion S ≃ (Σ k, S k) where
+Could be replaced out by the non-computable `Set.unionEqSigmaOfDisjoint`. -/
+def Fin.iUnionSigmaEquiv : iUnion S ≃ (Σ k, S k) where
   toFun s := ⟨Fin.find .., ⟨s, Fin.find_spec (mem_iUnion.mp s.prop)⟩⟩
   invFun s := ⟨s.2, by aesop⟩
   left_inv := by simp [Function.LeftInverse]
@@ -325,19 +342,19 @@ def iUnionSigmaEquiv : iUnion S ≃ (Σ k, S k) where
 indexed by the `S k` is equivalent to tensors indexed by the union of the sets. -/
 def tprodFiniUnionEquiv :
     (⨂[R] k, (⨂[R] i : S k, s i)) ≃ₗ[R] (⨂[R] i : (iUnion S), s i) :=
-  (tprodFinTprodEquiv ≪≫ₗ reindex R _ (iUnionSigmaEquiv H).symm)
+  (tprodFinTprodEquiv ≪≫ₗ reindex R _ (Fin.iUnionSigmaEquiv H).symm)
 
 @[simp]
 theorem tprodFiniUnionEquiv_tprod (f : (k : Fin n) → (i : S k) → s i) :
     tprodFiniUnionEquiv H (⨂ₜ[R] k, ⨂ₜ[R] i, f k i)
-    = ⨂ₜ[R] i, f ((iUnionSigmaEquiv H) i).fst ((iUnionSigmaEquiv H) i).snd := by
+    = ⨂ₜ[R] i, f ((Fin.iUnionSigmaEquiv H) i).fst ((Fin.iUnionSigmaEquiv H) i).snd := by
   simp only [tprodFiniUnionEquiv, LinearEquiv.trans_apply, tprodFinTprodEquiv_tprod]
   apply reindex_tprod
 
 @[simp]
 theorem tprodFiniUnionEquiv_symm_tprod (f : (i : (iUnion S)) → s i) :
     (tprodFiniUnionEquiv H).symm (⨂ₜ[R] i, f i) = ⨂ₜ[R] k, ⨂ₜ[R] i : S k, f ⟨i, by aesop⟩ := by
-  simp [LinearEquiv.symm_apply_eq, iUnionSigmaEquiv]
+  simp [LinearEquiv.symm_apply_eq, Fin.iUnionSigmaEquiv]
 
 end iUnion
 
@@ -349,12 +366,14 @@ variable (H : Pairwise fun k l => Disjoint (S k) (S l))
 variable [∀ k, AddCommMonoid (M k)] [∀ k, Module R (M k)]
 variable [DecidableEq κ] [(k : κ) → DecidableEq ↑(S k)]
 
-/-- Given a family of disjoint sets `S k`, and a family of linear maps from tensors
-indexed by `S k`, one obtains a linear map defined on tensors indexed by the
-union of the `S k`. -/
+/-- A family of linear maps defined for disjoint subsets of the
+index type gives rise to a linear map on tensors indexed by the union.
+
+Bundled as a homomorphism from the tensor product of the local maps to the
+global maps. -/
 noncomputable def unifyMaps :
     (⨂[R] k, (⨂[R] i : S k, s i) →ₗ[R] (M k)) →ₗ[R]
-      ((⨂[R] i : iUnion S, s i) →ₗ[R] (⨂[R] k, M k)) := lift {
+    ((⨂[R] i : iUnion S, s i) →ₗ[R] (⨂[R] k, M k)) := lift {
     toFun L := ((map L) ∘ₗ tprodTprodHom) ∘ₗ ((reindex R _ (unionEqSigmaOfDisjoint H))).toLinearMap
     map_update_add' := by simp [PiTensorProduct.map_update_add, LinearMap.add_comp]
     map_update_smul' := by simp [PiTensorProduct.map_update_smul, LinearMap.smul_comp]
@@ -379,19 +398,19 @@ variable (H : Pairwise fun k l ↦ Disjoint (S k) (S l))
 variable [hd : ∀ i, ∀ x, Decidable (x ∈ S i)]
 
 /-- A finite family of endomorphisms defined for disjoint subsets of the
-index type defines an endomorphism for tensors indexed by their union.
+index type gives rise to an endomorphism on tensors indexed by the union.
 
 Bundled as a homomorphism from the tensor product of the local endomorphisms to
 the global endomorphisms. -/
 def unifyEnds : (⨂[R] k, End R (⨂[R] i : S k, s i)) →ₗ[R] End R (⨂[R] i : iUnion S, s i) :=
   lift {
     toFun E := LinearEquiv.conj (tprodFiniUnionEquiv H) (map E)
-    map_update_add' := by simp [-LinearEquiv.congrLeft_apply, PiTensorProduct.map_update_add]
+    map_update_add' := by simp only [PiTensorProduct.map_update_add, map_add, implies_true]
     map_update_smul' := by simp [PiTensorProduct.map_update_smul]
   }
 
 /-- A finite family of linear functionals defined for disjoint subsets of the
-index type defines a linear functional for tensors indexed by their union.
+index type gives rise to a linear functional on tensors indexed by the union.
 
 Bundled as a homomorphism from the tensor product of the local functionals to
 the global functionals.
@@ -403,20 +422,20 @@ noncomputable def unifyFunctionals :
   lift {
     toFun F := (constantBaseRingEquiv (Fin n) R).toLinearEquiv.congrRight
       ((tprodFiniUnionEquiv H).congrLeft _ R (map F))
-    map_update_add' := by simp [-LinearEquiv.congrLeft_apply, PiTensorProduct.map_update_add]
+    map_update_add' := by simp only [PiTensorProduct.map_update_add, map_add, implies_true]
     map_update_smul' := by simp [PiTensorProduct.map_update_smul]
   }
 
 
 @[simp]
-theorem unifyEnds_tprod (E : (k : Fin n) → (i : S k) → s i →ₗ[R] s i) (f : (i : (iUnion S)) → s i)
-  : unifyEnds H (⨂ₜ[R] k, map (E k)) (⨂ₜ[R] k, f k)
-    = ⨂ₜ[R] i, E ((iUnionSigmaEquiv H) i).1 ((iUnionSigmaEquiv H) i).2 (f i) := by
-  simp [unifyEnds, LinearEquiv.conj_apply, iUnionSigmaEquiv]
+theorem unifyEnds_tprod (E : (k : Fin n) → (i : S k) → s i →ₗ[R] s i) (f : (i : (iUnion S)) → s i) :
+    unifyEnds H (⨂ₜ[R] k, map (E k)) (⨂ₜ[R] k, f k)
+    = ⨂ₜ[R] i, E ((Fin.iUnionSigmaEquiv H) i).1 ((Fin.iUnionSigmaEquiv H) i).2 (f i) := by
+  simp [unifyEnds, LinearEquiv.conj_apply, Fin.iUnionSigmaEquiv]
 
 @[simp]
 theorem unifyFunctionals_tprod (F : (k : Fin n) → (⨂[R] i : S k, s i) →ₗ[R] R)
-  (f : (i : iUnion S) → s i) :
+    (f : (i : iUnion S) → s i) :
     unifyFunctionals H (⨂ₜ[R] k, F k) (⨂ₜ[R] i, f i) = ∏ i, (F i) (⨂ₜ[R] i, f ⟨i, by aesop⟩) := by
   simp [unifyFunctionals, LinearEquiv.congrRight, LinearEquiv.congrLeft]
 

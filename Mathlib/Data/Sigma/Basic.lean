@@ -179,19 +179,6 @@ theorem Sigma.curry_update {γ : ∀ a, β a → Type*} [DecidableEq α] [∀ a,
     · exact ha.symm
     · exact ha.symm
 
-/-
-Implementation note:
-
-A version of `Function.apply_update` in the setting of `Sigma.curry_update`.
-
-`Function.apply_update` describes the change of `f i (g i)` when `g` is updated.
-
-In this version, `g` is defined on a sigma type, and we describe the change of
-`f a (b ↦ g ⟨a, b⟩)` when `g` is updated. As in `Sigma.curry_update`, the
-arguments of `⟨a, b⟩` are updated consecutively.
-
-Follows argument order of `Function.apply_update`
--/
 theorem Sigma.apply_curry_update {γ : (a : α) → β a → Type*} {δ : α → Type*}
     [DecidableEq α] [(a : α) → DecidableEq (β a)]
     (f : (a : α) → ((b : β a) → (γ a b)) → δ a) (g : (i : Σ a, β a) → γ i.1 i.2)
