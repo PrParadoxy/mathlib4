@@ -158,4 +158,20 @@ def equivDirectSum : TensorAlgebra R M ≃ₐ[R] ⨁ n, ⨂[R]^n M :=
   AlgEquiv.ofAlgHom toDirectSum ofDirectSum toDirectSum_comp_ofDirectSum
     ofDirectSum_comp_toDirectSum
 
+
+
+/-- The canonical map from the tensor algebra to a direct sum of tensor powers. -/
+def toDirectSum' : TensorAlgebra R M →ₐ[R] ⨁ n, ⨂[R]^n M :=
+  TensorAlgebra.lift R <|
+    DirectSum.lof R ℕ (fun n => ⨂[R]^n M) _ ∘ₗ
+      (LinearEquiv.symm <| PiTensorProduct.subsingletonEquivDep (0 : Fin 1) : M ≃ₗ[R] _).toLinearMap
+
+@[simp]
+theorem toDirectSum_ι' (x : M) :
+    toDirectSum (ι R x) =
+      DirectSum.of (fun n => ⨂[R]^n M) _ (PiTensorProduct.tprod R fun _ : Fin 1 => x) := by
+  simp [toDirectSum, TensorAlgebra.lift_ι_apply, DirectSum.lof_eq_of]
+
+
+
 end TensorAlgebra
