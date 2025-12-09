@@ -79,7 +79,7 @@ theorem univEquiv_symm_tprod (f : (i : ι) → s i) :
 
 /-- Tensors indexed by a singleton set `{i₀}` are equivalent to vectors in `s i₀`. -/
 def singletonSetEquiv (i₀ : ι) : (⨂[R] i : ({i₀} : Set ι), s i) ≃ₗ[R] s i₀ :=
-  subsingletonEquivDep (⟨i₀, by simp⟩ : ({i₀} : Set ι))
+  subsingletonEquiv (⟨i₀, by simp⟩ : ({i₀} : Set ι))
 
 @[simp]
 theorem singletonEquiv_tprod (i₀ : ι) (f : (i : ({i₀} : Set ι)) → s i) :

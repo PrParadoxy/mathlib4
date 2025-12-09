@@ -821,7 +821,7 @@ def subsingletonEquiv : (⨂[R] i : ι, s i) ≃ₗ[R] s i₀ :=
       simp [h])
 
 @[simp]
-theorem subsingletonEquivDep_apply_tprod (f : (i : ι) → s i) :
+theorem subsingletonEquiv_apply_tprod (f : (i : ι) → s i) :
     subsingletonEquiv i₀ (⨂ₜ[R] i, f i) = f i₀ := lift.tprod _
 
 @[simp]
