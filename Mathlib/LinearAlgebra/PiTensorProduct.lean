@@ -804,7 +804,7 @@ variable [Subsingleton ι] (i₀ : ι)
 
 /-- Tensor product over a singleton type with element `i₀` is equivalent to `s i₀`.
 For non-dependent case, see `PiTensorProduct.subsingletonEquiv`. -/
-def subsingletonEquivDep : (⨂[R] i : ι, s i) ≃ₗ[R] s i₀ :=
+def subsingletonEquiv : (⨂[R] i : ι, s i) ≃ₗ[R] s i₀ :=
   LinearEquiv.ofLinear
     (lift
       { toFun f := f i₀
@@ -822,27 +822,11 @@ def subsingletonEquivDep : (⨂[R] i : ι, s i) ≃ₗ[R] s i₀ :=
 
 @[simp]
 theorem subsingletonEquivDep_apply_tprod (f : (i : ι) → s i) :
-    subsingletonEquivDep i₀ (⨂ₜ[R] i, f i) = f i₀ := lift.tprod _
-
-@[simp low]
-theorem subsingletonEquivDep_symm_apply (x : s i₀) :
-    (subsingletonEquivDep i₀).symm x = (⨂ₜ[R] i, update ↑0 i₀ x i) := rfl
-
--- /-- Tensor product of `M` over a singleton type is equivalent to `M`.
--- Use `subsingletonEquivDep` for dependent case. -/
--- def subsingletonEquiv : (⨂[R] _ : ι, M) ≃ₗ[R] M := subsingletonEquivDep i₀
-
--- @[simp]
--- theorem subsingletonEquiv_apply_tprod (f : ι → M) : subsingletonEquivDep i₀ (tprod R f) = f i₀ :=
---   lift.tprod _
+    subsingletonEquiv i₀ (⨂ₜ[R] i, f i) = f i₀ := lift.tprod _
 
 @[simp]
 theorem subsingletonEquiv_symm_apply (x : M) :
-    (subsingletonEquivDep i₀).symm x = (tprod R fun _ ↦ x) := by
-  simp only [subsingletonEquivDep, LinearEquiv.ofLinear_symm_apply, LinearMap.coe_mk, AddHom.coe_mk]
-  congr with i
-  rw [Subsingleton.elim i i₀]
-  simp
+    (subsingletonEquiv i₀).symm x = (tprod R fun _ ↦ x) := by simp [LinearEquiv.symm_apply_eq]
 
 end subsingleton
 
