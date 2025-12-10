@@ -802,31 +802,51 @@ section subsingleton
 
 variable [Subsingleton ι] (i₀ : ι)
 
-/-- Tensor product over a singleton type with element `i₀` is equivalent to `s i₀`.
-For non-dependent case, see `PiTensorProduct.subsingletonEquiv`. -/
+/-- Tensor product over a singleton type with element `i₀` is equivalent to `s i₀`. -/
 def subsingletonEquiv : (⨂[R] i : ι, s i) ≃ₗ[R] s i₀ :=
   LinearEquiv.ofLinear
     (lift
       { toFun f := f i₀
         map_update_add' m i := by rw [Subsingleton.elim i i₀]; simp
         map_update_smul' m i := by rw [Subsingleton.elim i i₀]; simp })
-    ({ toFun x := tprod R (update ↑0 i₀ x)
+    ({ toFun x := tprod R (update (0 : (i : ι) → s i) i₀ x)
        map_add' := by simp
        map_smul' := by simp })
     (by ext _; simp)
     (by
       ext f
-      have h : update ↑0 i₀ (f i₀) = f := by
-        ext i; rw [Subsingleton.elim i i₀]; simp
+      have h : update ↑0 i₀ (f i₀) = f := update_eq_self i₀ f
       simp [h])
 
 @[simp]
 theorem subsingletonEquiv_apply_tprod (f : (i : ι) → s i) :
     subsingletonEquiv i₀ (⨂ₜ[R] i, f i) = f i₀ := lift.tprod _
 
+theorem subsingletonEquiv_symm_apply (x : s i₀) :
+    (subsingletonEquiv i₀).symm x = tprod R (fun i ↦ update (0 : (j : ι) → s j) i₀ x i) := rfl
+
 @[simp]
-theorem subsingletonEquiv_symm_apply (x : M) :
-    (subsingletonEquiv i₀).symm x = (tprod R fun _ ↦ x) := by simp [LinearEquiv.symm_apply_eq]
+lemma subsingletonEquiv_symm_apply' (x : M) :
+  (subsingletonEquiv (s := fun _ ↦ M) i₀).symm x = (tprod R fun _ ↦ x) := by
+  simp [LinearEquiv.symm_apply_eq, subsingletonEquiv_apply_tprod]
+
+-- @[simp]
+-- lemma coe_subsingletonEquivSymm : ⇑(subsingletonEquiv (R := R) (s := fun _ ↦ M) i₀).symm =
+--     fun m ↦ tprod R fun _ ↦ m := by
+--   ext m
+--   simp [LinearEquiv.symm_apply_eq, subsingletonEquiv_apply_tprod]
+
+
+-- @[simp]
+-- lemma coe_subsingletonEquiv : subsingletonEquiv (R := R) (s := fun _ ↦ M) i₀ =
+--     lift (MultilinearMap.ofSubsingleton R M M i₀ .id) :=
+--   rfl
+
+-- @[simp]
+-- lemma coe_subsingletonEquivSymm : ⇑(subsingletonEquiv (R := R) (s := fun _ ↦ M) i₀).symm =
+--     fun m ↦ tprod R fun _ ↦ m := by
+--   ext m
+--   simp [LinearEquiv.symm_apply_eq, subsingletonEquiv_apply_tprod]
 
 end subsingleton
 
