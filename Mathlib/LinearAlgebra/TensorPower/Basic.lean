@@ -73,7 +73,7 @@ theorem gOne_def : ₜ1 = tprod R (@Fin.elim0 M) :=
 
 /-- A variant of `PiTensorProduct.tmulEquiv` with the result indexed by `Fin (n + m)`. -/
 def mulEquiv {n m : ℕ} : ⨂[R]^n M ⊗[R] (⨂[R]^m) M ≃ₗ[R] (⨂[R]^(n + m)) M :=
-  (tmulEquiv R M).trans (reindex R (fun _ ↦ M) finSumFinEquiv)
+  (tmulEquiv R _).trans (reindex R (fun _ ↦ M) finSumFinEquiv)
 
 /-- As a graded monoid, `⨂[R]^i M` has a `(*) : ⨂[R]^i M → ⨂[R]^j M → ⨂[R]^(i + j) M`. -/
 instance gMul : GradedMonoid.GMul fun i => ⨂[R]^i M where
@@ -137,7 +137,7 @@ variable (R) in
 theorem tprod_mul_tprod {na nb} (a : Fin na → M) (b : Fin nb → M) :
     tprod R a ₜ* tprod R b = tprod R (Fin.append a b) := by
   dsimp [gMul_def, mulEquiv]
-  rw [tmulEquiv_apply R M a b]
+  rw [tmulEquiv_apply R (fun _ => M) a b]
   refine (reindex_tprod _ _).trans ?_
   congr 1
   dsimp only [Fin.append, finSumFinEquiv, Equiv.coe_fn_symm_mk]

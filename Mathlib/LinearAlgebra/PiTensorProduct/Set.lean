@@ -98,7 +98,7 @@ variable {S₁ S₂ : Set ι} (H : Disjoint S₁ S₂) [(i : ι) → Decidable (
 are isomorphic to tensors indexed by the union `S₁ ∪ S₂`. -/
 def tmulUnionEquiv :
     ((⨂[R] (i₁ : S₁), s i₁) ⊗[R] (⨂[R] (i₂ : S₂), s i₂)) ≃ₗ[R] ⨂[R] (i : ↥(S₁ ∪ S₂)), s i :=
-  (tmulEquivDep R (fun i ↦ s ((Equiv.Set.union H).symm i))) ≪≫ₗ
+  (tmulEquiv R (fun i ↦ s ((Equiv.Set.union H).symm i))) ≪≫ₗ
   (reindex R (fun i : ↥(S₁ ∪ S₂) ↦ s i) (Equiv.Set.union H)).symm
 
 @[simp]
@@ -107,7 +107,7 @@ theorem tmulUnionEquiv_symm_tprod (f : (i : ↥(S₁ ∪ S₂)) → s i) :
       (⨂ₜ[R] i : S₁, f ⟨i, by grind⟩) ⊗ₜ (⨂ₜ[R] i : S₂, f ⟨i, by grind⟩) := by
   simp only [tmulUnionEquiv, LinearEquiv.trans_symm, LinearEquiv.symm_symm,
       LinearEquiv.trans_apply, reindex_tprod]
-  apply tmulEquivDep_symm_apply
+  apply tmulEquiv_symm_apply
 
 @[simp]
 theorem tmulUnionEquiv_tprod (lv : (i : S₁) → s i) (rv : (i : S₂) → s i) :

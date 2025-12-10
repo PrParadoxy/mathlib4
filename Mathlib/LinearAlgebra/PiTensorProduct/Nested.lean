@@ -114,11 +114,11 @@ def tprodFinTprodEquiv :
   | zero => exact (isEmptyEquiv _) ≪≫ₗ (isEmptyEquiv _).symm
   | succ m ih => exact
     -- Write index as sum; split off last summand as binary TP:
-    (reindex R _ finSumFinEquiv.symm) ≪≫ₗ (tmulEquivDep R _).symm ≪≫ₗ
+    (reindex R _ finSumFinEquiv.symm) ≪≫ₗ (tmulEquiv R _).symm ≪≫ₗ
     -- Use `ih` on lhs; remove outer PiTP on rhs, thereby exposing inner PiTP:
     (TensorProduct.congr ih (subsingletonEquiv ↑0)) ≪≫ₗ
     -- Convert to single PiTP:
-    (tmulEquivDep R (fun j ↦ s (sigmaFinSuccEquiv.symm j).1 (sigmaFinSuccEquiv.symm j).2)) ≪≫ₗ
+    (tmulEquiv R (fun j ↦ s (sigmaFinSuccEquiv.symm j).1 (sigmaFinSuccEquiv.symm j).2)) ≪≫ₗ
     (reindex R (fun j ↦ s j.fst j.snd) sigmaFinSuccEquiv).symm
 
 open LinearEquiv in
@@ -134,14 +134,14 @@ theorem tprodFinTprodEquiv_tprod (f : (k : Fin n) → (i : β k) → s k i) :
     -- Strategy: Repeatedly move equivalences around to obtain the form
     -- `(complex terms) = aSingleEquiv tprod`, then simp away `aSingleEquiv`.
     rw [symm_apply_eq, reindex_tprod, ←eq_symm_apply]
-    conv_rhs => apply tmulEquivDep_symm_apply
+    conv_rhs => apply tmulEquiv_symm_apply
     rw [←eq_symm_apply, ←eq_symm_apply]
     conv_lhs => apply reindex_tprod
     rw [←symm_apply_eq]
-    conv_lhs => apply tmulEquivDep_symm_apply
+    conv_lhs => apply tmulEquiv_symm_apply
     simp only [eq_symm_apply, finSumFinEquiv_apply_left,
       TensorProduct.congr_tmul, subsingletonEquiv_apply_tprod]
-    
+
     exact (congr_arg (· ⊗ₜ[R] (⨂ₜ[R] i : β (Fin.last m), f (Fin.last m) i))
       (ih (fun k i ↦ f k.castSucc i)))
 

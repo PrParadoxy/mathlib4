@@ -839,7 +839,7 @@ variable (N : ι ⊕ ι₂ → Type*) [∀ i, AddCommMonoid (N i)] [∀ i, Modul
 /-- Equivalence between a `TensorProduct` of `PiTensorProduct`s and a single
 `PiTensorProduct` indexed by a `Sum` type. If `N` is a constant family of
 modules, use the non-dependent version `PiTensorProduct.tmulEquiv` instead. -/
-def tmulEquivDep :
+def tmulEquiv :
     (⨂[R] i₁, N (.inl i₁)) ⊗[R] (⨂[R] i₂, N (.inr i₂)) ≃ₗ[R] ⨂[R] i, N i :=
   LinearEquiv.ofLinear
     (TensorProduct.lift
@@ -857,42 +857,42 @@ def tmulEquivDep :
     (TensorProduct.ext (by aesop))
 
 @[simp]
-lemma tmulEquivDep_apply (a : (i₁ : ι) → N (.inl i₁))
+lemma tmulEquiv_apply (a : (i₁ : ι) → N (.inl i₁))
     (b : (i₂ : ι₂) → N (.inr i₂)) :
-      tmulEquivDep R N ((⨂ₜ[R] i₁, a i₁) ⊗ₜ (⨂ₜ[R] i₂, b i₂)) =
+      tmulEquiv R N ((⨂ₜ[R] i₁, a i₁) ⊗ₜ (⨂ₜ[R] i₂, b i₂)) =
         (⨂ₜ[R] i, Sum.rec a b i) := by
-  simp [tmulEquivDep]
+  simp [tmulEquiv]
 
 @[simp]
-lemma tmulEquivDep_symm_apply (f : (i : ι ⊕ ι₂) → N i) :
-    (tmulEquivDep R N).symm (⨂ₜ[R] i, f i) =
+lemma tmulEquiv_symm_apply (f : (i : ι ⊕ ι₂) → N i) :
+    (tmulEquiv R N).symm (⨂ₜ[R] i, f i) =
       ((⨂ₜ[R] i₁, f (.inl i₁)) ⊗ₜ (⨂ₜ[R] i₂, f (.inr i₂))) := by
-  simp [tmulEquivDep]
+  simp [tmulEquiv]
 
 end tmulEquivDep
 
-section tmulEquiv
+-- section tmulEquiv
 
-/-- Equivalence between a `TensorProduct` of `PiTensorProduct`s and a single
-`PiTensorProduct` indexed by a `Sum` type.
+-- /-- Equivalence between a `TensorProduct` of `PiTensorProduct`s and a single
+-- `PiTensorProduct` indexed by a `Sum` type.
 
-See `PiTensorProduct.tmulEquivDep` for the dependent version. -/
-def tmulEquiv :
-    (⨂[R] (_ : ι), M)  ⊗[R] (⨂[R] (_ : ι₂), M) ≃ₗ[R] ⨂[R] (_ : ι ⊕ ι₂), M :=
-  tmulEquivDep R (fun _ ↦ M)
+-- See `PiTensorProduct.tmulEquivDep` for the dependent version. -/
+-- def tmulEquiv :
+--     (⨂[R] (_ : ι), M)  ⊗[R] (⨂[R] (_ : ι₂), M) ≃ₗ[R] ⨂[R] (_ : ι ⊕ ι₂), M :=
+--   tmulEquiv R (fun _ ↦ M)
 
-@[simp]
-theorem tmulEquiv_apply (a : ι → M) (b : ι₂ → M) :
-    tmulEquiv R M ((⨂ₜ[R] i, a i) ⊗ₜ[R] (⨂ₜ[R] i, b i)) = ⨂ₜ[R] i, Sum.elim a b i := by
-  simp [tmulEquiv, Sum.elim]
+-- @[simp]
+-- theorem tmulEquiv_apply (a : ι → M) (b : ι₂ → M) :
+--     tmulEquiv R M ((⨂ₜ[R] i, a i) ⊗ₜ[R] (⨂ₜ[R] i, b i)) = ⨂ₜ[R] i, Sum.elim a b i := by
+--   simp [tmulEquiv, Sum.elim]
 
-@[simp]
-theorem tmulEquiv_symm_apply (a : ι ⊕ ι₂ → M) :
-    (tmulEquiv R M).symm (⨂ₜ[R] i, a i) =
-      (⨂ₜ[R] i, a (Sum.inl i)) ⊗ₜ[R] (⨂ₜ[R] i, a (Sum.inr i)) := by
-  simp [tmulEquiv]
+-- @[simp]
+-- theorem tmulEquiv_symm_apply (a : ι ⊕ ι₂ → M) :
+--     (tmulEquiv R M).symm (⨂ₜ[R] i, a i) =
+--       (⨂ₜ[R] i, a (Sum.inl i)) ⊗ₜ[R] (⨂ₜ[R] i, a (Sum.inr i)) := by
+--   simp [tmulEquiv]
 
-end tmulEquiv
+-- end tmulEquiv
 
 end Multilinear
 
