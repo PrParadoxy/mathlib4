@@ -596,3 +596,23 @@ The "set point of view" to tensor indices is also natural in contexts where the
 index type has an independent meaning. In quantum mechanics, e.g., `ι` would be
 the type of distinguishable degrees of freedom of a system.
 -/
+
+
+theorem Sigma.apply_curry_update' {γ : (a : α) → β a → Type*} {δ : α → Type*}
+    [DecidableEq α] [(a : α) → DecidableEq (β a)]
+    (f : (a : α) → ((b : β a) → (γ a b)) → δ a) (g : (i : Σ a, β a) → γ i.1 i.2)
+    (i : Σ a, β a) (x : γ i.1 i.2) :
+    (fun a => f a (Sigma.curry (Function.update g i x) a)) =
+      Function.update (fun a ↦ f a (Sigma.curry g a)) i.1
+      (f i.1 (fun j : β i.1 ↦ Sigma.curry (Function.update g i x) i.1 j)) := by
+  ext a
+  by_cases h : a = i.1
+  · subst h
+    simp
+  · simp [h, Sigma.curry_update]
+
+
+    intro hDecEqSigma _ _
+    simp_rw [Subsingleton.elim hDecEqSigma Sigma.instDecidableEqSigma,
+      Sigma.apply_curry_update', Sigma.curry_update,
+      update_self, MultilinearMap.map_update_add, implies_true]
