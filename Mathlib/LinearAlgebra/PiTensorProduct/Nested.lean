@@ -141,7 +141,7 @@ theorem tprodFinTprodEquiv_tprod (f : (k : Fin n) → (i : β k) → s k i) :
     conv_lhs => apply tmulEquiv_symm_apply
     simp only [eq_symm_apply, finSumFinEquiv_apply_left,
       TensorProduct.congr_tmul, subsingletonEquiv_apply_tprod]
-
+    ---
     exact (congr_arg (· ⊗ₜ[R] (⨂ₜ[R] i : β (Fin.last m), f (Fin.last m) i))
       (ih (fun k i ↦ f k.castSucc i)))
 
