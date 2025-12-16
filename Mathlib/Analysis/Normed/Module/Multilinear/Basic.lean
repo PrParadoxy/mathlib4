@@ -330,7 +330,7 @@ theorem restr_norm_le' {n : ℕ} (f : MultilinearMap 𝕜 (fun _ : Fin n => G) G
   have h3 : ∀ x, ‖Sum.elim v (fun x : Fin (n - #s) ↦ z) x‖ = -- `apply_dite` does not exists for Sum
     Sum.elim (fun i => ‖v i‖) (fun _ => ‖z‖) x := by aesop
   rw [Fintype.prod_equiv (finSumEquivOfFinset h1 h2).symm _
-    (fun x ↦ ‖Sum.elim v (fun x ↦ z) x‖) (by simp), Fintype.prod_congr _ _ h3,
+    (fun x ↦ ‖Sum.elim v (fun _ ↦ z) x‖) (by simp), Fintype.prod_congr _ _ h3,
     Fintype.prod_sumElim, ← h2, ← prod_const]
   congr 1
   simp
@@ -343,9 +343,8 @@ theorem restr_norm_le'' {n : ℕ} (f : MultilinearMap 𝕜 (fun _ : Fin n => G) 
   convert H _ using 2
   generalize_proofs h1 h2
   have h3 : ∀ x, ‖Sum.elim v z x‖ = Sum.elim (fun i => ‖v i‖) (fun i => ‖z i‖) x := by aesop
-  rw [Fintype.prod_equiv (finSumEquivOfFinset h1 h2).symm _
-    (fun x ↦ ‖Sum.elim v z x‖) (by simp), Fintype.prod_congr _ _ h3,
-    Fintype.prod_sumElim, mul_comm]
+  rw [Fintype.prod_equiv (finSumEquivOfFinset h1 h2).symm _ (fun x ↦ ‖Sum.elim v z x‖) (by simp),
+    Fintype.prod_congr _ _ h3, Fintype.prod_sumElim, mul_comm]
 
 
 end MultilinearMap
