@@ -10,6 +10,7 @@ public import Mathlib.Logic.Embedding.Basic
 public import Mathlib.Data.Fintype.CardEmbedding
 public import Mathlib.Topology.Algebra.MetricSpace.Lipschitz
 public import Mathlib.Topology.Algebra.Module.Multilinear.Topology
+public import Mathlib.LinearAlgebra.Multilinear.Curry
 
 /-!
 # Operator norm on the space of continuous multilinear maps
@@ -318,6 +319,34 @@ theorem restr_norm_le {k n : ℕ} (f : MultilinearMap 𝕜 (fun _ : Fin n => G) 
     Fintype.card_of_subtype sᶜ fun _ => mem_compl, card_compl, Fintype.card_fin, hk, ←
     (s.orderIsoOfFin hk).symm.bijective.prod_comp fun x => ‖v x‖]
   convert rfl
+
+theorem restr_norm_le' {n : ℕ} (f : MultilinearMap 𝕜 (fun _ : Fin n => G) G')
+    (s : Finset (Fin n)) (z : G) {C : ℝ} (H : ∀ m, ‖f m‖ ≤ C * ∏ i, ‖m i‖)
+    (v : Fin s.card → G) :
+    ‖curryFinFinset' f v (fun _ => z)‖ ≤ C * ‖z‖ ^ (n - s.card) * ∏ i, ‖v i‖ := by
+  rw [mul_right_comm, mul_assoc, curryFinFinset_apply']
+  convert H _ using 2
+  generalize_proofs h1 h2 -- this line exists because we aren't asking for hk and hl
+  have h3 : ∀ x, ‖Sum.elim v (fun x : Fin (n - #s) ↦ z) x‖ = -- `apply_dite` does not exists for Sum
+    Sum.elim (fun i => ‖v i‖) (fun _ => ‖z‖) x := by aesop
+  rw [Fintype.prod_equiv (finSumEquivOfFinset h1 h2).symm _
+    (fun x ↦ ‖Sum.elim v (fun x ↦ z) x‖) (by simp), Fintype.prod_congr _ _ h3,
+    Fintype.prod_sumElim, ← h2, ← prod_const]
+  congr 1
+  simp
+
+theorem restr_norm_le'' {n : ℕ} (f : MultilinearMap 𝕜 (fun _ : Fin n => G) G')
+    (s : Finset (Fin n)) (z : Fin (n - s.card) → G) {C : ℝ} (H : ∀ m, ‖f m‖ ≤ C * ∏ i, ‖m i‖)
+    (v : Fin s.card → G) :
+    ‖curryFinFinset' f v z‖ ≤ C * (∏ i, ‖z i‖) * ∏ i, ‖v i‖ := by
+  rw [mul_assoc, curryFinFinset_apply']
+  convert H _ using 2
+  generalize_proofs h1 h2
+  have h3 : ∀ x, ‖Sum.elim v z x‖ = Sum.elim (fun i => ‖v i‖) (fun i => ‖z i‖) x := by aesop
+  rw [Fintype.prod_equiv (finSumEquivOfFinset h1 h2).symm _
+    (fun x ↦ ‖Sum.elim v z x‖) (by simp), Fintype.prod_congr _ _ h3,
+    Fintype.prod_sumElim, mul_comm]
+
 
 end MultilinearMap
 

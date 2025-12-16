@@ -399,4 +399,36 @@ theorem curryFinFinset_apply_const {k l n : ℕ} {s : Finset (Fin n)} (hk : #s =
       f (s.piecewise (fun _ => x) fun _ => y) := by
   rw [← curryFinFinset_symm_apply_piecewise_const hk hl, LinearEquiv.symm_apply_apply]
 
+
+
+
+def curryFinFinset' {n : ℕ} {s : Finset (Fin n)} :
+    MultilinearMap R (fun _ : Fin n => M') M₂ ≃ₗ[R]
+      MultilinearMap R (fun _ : Fin s.card => M')
+        (MultilinearMap R (fun _ : Fin (n - s.card) => M') M₂) :=
+  (domDomCongrLinearEquiv R R M' M₂ (finSumEquivOfFinset rfl
+    (by simp [card_compl])).symm).trans currySumEquiv
+
+@[simp]
+theorem curryFinFinset_apply' {n : ℕ} {s : Finset (Fin n)}
+    (f : MultilinearMap R (fun _ : Fin n => M') M₂)
+      (mk : Fin s.card → M') (ml : Fin (n - s.card) → M') :
+    curryFinFinset' f mk ml =
+      f fun i => Sum.elim mk ml ((finSumEquivOfFinset rfl (by simp [card_compl])).symm i) :=
+  rfl
+
+@[simp]
+theorem curryFinFinset_symm_apply' {n : ℕ} {s : Finset (Fin n)}
+    (f : MultilinearMap R (fun _ : Fin (s.card) => M')
+    (MultilinearMap R (fun _ : Fin (n - s.card) => M') M₂))
+    (m : Fin n → M') :
+    curryFinFinset'.symm f m =
+      f (fun i => m <| finSumEquivOfFinset rfl
+        (by simp [card_compl] : #sᶜ = n - #s) (Sum.inl i)) fun i =>
+        m <| finSumEquivOfFinset rfl (by simp [card_compl] : #sᶜ = n - #s) (Sum.inr i) :=
+  rfl
+
+
+
+
 end MultilinearMap
