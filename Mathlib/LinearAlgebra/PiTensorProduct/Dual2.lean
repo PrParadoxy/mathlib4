@@ -226,17 +226,15 @@ theorem saliency (h : ∀ i, ∀ v : V i, v ≠ 0 → ∃ dv ∈ Sf i, dv v ≠ 
 
 
 
--- Idea: If dv in the following lemma is in `SepratingTensor`, then the proof is complete.
--- Just decompose v in saliency lemma to a sum over product tensors and for each product tensor
--- in that choose dv from sleepy. 
-lemma sleepy (h : ∀ ⦃i⦄ ⦃v : V i⦄, v ≠ 0 → ∃ dv ∈ Sf i, dv v ≠ 0)
-  : ∀ f : (i : ι) → V i, (∀ i, f i ≠ 0) →
-  ∃ dv : AlgWeakDual ℝ (⨂[ℝ] (i : ι), V i), dv (⨂ₜ[ℝ] i, f i) = 1 := by
-  intro f hf
-  choose dv hdv using fun i => h (hf i)
-  use dualDistrib (⨂ₜ[ℝ] i, (1 / ((dv i) (f i))) • (dv i))
-  rw [dualDistrib_apply]
-  apply Fintype.prod_eq_one
-  intro a
-  rw [LinearMap.smul_apply]
-  exact mul_eq_of_eq_mul_inv₀ (by simp [hdv a]) (by simp)
+-- -- TODO: prove `dv ∈ closure span SepratingTensor`,
+-- lemma sleepy (h : ∀ ⦃i⦄ ⦃v : V i⦄, v ≠ 0 → ∃ dv ∈ Sf i, dv v ≠ 0)
+--   : ∀ f : (i : ι) → V i, (∀ i, f i ≠ 0) →
+--   ∃ dv : AlgWeakDual ℝ (⨂[ℝ] (i : ι), V i), dv (⨂ₜ[ℝ] i, f i) = 1 := by
+--   intro f hf
+--   choose dv hdv using fun i => h (hf i)
+--   use dualDistrib (⨂ₜ[ℝ] i, (1 / ((dv i) (f i))) • (dv i))
+--   rw [dualDistrib_apply]
+--   apply Fintype.prod_eq_one
+--   intro a
+--   rw [LinearMap.smul_apply]
+--   exact mul_eq_of_eq_mul_inv₀ (by simp [hdv a]) (by simp)
