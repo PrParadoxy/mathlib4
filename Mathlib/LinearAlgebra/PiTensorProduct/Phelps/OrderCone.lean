@@ -64,8 +64,6 @@ lemma mem_core_of_subset_mem_core {s₁ s₂ : Set V}
 
 end core
 
-section OrderCone
-
 /-- A salient convex cone with a distinguished element `e` in its core.
   For saliency, check `OrderCone.salient`. -/
 @[ext]
@@ -90,7 +88,7 @@ theorem isGenerating (o : OrderCone V) : o.IsGenerating := by
     (1 / ε) • (o.ref), o.smul_mem' hε₁ (mem_core_mem_self o.hcore),
     by simp [smul_smul, mul_comm, mul_inv_cancel₀ (ne_of_lt hε).symm]⟩
 
-end OrderCone.OrderCone
+end OrderCone
 
 
 section PosDual
@@ -101,5 +99,3 @@ def PosDual (o : OrderCone V) : Set (AlgWeakDual ℝ V) :=
   {s | ∀ ⦃v⦄, v ∈ o → 0 ≤ s v} ∩ {s | s o.ref = 1}
 
 namespace PosDual
-
-
