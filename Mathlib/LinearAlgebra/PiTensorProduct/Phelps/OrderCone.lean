@@ -130,9 +130,8 @@ theorem isCompact : IsCompact (PosDual o) := by
   have prod_compact : IsCompact prod := by
     simpa [prod, Set.pi] using isCompact_pi_infinite (fun v => isCompact_closedBall 0 (M v))
   have h_subset : DFunLike.coe '' (PosDual o) ⊆ prod := by
-    simpa only [subset_def, mem_image, mem_pi, mem_univ, Metric.mem_closedBall, dist_zero_right,
-      Real.norm_eq_abs, forall_const, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂, prod,
-      family] using fun fembed hf v => (pointwise_bounded o v).choose_spec ⟨fembed, hf⟩
+    simpa [subset_def, prod, family] using by
+      exact fun fembed hf v => (pointwise_bounded o v).choose_spec ⟨fembed, hf⟩
   exact AlgWeakDual.isCompact_subset_image_coe (isClosed o) prod_compact h_subset
 
 lemma nonempty [Nontrivial V] {o : OrderCone V} (hs : ∀ ⦃v⦄, v ≠ 0 → ∃ f ∈ PosDual o, f v ≠ 0)
@@ -195,4 +194,5 @@ theorem nonempty [∀ i, Nontrivial (s i)] {O : ∀ i : S, OrderCone (s i)}
   Set.univ_pi_nonempty_iff.mpr (fun i => PosDual.nonempty (hs i))
 
 end PiPosDual
+
 

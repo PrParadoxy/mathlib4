@@ -175,3 +175,39 @@ theorem weak_separating_iff :
   exact hdv (hc dv)
 
 end AlgWeakDual
+
+
+
+/- Above is watershed polished, bottom is not -/
+
+/- ##################################################################################### -/
+
+/-! Decide on Hulancki's definitions -/
+
+
+open PiTensorProduct Function Finset
+open scoped TensorProduct
+
+variable {ι} [Fintype ι] {M : ι → Type*} [∀ i, AddCommGroup (M i)] [∀ i, Module ℝ (M i)]
+
+noncomputable def embedVec : (⨂[ℝ] i, M i) →ₗ[ℝ] (((i : ι) → AlgWeakDual ℝ (M i)) → ℝ) :=
+  lift (
+    {
+      toFun vf dv := ∏ i : ι, (dv i) (vf i)
+      map_update_add' _ i _ _  := by
+        ext _; simpa [update] using Eq.symm (prod_add_prod_eq (mem_univ i) (by simp)
+          (by intro _ _ hij; simp [hij]) (by intro _ _ hij; simp [hij]))
+      map_update_smul' vf i r vi := by
+          ext dv
+          simp only [prod_eq_mul_prod_diff_singleton
+            (mem_univ i) (fun x => (dv x) (update vf i (r • vi) x)),
+            update_self, map_smul, smul_eq_mul, Pi.smul_apply,
+            prod_eq_mul_prod_diff_singleton (mem_univ i) (fun x => (dv x) (update vf i vi x)),
+            ← mul_assoc]
+          congr! 3 with _ _
+          aesop
+    }
+  )
+
+@[simp] theorem embedVec_apply (dv : (i : ι) → AlgWeakDual ℝ (M i)) (vf : (i : ι) → M i) :
+  embedVec (⨂ₜ[ℝ] i, vf i) dv = ∏ i : ι, (dv i) (vf i) := by simp [embedVec]
