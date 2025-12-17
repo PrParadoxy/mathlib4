@@ -112,11 +112,11 @@ theorem isClosed : IsClosed (PosDual o) := by
       (IsClosed.preimage (eval_continuous (dualPairing ℝ V) v) isClosed_nonneg))
   · exact IsClosed.preimage (eval_continuous (dualPairing ℝ V) o.ref) isClosed_singleton
 
-theorem pointwise_bounded : ∀ v, ∃ M : ℝ, ∀ f : PosDual o, |f.val v| ≤ M := fun v => by
+theorem pointwise_bounded (v) : ∃ M : ℝ, ∀ f : PosDual o, |f.val v| ≤ M := by
   have ⟨ε, hε, hδ⟩ := o.hcore v
   use 1 / ε
   intro f
-  have ⟨hfv, hfe⟩ := f.val_prop
+  have ⟨hfv, hfe⟩ := f.prop
   rw [Set.mem_setOf_eq] at hfv hfe
   have hl := hfv (hδ ε (abs_of_pos hε).le)
   have hr := hfv ((hδ (-ε) (by simp [abs_of_pos hε])))
@@ -134,5 +134,16 @@ theorem isCompact : IsCompact (PosDual o) := by
       Real.norm_eq_abs, forall_const, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂, prod,
       family] using fun fembed hf v => (pointwise_bounded o v).choose_spec ⟨fembed, hf⟩
   exact AlgWeakDual.isCompact_subset_image_coe (isClosed o) prod_compact h_subset
+
+lemma nonempty [Nontrivial V] (hs : ∀ ⦃v⦄, v ≠ 0 → ∃ f ∈ PosDual o, f v ≠ 0)
+    : (PosDual o).Nonempty := by
+  have ⟨f, hf, _⟩ := hs (exists_ne (0 : V)).choose_spec
+  exact ⟨f, hf⟩
+
+theorem exists_strict_pos (hs : ∀ ⦃v⦄, v ≠ 0 → ∃ f ∈ PosDual o, f v ≠ 0) :
+  ∀ v ∈ o, v ≠ 0 → ∃ s ∈ PosDual o, 0 < s v := by
+  intro v hv₁ hv₂
+  have ⟨s, hs₁, hs₂⟩ := hs hv₂
+  exact ⟨s, hs₁, lt_of_le_of_ne (hs₁.left hv₁) (hs₂.symm)⟩
 
 end PosDual
