@@ -1,9 +1,5 @@
-import Mathlib.Topology.Algebra.Module.WeakBilin
-import Mathlib.LinearAlgebra.Dual.Lemmas
-import Mathlib.Analysis.Normed.Field.Lemmas
-import Mathlib.Analysis.LocallyConvex.WeakDual
 import Mathlib.Analysis.LocallyConvex.Separation
-import Mathlib.LinearAlgebra.PiTensorProduct
+import Mathlib.Analysis.LocallyConvex.WeakDual
 import Mathlib.LinearAlgebra.PiTensorProduct.Dual
 
 
