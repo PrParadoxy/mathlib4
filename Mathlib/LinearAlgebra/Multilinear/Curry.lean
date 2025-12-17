@@ -339,62 +339,62 @@ theorem coe_currySumEquiv : ⇑(currySumEquiv (R := R) (N := N) (M₂ := M₂)) 
 theorem coe_currySumEquiv_symm : ⇑(currySumEquiv (R := R) (N := N) (M₂ := M₂)).symm = uncurrySum :=
   rfl
 
-variable (R M₂ M')
-
-/-- If `s : Finset (Fin n)` is a finite set of cardinality `k` and its complement has cardinality
-`l`, then the space of multilinear maps on `fun i : Fin n => M'` is isomorphic to the space of
-multilinear maps on `fun i : Fin k => M'` taking values in the space of multilinear maps
-on `fun i : Fin l => M'`. -/
-def curryFinFinset {k l n : ℕ} {s : Finset (Fin n)} (hk : #s = k) (hl : #sᶜ = l) :
-    MultilinearMap R (fun _ : Fin n => M') M₂ ≃ₗ[R]
-      MultilinearMap R (fun _ : Fin k => M') (MultilinearMap R (fun _ : Fin l => M') M₂) :=
-  (domDomCongrLinearEquiv R R M' M₂ (finSumEquivOfFinset hk hl).symm).trans
-    currySumEquiv
-
-variable {R M₂ M'}
+/-- If `s : Finset (Fin n)`, then the space of multilinear maps on `fun i : Fin n => M'` is
+isomorphic to the space of multilinear maps on `fun i : Fin (n-#s) => M'` taking values in the
+space of multilinear maps on `fun i : Fin k => M'`. -/
+def curryFinFinset {n : ℕ} (s : Finset (Fin n)) :
+    MultilinearMap R (fun _ : Fin n ↦ M') M₂ ≃ₗ[R]
+      MultilinearMap R (fun _ : Fin (n - #s) ↦ M') (MultilinearMap R (fun _ : Fin #s ↦ M') M₂) :=
+  (domDomCongrLinearEquiv R R M' M₂
+    (finSumEquivOfFinset ((by simp [card_compl]) : #sᶜ=n-#s) (by aesop)).symm).trans currySumEquiv
 
 @[simp]
-theorem curryFinFinset_apply {k l n : ℕ} {s : Finset (Fin n)} (hk : #s = k) (hl : #sᶜ = l)
-    (f : MultilinearMap R (fun _ : Fin n => M') M₂) (mk : Fin k → M') (ml : Fin l → M') :
-    curryFinFinset R M₂ M' hk hl f mk ml =
-      f fun i => Sum.elim mk ml ((finSumEquivOfFinset hk hl).symm i) :=
+theorem curryFinFinset_apply {n : ℕ} {s : Finset (Fin n)}
+    (f : MultilinearMap R (fun _ : Fin n => M') M₂) (mk : Fin #s → M') (ml : Fin (n - #s) → M') :
+    curryFinFinset s f ml mk = f fun i => Sum.elim ml mk
+      ((finSumEquivOfFinset ((by simp [card_compl]) : #sᶜ=n-#s) (by aesop)).symm i) :=
   rfl
 
 @[simp]
-theorem curryFinFinset_symm_apply {k l n : ℕ} {s : Finset (Fin n)} (hk : #s = k)
-    (hl : #sᶜ = l)
-    (f : MultilinearMap R (fun _ : Fin k => M') (MultilinearMap R (fun _ : Fin l => M') M₂))
+theorem curryFinFinset_symm_apply {n : ℕ} {s : Finset (Fin n)}
+    (f : MultilinearMap R (fun _ : Fin (n - #s) ↦ M') (MultilinearMap R (fun _ : Fin #s ↦ M') M₂))
     (m : Fin n → M') :
-    (curryFinFinset R M₂ M' hk hl).symm f m =
-      f (fun i => m <| finSumEquivOfFinset hk hl (Sum.inl i)) fun i =>
-        m <| finSumEquivOfFinset hk hl (Sum.inr i) :=
+    (curryFinFinset s).symm f m =
+      f (fun i => m <|
+        (finSumEquivOfFinset (by simp [card_compl]) ((by aesop) : #sᶜᶜ = #s)) (Sum.inl i))
+        (fun i => m <|
+        (finSumEquivOfFinset ((by simp [card_compl]) : #sᶜ=n-#s) (by aesop)) (Sum.inr i)) :=
   rfl
 
-theorem curryFinFinset_symm_apply_piecewise_const {k l n : ℕ} {s : Finset (Fin n)} (hk : #s = k)
-    (hl : #sᶜ = l)
-    (f : MultilinearMap R (fun _ : Fin k => M') (MultilinearMap R (fun _ : Fin l => M') M₂))
-    (x y : M') :
-    (curryFinFinset R M₂ M' hk hl).symm f (s.piecewise (fun _ => x) fun _ => y) =
-      f (fun _ => x) fun _ => y := by
-  rw [curryFinFinset_symm_apply]; congr
-  · ext
-    rw [finSumEquivOfFinset_inl, Finset.piecewise_eq_of_mem]
-    apply Finset.orderEmbOfFin_mem
-  · ext
-    rw [finSumEquivOfFinset_inr, Finset.piecewise_eq_of_notMem]
-    exact Finset.mem_compl.1 (Finset.orderEmbOfFin_mem _ _ _)
 
-@[simp]
-theorem curryFinFinset_symm_apply_const {k l n : ℕ} {s : Finset (Fin n)} (hk : #s = k)
-    (hl : #sᶜ = l)
-    (f : MultilinearMap R (fun _ : Fin k => M') (MultilinearMap R (fun _ : Fin l => M') M₂))
-    (x : M') : ((curryFinFinset R M₂ M' hk hl).symm f fun _ => x) = f (fun _ => x) fun _ => x :=
-  rfl
-
-theorem curryFinFinset_apply_const {k l n : ℕ} {s : Finset (Fin n)} (hk : #s = k)
-    (hl : #sᶜ = l) (f : MultilinearMap R (fun _ : Fin n => M') M₂) (x y : M') :
-    (curryFinFinset R M₂ M' hk hl f (fun _ => x) fun _ => y) =
-      f (s.piecewise (fun _ => x) fun _ => y) := by
-  rw [← curryFinFinset_symm_apply_piecewise_const hk hl, LinearEquiv.symm_apply_apply]
+/-
+TBD: Port these if idea gets traction.
+-/
+-- theorem curryFinFinset_symm_apply_piecewise_const {k l n : ℕ} {s : Finset (Fin n)} (hk : #s = k)
+--     (hl : #sᶜ = l)
+--     (f : MultilinearMap R (fun _ : Fin k => M') (MultilinearMap R (fun _ : Fin l => M') M₂))
+--     (x y : M') :
+--     (curryFinFinset R M₂ M' hk hl).symm f (s.piecewise (fun _ => x) fun _ => y) =
+--       f (fun _ => x) fun _ => y := by
+--   rw [curryFinFinset_symm_apply]; congr
+--   · ext
+--     rw [finSumEquivOfFinset_inl, Finset.piecewise_eq_of_mem]
+--     apply Finset.orderEmbOfFin_mem
+--   · ext
+--     rw [finSumEquivOfFinset_inr, Finset.piecewise_eq_of_notMem]
+--     exact Finset.mem_compl.1 (Finset.orderEmbOfFin_mem _ _ _)
+--
+-- @[simp]
+-- theorem curryFinFinset_symm_apply_const {k l n : ℕ} {s : Finset (Fin n)} (hk : #s = k)
+--     (hl : #sᶜ = l)
+--     (f : MultilinearMap R (fun _ : Fin k => M') (MultilinearMap R (fun _ : Fin l => M') M₂))
+--     (x : M') : ((curryFinFinset R M₂ M' hk hl).symm f fun _ => x) = f (fun _ => x) fun _ => x :=
+--   rfl
+--
+-- theorem curryFinFinset_apply_const {k l n : ℕ} {s : Finset (Fin n)} (hk : #s = k)
+--     (hl : #sᶜ = l) (f : MultilinearMap R (fun _ : Fin n => M') M₂) (x y : M') :
+--     (curryFinFinset R M₂ M' hk hl f (fun _ => x) fun _ => y) =
+--       f (s.piecewise (fun _ => x) fun _ => y) := by
+--   rw [← curryFinFinset_symm_apply_piecewise_const hk hl, LinearEquiv.symm_apply_apply]
 
 end MultilinearMap
