@@ -135,7 +135,7 @@ theorem isCompact : IsCompact (PosDual o) := by
       family] using fun fembed hf v => (pointwise_bounded o v).choose_spec ⟨fembed, hf⟩
   exact AlgWeakDual.isCompact_subset_image_coe (isClosed o) prod_compact h_subset
 
-lemma nonempty [Nontrivial V] (hs : ∀ ⦃v⦄, v ≠ 0 → ∃ f ∈ PosDual o, f v ≠ 0)
+lemma nonempty [Nontrivial V] {o : OrderCone V} (hs : ∀ ⦃v⦄, v ≠ 0 → ∃ f ∈ PosDual o, f v ≠ 0)
     : (PosDual o).Nonempty := by
   have ⟨f, hf, _⟩ := hs (exists_ne (0 : V)).choose_spec
   exact ⟨f, hf⟩
@@ -147,3 +147,52 @@ theorem exists_strict_pos (hs : ∀ ⦃v⦄, v ≠ 0 → ∃ f ∈ PosDual o, f 
   exact ⟨s, hs₁, lt_of_le_of_ne (hs₁.left hv₁) (hs₂.symm)⟩
 
 end PosDual
+
+namespace OrderCone
+
+variable {o : OrderCone V}
+
+theorem salient (hs : ∀ ⦃v⦄, v ≠ 0 → ∃ f ∈ PosDual o, f v ≠ 0) : ∀ x ∈ o, x ≠ 0 → -x ∉ o := by
+  intro x hx₁ hx₂ hx₃
+  obtain ⟨f, hht₁, hht₂⟩ := PosDual.exists_strict_pos o hs x hx₁ hx₂
+  have h : f x ≤ 0 := by simpa using hht₁.left hx₃
+  simp [le_antisymm (h) (hht₁.left hx₁)] at hht₂
+
+variable (hs : ∀ ⦃v⦄, v ≠ 0 → ∃ f ∈ PosDual o, f v ≠ 0)
+
+/-- The canonical order on the salient convex cone -/
+def partialOrder : PartialOrder V :=
+  ConvexCone.toPartialOrder o.toConvexCone o.pointed (o.salient hs)
+
+def isOrderedAddMonoid : @IsOrderedAddMonoid V _ (partialOrder hs) :=
+  ConvexCone.to_isOrderedAddMonoid o.toConvexCone o.pointed (o.salient hs)
+
+end OrderCone
+end SingleVectorSpace
+
+
+
+section MultiVectorSpace
+
+variable {ι : Type*} {s : ι → Type*} [∀ i, AddCommGroup (s i)] [∀ i, Module ℝ (s i)]
+
+variable {S : Set ι} (O : ∀ i : S, OrderCone (s i))
+
+/-- Cartesian product of a `PosDual` family. -/
+def PiPosDual := Set.pi Set.univ (fun (i : S) => PosDual (O i))
+
+namespace PiPosDual
+
+theorem convex : Convex ℝ (PiPosDual O) :=
+  convex_pi (fun i _ => PosDual.convex (O i))
+
+theorem isCompact : IsCompact (PiPosDual O) :=
+  isCompact_univ_pi (fun i :S => PosDual.isCompact (O i))
+
+theorem nonempty [∀ i, Nontrivial (s i)] {O : ∀ i : S, OrderCone (s i)}
+    (hs : ∀ i, ∀ ⦃v⦄, v ≠ 0 → ∃ f ∈ PosDual (O i), f v ≠ 0)
+    : (PiPosDual O).Nonempty :=
+  Set.univ_pi_nonempty_iff.mpr (fun i => PosDual.nonempty (hs i))
+
+end PiPosDual
+
