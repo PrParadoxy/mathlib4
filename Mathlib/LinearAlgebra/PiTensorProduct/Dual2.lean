@@ -208,16 +208,16 @@ variable [(i : ι) → Module ℝ (V i)] (Sf : (i : ι) → Set (AlgWeakDual ℝ
 -- `saliency` theorem, which looks impossible without using some specific
 -- notion of linear independence.
 
-abbrev SepratingTensor : Set (AlgWeakDual ℝ ((⨂[ℝ] (i : ι), V i))) :=
+abbrev SepratingTensor : Set (AlgWeakDual ℝ (⨂[ℝ] (i : ι), V i)) :=
   dualDistrib '' (PiTensorProduct.tprod  ℝ '' (Set.pi Set.univ Sf))
 
-theorem saliency
-    (h : ∀ i, ∀ v : (V i), v ≠ 0 → ∃ dv ∈ Sf i, dv v ≠ 0)
+theorem saliency (h : ∀ i, ∀ v : V i, v ≠ 0 → ∃ dv ∈ Sf i, dv v ≠ 0)
     : topologicalClosure (span ℝ (SepratingTensor Sf)) = ⊤ := by
-  ext i
+  ext dt
   simp only [mem_top, iff_true]
   by_contra! hc
   have ⟨v, hv₁, hv₂, hdv⟩ := exists_separating_vector hc
   -- One should find a dv that makes hdv non zero to prove the goal.
   -- I would be very impressed if it can be done without some notion of
   -- decomposition of tensors to linearly independent tensors.
+  sorry
