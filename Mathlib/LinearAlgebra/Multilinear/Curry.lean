@@ -401,13 +401,16 @@ theorem curryFinFinset_apply_const {k l n : ℕ} {s : Finset (Fin n)} (hk : #s =
 
 
 
+-- variable (R M₂ M')
 
 def curryFinFinset' {n : ℕ} {s : Finset (Fin n)} :
-    MultilinearMap R (fun _ : Fin n => M') M₂ ≃ₗ[R]
-      MultilinearMap R (fun _ : Fin s.card => M')
-        (MultilinearMap R (fun _ : Fin (n - s.card) => M') M₂) :=
+    MultilinearMap R (fun _ : Fin n ↦ M') M₂ ≃ₗ[R]
+      MultilinearMap R (fun _ : Fin s.card ↦ M')
+        (MultilinearMap R (fun _ : Fin (n - s.card) ↦ M') M₂) :=
   (domDomCongrLinearEquiv R R M' M₂ (finSumEquivOfFinset rfl
     (by simp [card_compl])).symm).trans currySumEquiv
+
+-- variable {R M₂ M'}
 
 @[simp]
 theorem curryFinFinset_apply' {n : ℕ} {s : Finset (Fin n)}
@@ -428,6 +431,38 @@ theorem curryFinFinset_symm_apply' {n : ℕ} {s : Finset (Fin n)}
         m <| finSumEquivOfFinset rfl (by simp [card_compl] : #sᶜ = n - #s) (Sum.inr i) :=
   rfl
 
+def curryFinFinset'' {n : ℕ} (s : Finset (Fin n)) :
+    MultilinearMap R (fun _ : Fin n ↦ M') M₂ ≃ₗ[R]
+      MultilinearMap R (fun _ : Fin (n - #s) ↦ M')
+        (MultilinearMap R (fun _ : Fin #s ↦ M') M₂) :=
+  (domDomCongrLinearEquiv R R M' M₂
+  (finSumEquivOfFinset ((by simp [card_compl]) : #sᶜ=n-#s) (by aesop)).symm).trans
+    currySumEquiv
+
+#check curryFinFinset''
+-- maybe use that?
+#check Equiv.sumComm
+
+@[simp]
+theorem curryFinFinset_apply'' {n : ℕ} {s : Finset (Fin n)}
+    (f : MultilinearMap R (fun _ : Fin n => M') M₂)
+      (mk : Fin s.card → M') (ml : Fin (n - s.card) → M') :
+    curryFinFinset'' s f ml mk =
+      f fun i => Sum.elim ml mk
+      ((finSumEquivOfFinset ((by simp [card_compl]) : #sᶜ=n-#s) (by aesop)).symm i)
+        :=
+        rfl
+
+@[simp]
+theorem curryFinFinset_symm_apply'' {n : ℕ} {s : Finset (Fin n)}
+    (f : MultilinearMap R (fun _ : Fin (s.card) => M')
+    (MultilinearMap R (fun _ : Fin (n - s.card) => M') M₂))
+    (m : Fin n → M') :
+    curryFinFinset'.symm f m =
+      f (fun i => m <| finSumEquivOfFinset rfl
+        (by simp [card_compl] : #sᶜ = n - #s) (Sum.inl i)) fun i =>
+        m <| finSumEquivOfFinset rfl (by simp [card_compl] : #sᶜ = n - #s) (Sum.inr i) :=
+  rfl
 
 
 

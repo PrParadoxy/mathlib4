@@ -338,14 +338,13 @@ theorem restr_norm_le' {n : ℕ} (f : MultilinearMap 𝕜 (fun _ : Fin n => G) G
 theorem restr_norm_le'' {n : ℕ} (f : MultilinearMap 𝕜 (fun _ : Fin n => G) G')
     (s : Finset (Fin n)) (z : Fin (n - s.card) → G) {C : ℝ} (H : ∀ m, ‖f m‖ ≤ C * ∏ i, ‖m i‖)
     (v : Fin s.card → G) :
-    ‖curryFinFinset' f v z‖ ≤ C * (∏ i, ‖z i‖) * ∏ i, ‖v i‖ := by
-  rw [mul_assoc, curryFinFinset_apply']
+    ‖curryFinFinset'' s f z v‖ ≤ C * (∏ i, ‖z i‖) * ∏ i, ‖v i‖ := by
+  rw [curryFinFinset_apply'', mul_assoc]
   convert H _ using 2
   generalize_proofs h1 h2
-  have h3 : ∀ x, ‖Sum.elim v z x‖ = Sum.elim (fun i => ‖v i‖) (fun i => ‖z i‖) x := by aesop
-  rw [Fintype.prod_equiv (finSumEquivOfFinset h1 h2).symm _ (fun x ↦ ‖Sum.elim v z x‖) (by simp),
+  have h3 : ∀ x, ‖Sum.elim z v x‖ = Sum.elim (fun i => ‖z i‖) (fun i => ‖v i‖) x := by aesop
+  rw [Fintype.prod_equiv (finSumEquivOfFinset h1 h2).symm _ (fun x ↦ ‖Sum.elim z v x‖) (by simp),
     Fintype.prod_congr _ _ h3, Fintype.prod_sumElim, mul_comm]
-
 
 end MultilinearMap
 
@@ -717,10 +716,20 @@ def restr {k n : ℕ} (f : (G [×n]→L[𝕜] G' :)) (s : Finset (Fin n)) (hk : 
   (f.toMultilinearMap.restr s hk z).mkContinuous (‖f‖ * ‖z‖ ^ (n - k)) fun _ =>
     MultilinearMap.restr_norm_le _ _ _ _ f.le_opNorm _
 
+def restr'' {n : ℕ} (f : (G [×n]→L[𝕜] G' :)) (s : Finset (Fin n))
+  (z : Fin (n - #s) → G) : G [×(#s)]→L[𝕜] G' :=
+  (f.toMultilinearMap.curryFinFinset'' s z).mkContinuous (‖f‖ * (∏ i, ‖z i‖)) fun _ =>
+    MultilinearMap.restr_norm_le''  _ _ _ f.le_opNorm _
+
 theorem norm_restr {k n : ℕ} (f : G [×n]→L[𝕜] G') (s : Finset (Fin n)) (hk : #s = k) (z : G) :
     ‖f.restr s hk z‖ ≤ ‖f‖ * ‖z‖ ^ (n - k) := by
   apply MultilinearMap.mkContinuous_norm_le
   exact mul_nonneg (norm_nonneg _) (pow_nonneg (norm_nonneg _) _)
+
+theorem norm_restr'' {n : ℕ} (f : G [×n]→L[𝕜] G') (s : Finset (Fin n)) (z : Fin (n - #s) → G) :
+    ‖f.restr'' s z‖ ≤ ‖f‖ * (∏ i, ‖z i‖) := by
+  apply MultilinearMap.mkContinuous_norm_le
+  exact mul_nonneg (norm_nonneg _) (Finset.prod_nonneg (fun i _ ↦ norm_nonneg (z i)))
 
 section
 
