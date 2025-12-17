@@ -34,7 +34,15 @@ tensor product of vectors comming from `OrderCone`s.
   vectors of `OrderCone`s.
 -/
 
-open Module Set Topology
+
+open Module Set Topology ConvexCone
+
+-- Move this to Mathlib.Geometry.Convex.Cone.Basic under `IsGenerating`
+variable {R : Type*} {M : Type*} [AddCommGroup M] [Ring R] [PartialOrder R]
+   [Module R M] {C : ConvexCone R M} in
+lemma ConvexCone.isGenerating_if_exists (h : ∀ v, ∃ x ∈ C, ∃ y ∈ C, x - y = v) : C.IsGenerating :=
+  IsReproducing.isGenerating (IsReproducing.of_univ_subset
+    (univ_subset_iff.mpr (eq_univ_of_forall fun v => mem_sub.mpr (h v))))
 
 section SingleVectorSpace
 
@@ -62,29 +70,30 @@ lemma mem_core_of_subset_mem_core {s₁ s₂ : Set V}
 
 end core
 
+section OrderCone
 
--- /-- A salient convex cone with a distinguished element `e` in its core.
---   For saliency, check `OrderCone.salient`. -/
--- @[ext]
--- structure OrderCone extends ConvexCone ℝ W where
---   ref : W
---   hcore : ref ∈ (core carrier)
---   pointed : ConvexCone.Pointed toConvexCone
+/-- A salient convex cone with a distinguished element `e` in its core.
+  For saliency, check `OrderCone.salient`. -/
+@[ext]
+structure OrderCone (V : Type*) [AddCommGroup V] [Module ℝ V] extends ConvexCone ℝ V where
+  ref : V
+  hcore : ref ∈ (core carrier)
+  pointed : ConvexCone.Pointed toConvexCone
 
--- namespace OrderCone
+namespace OrderCone
 
--- instance : Membership V (OrderCone V) where
---   mem S x := x ∈ S.carrier
+instance : Membership V (OrderCone V) where
+  mem S x := x ∈ S.carrier
 
--- @[simp] lemma mem_coe {s : Set W} {x : W} {h₁ h₂ h₃ h₄ h₅} :
---   x ∈ (OrderCone.mk (ConvexCone.mk s h₁ h₂) h₃ h₄ h₅) ↔ x ∈ s := Iff.rfl
+@[simp] lemma mem_coe {s : Set V} {x : V} {h₁ h₂ h₃ h₄ h₅} :
+  x ∈ (OrderCone.mk (ConvexCone.mk s h₁ h₂) h₃ h₄ h₅) ↔ x ∈ s := Iff.rfl
 
--- theorem is_generating (o : OrderCone V) : generating o.carrier := by
---   intro v
---   have ⟨ε, hε, h⟩ := o.hcore v
---   have hε₁ : 0 < (1 / ε) := by simp [hε]
---   use (1 / ε) • (o.ref + ε • v), (1 / ε) • (o.ref)
---   exact ⟨o.smul_mem' hε₁ (h ε (abs_of_pos hε).le), o.smul_mem' hε₁ (mem_core_mem_self o.hcore),
---     by simp [smul_smul, mul_comm, mul_inv_cancel₀ (ne_of_lt hε).symm]⟩
+theorem isGenerating (o : OrderCone V) : o.IsGenerating := by
+  apply isGenerating_if_exists (fun v => ?_)
+  have ⟨ε, hε, h⟩ := o.hcore v
+  have hε₁ : 0 < (1 / ε) := by simp [hε]
+  exact ⟨(1 / ε) • (o.ref + ε • v), o.smul_mem' hε₁ (h ε (abs_of_pos hε).le),
+    (1 / ε) • (o.ref), o.smul_mem' hε₁ (mem_core_mem_self o.hcore),
+    by simp [smul_smul, mul_comm, mul_inv_cancel₀ (ne_of_lt hε).symm]⟩
 
--- end OrderCone
+end OrderCone
