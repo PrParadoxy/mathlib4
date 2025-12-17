@@ -3,6 +3,7 @@ import Mathlib.Topology.MetricSpace.ProperSpace.Real
 import Mathlib.Data.Real.Sqrt
 import Mathlib.LinearAlgebra.PiTensorProduct.Phelps.Aux
 import Mathlib.LinearAlgebra.PiTensorProduct.Phelps.Dual
+import Mathlib.Analysis.Normed.Order.Lattice
 
 /-!
 # Tensor product of partially ordered spaces
@@ -36,7 +37,7 @@ tensor product of vectors comming from `OrderCone`s.
 -/
 
 
-open Set ConvexCone
+open Set ConvexCone Module WeakBilin
 
 section SingleVectorSpace
 
@@ -52,7 +53,7 @@ def core (S : Set V) := {vc | ∀ v, ∃ ε : ℝ, 0 < ε ∧ ∀ δ, |δ| ≤ �
 @[simp] lemma mem_core :
   vc ∈ core S ↔ ∀ v, ∃ ε : ℝ, 0 < ε ∧ ∀ δ, |δ| ≤ ε → vc + δ • v ∈ S := Iff.rfl
 
-@[simp] lemma mem_core_mem_self (hvc : vc ∈ core S) : vc ∈ S := by
+lemma mem_core_mem_self (hvc : vc ∈ core S) : vc ∈ S := by
   have ⟨ε, hε, hδ⟩ := hvc 0
   simpa using hδ 0 (by simp [le_of_lt hε])
 
@@ -90,12 +91,48 @@ theorem isGenerating (o : OrderCone V) : o.IsGenerating := by
 
 end OrderCone
 
-
-section PosDual
-
 /-- Set of all positive dual vectors on the order cone,
     normalized by fixing their evaluation on `OrderCone.e` to 1. -/
 def PosDual (o : OrderCone V) : Set (AlgWeakDual ℝ V) :=
   {s | ∀ ⦃v⦄, v ∈ o → 0 ≤ s v} ∩ {s | s o.ref = 1}
 
 namespace PosDual
+
+variable (o : OrderCone V)
+
+theorem convex : Convex ℝ (PosDual o) := by
+  apply Convex.inter
+  · exact fun _ hv _ hu _ _ ha hb hab => by
+      simpa using fun q hq => add_nonneg (smul_nonneg ha (hv hq)) (smul_nonneg hb (hu hq))
+  · exact Convex.linear_preimage (convex_singleton 1) (((dualPairing ℝ V).flip o.ref))
+
+theorem isClosed : IsClosed (PosDual o) := by
+  apply IsClosed.inter
+  · simpa only [Set.setOf_forall] using (isClosed_biInter fun v hv =>
+      (IsClosed.preimage (eval_continuous (dualPairing ℝ V) v) isClosed_nonneg))
+  · exact IsClosed.preimage (eval_continuous (dualPairing ℝ V) o.ref) isClosed_singleton
+
+theorem pointwise_bounded : ∀ v, ∃ M : ℝ, ∀ f : PosDual o, |f.val v| ≤ M := fun v => by
+  have ⟨ε, hε, hδ⟩ := o.hcore v
+  use 1 / ε
+  intro f
+  have ⟨hfv, hfe⟩ := f.val_prop
+  rw [Set.mem_setOf_eq] at hfv hfe
+  have hl := hfv (hδ ε (abs_of_pos hε).le)
+  have hr := hfv ((hδ (-ε) (by simp [abs_of_pos hε])))
+  simp only [smul_eq_mul, map_add, hfe, map_smul] at hr hl
+  exact abs_le.mpr (by constructor <;> (field_simp; linarith))
+
+theorem isCompact : IsCompact (PosDual o) := by
+  let M : V → ℝ := fun v => (pointwise_bounded o v).choose
+  let family : V → Set ℝ := fun v => Metric.closedBall 0 (M v)
+  let prod := Set.pi Set.univ family
+  have prod_compact : IsCompact prod := by
+    simpa [prod, Set.pi] using isCompact_pi_infinite (fun v => isCompact_closedBall 0 (M v))
+  have h_subset : DFunLike.coe '' (PosDual o) ⊆ prod := by
+    simpa only [subset_def, mem_image, mem_pi, mem_univ, Metric.mem_closedBall, dist_zero_right,
+      Real.norm_eq_abs, forall_const, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂, prod,
+      family] using fun fembed hf v => (pointwise_bounded o v).choose_spec ⟨fembed, hf⟩
+  exact AlgWeakDual.isCompact_subset_image_coe (isClosed o) prod_compact h_subset
+
+end PosDual
