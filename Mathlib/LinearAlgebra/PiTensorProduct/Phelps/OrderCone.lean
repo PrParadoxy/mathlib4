@@ -2,6 +2,7 @@ import Mathlib.Analysis.Convex.Cone.Basic
 import Mathlib.Topology.MetricSpace.ProperSpace.Real
 import Mathlib.Data.Real.Sqrt
 import Mathlib.LinearAlgebra.PiTensorProduct.Phelps.Aux
+import Mathlib.LinearAlgebra.PiTensorProduct.Phelps.Dual
 
 /-!
 # Tensor product of partially ordered spaces
@@ -89,4 +90,16 @@ theorem isGenerating (o : OrderCone V) : o.IsGenerating := by
     (1 / ε) • (o.ref), o.smul_mem' hε₁ (mem_core_mem_self o.hcore),
     by simp [smul_smul, mul_comm, mul_inv_cancel₀ (ne_of_lt hε).symm]⟩
 
-end OrderCone
+end OrderCone.OrderCone
+
+
+section PosDual
+
+/-- Set of all positive dual vectors on the order cone,
+    normalized by fixing their evaluation on `OrderCone.e` to 1. -/
+def PosDual (o : OrderCone V) : Set (AlgWeakDual ℝ V) :=
+  {s | ∀ ⦃v⦄, v ∈ o → 0 ≤ s v} ∩ {s | s o.ref = 1}
+
+namespace PosDual
+
+
