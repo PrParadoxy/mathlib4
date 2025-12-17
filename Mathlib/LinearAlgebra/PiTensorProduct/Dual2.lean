@@ -196,7 +196,7 @@ theorem weak_separating_iff :
 open PiTensorProduct
 open scoped TensorProduct
 
-variable {ι : Type*} [Finite ι]
+variable {ι : Type*} [Fintype ι]
 variable {R : Type*} [CommRing R]
 variable {V : ι → Type*} [∀ i, AddCommGroup (V i)] [∀ i, Module R (V i)]
 
@@ -209,7 +209,7 @@ variable [(i : ι) → Module ℝ (V i)] (Sf : (i : ι) → Set (AlgWeakDual ℝ
 -- notion of linear independence.
 
 abbrev SepratingTensor : Set (AlgWeakDual ℝ (⨂[ℝ] (i : ι), V i)) :=
-  dualDistrib '' (PiTensorProduct.tprod  ℝ '' (Set.pi Set.univ Sf))
+  dualDistrib '' (PiTensorProduct.tprod ℝ '' (Set.pi Set.univ Sf))
 
 theorem saliency (h : ∀ i, ∀ v : V i, v ≠ 0 → ∃ dv ∈ Sf i, dv v ≠ 0)
     : topologicalClosure (span ℝ (SepratingTensor Sf)) = ⊤ := by
@@ -221,3 +221,20 @@ theorem saliency (h : ∀ i, ∀ v : V i, v ≠ 0 → ∃ dv ∈ Sf i, dv v ≠ 
   -- I would be very impressed if it can be done without some notion of
   -- decomposition of tensors to linearly independent tensors.
   sorry
+
+
+
+
+
+-- Idea: If dv in the following lemma is in `SepratingTensor`, then the proof is complete.
+lemma sleepy (h : ∀ ⦃i⦄ ⦃v : V i⦄, v ≠ 0 → ∃ dv ∈ Sf i, dv v ≠ 0)
+  : ∀ f : (i : ι) → V i, (∀ i, f i ≠ 0) →
+  ∃ dv : AlgWeakDual ℝ (⨂[ℝ] (i : ι), V i), dv (⨂ₜ[ℝ] i, f i) = 1 := by
+  intro f hf
+  choose dv hdv using fun i => h (hf i)
+  use dualDistrib (⨂ₜ[ℝ] i, (1 / ((dv i) (f i))) • (dv i))
+  rw [dualDistrib_apply]
+  apply Fintype.prod_eq_one
+  intro a
+  rw [LinearMap.smul_apply]
+  exact mul_eq_of_eq_mul_inv₀ (by simp [hdv a]) (by simp)
