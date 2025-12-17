@@ -186,7 +186,9 @@ theorem isCompact : IsCompact (PosDual o) := by
   have prod_compact : IsCompact prod := by
     simpa [prod, Set.pi] using isCompact_pi_infinite (fun v => isCompact_closedBall 0 (M v))
   have h_subset : dualembed '' (PosDual o) ⊆ prod := by
-    simp [dualembed, Set.subset_def, prod, family]
+    simp only [dualembed, subset_def, mem_image, mem_pi, mem_univ, Metric.mem_closedBall,
+      dist_zero_right, Real.norm_eq_abs, forall_const, forall_exists_index, and_imp,
+      forall_apply_eq_imp_iff₂, prod, family]
     exact fun fembed hf v => (pointwise_bounded o v).choose_spec ⟨fembed, hf⟩
   exact isCompact_image_dualembed (isClosed o) prod_compact h_subset
 

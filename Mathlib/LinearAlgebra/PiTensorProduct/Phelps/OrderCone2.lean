@@ -37,12 +37,13 @@ tensor product of vectors comming from `OrderCone`s.
 
 open Module Set Topology ConvexCone
 
--- Move this to Mathlib.Geometry.Convex.Cone.Basic under `IsGenerating`
-variable {R : Type*} {M : Type*} [AddCommGroup M] [Ring R] [PartialOrder R]
-   [Module R M] {C : ConvexCone R M} in
+-- Move this to `Mathlib.Geometry.Convex.Cone.Basic` under `IsGenerating`
+variable {R : Type*} {M : Type*} [Ring R] [PartialOrder R]
+   [AddCommGroup M] [Module R M] {C : ConvexCone R M} in
 lemma ConvexCone.isGenerating_if_exists (h : ∀ v, ∃ x ∈ C, ∃ y ∈ C, x - y = v) : C.IsGenerating :=
   IsReproducing.isGenerating (IsReproducing.of_univ_subset
     (univ_subset_iff.mpr (eq_univ_of_forall fun v => mem_sub.mpr (h v))))
+
 
 section SingleVectorSpace
 
