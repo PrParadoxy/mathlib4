@@ -91,6 +91,6 @@ abbrev Restricted :=
 
 noncomputable def Restricted.of {S : Set ι} [Finite S]
     : (⨂[R] i : S, s i) →ₗ[R] Restricted R s₀ :=
-  Module.DirectLimit.of _ _ (fun S : Set ι ↦ ⨂[R] (i : S), s i) _ S
+  Module.DirectLimit.of _ _ (fun S : Set ι ↦ ⨂[R] (i : S), s i) ..
 
 end PiTensorProduct
