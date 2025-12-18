@@ -64,7 +64,7 @@ _This file is a stub._
 open PiTensorProduct
 open scoped TensorProduct
 
-variable {ι : Type*} [DecidableEq ι]
+variable {ι : Type*} [DecidableEq (Set ι)]
 variable {s : ι → Type*} {R : Type*}
 variable [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
 variable (s₀ : (i : ι) → s i) [∀ s : Set ι, ∀ i, Decidable (i ∈ s)]
@@ -86,13 +86,11 @@ instance Restricted.directedSystem :
 -- This must be abbrev so that lean automatically creates relevant instances,
 -- e.g. Module, AddCommMonoid, etc
 /-- Tensors with finite support -/
-abbrev Restricted [DecidableEq (Set ι)] :=
+abbrev Restricted :=
   Module.DirectLimit (fun S : Set ι ↦ ⨂[R] (i : S), s i) (fun _ _ hsub ↦ extendTensor hsub s₀)
 
-noncomputable def Restricted.of [DecidableEq (Set ι)] {S : Set ι} [Finite S] (z : ⨂[R] i : S, s i)
-    : Restricted (R := R) s₀ :=
-  Module.DirectLimit.of R (Set ι) (fun S : Set ι ↦ ⨂[R] (i : S), s i)
-    (fun _ _ hsub ↦ extendTensor hsub s₀) _ z
-
+noncomputable def Restricted.of {S : Set ι} [Finite S]
+    : (⨂[R] i : S, s i) →ₗ[R] Restricted (R := R) s₀ :=
+  Module.DirectLimit.of _ _ (fun S : Set ι ↦ ⨂[R] (i : S), s i) _ S
 
 end PiTensorProduct
