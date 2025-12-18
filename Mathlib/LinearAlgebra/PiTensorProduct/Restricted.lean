@@ -83,8 +83,10 @@ instance Restricted.directedSystem :
     apply congrFun
     simp [←LinearMap.coe_comp]
 
+-- This must be abbrev so that lean automatically creates relevant instances,
+-- e.g. Module, AddCommMonoid, etc
 /-- Tensors with finite support -/
-def Restricted [DecidableEq (Set ι)] :=
+abbrev Restricted [DecidableEq (Set ι)] :=
   Module.DirectLimit (fun S : Set ι ↦ ⨂[R] (i : S), s i) (fun _ _ hsub ↦ extendTensor hsub s₀)
 
 noncomputable def Restricted.of [DecidableEq (Set ι)] {S : Set ι} [Finite S] (z : ⨂[R] i : S, s i)
