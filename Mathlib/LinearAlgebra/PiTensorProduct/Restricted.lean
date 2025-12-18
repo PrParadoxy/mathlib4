@@ -65,7 +65,7 @@ open PiTensorProduct
 open scoped TensorProduct
 
 variable {ι : Type*} [DecidableEq (Set ι)]
-variable {s : ι → Type*} {R : Type*}
+variable {s : ι → Type*} (R : Type*)
 variable [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
 variable (s₀ : (i : ι) → s i) [∀ s : Set ι, ∀ i, Decidable (i ∈ s)]
 
@@ -90,7 +90,7 @@ abbrev Restricted :=
   Module.DirectLimit (fun S : Set ι ↦ ⨂[R] (i : S), s i) (fun _ _ hsub ↦ extendTensor hsub s₀)
 
 noncomputable def Restricted.of {S : Set ι} [Finite S]
-    : (⨂[R] i : S, s i) →ₗ[R] Restricted (R := R) s₀ :=
+    : (⨂[R] i : S, s i) →ₗ[R] Restricted R s₀ :=
   Module.DirectLimit.of _ _ (fun S : Set ι ↦ ⨂[R] (i : S), s i) _ S
 
 end PiTensorProduct
