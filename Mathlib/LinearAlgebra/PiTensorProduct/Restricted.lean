@@ -67,11 +67,12 @@ open scoped TensorProduct
 variable {ι : Type*} [DecidableEq ι]
 variable {s : ι → Type*} {R : Type*}
 variable [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
-variable (s₀ : (i : ι) → s i) [∀ s : Set ι, Finite s] [∀ s : Set ι, ∀ i, Decidable (i ∈ s)]
+variable (s₀ : (i : ι) → s i) [∀ s : Set ι, ∀ i, Decidable (i ∈ s)]
+
 
 namespace PiTensorProduct
 
-instance Finsupp.directedSystem :
+instance Restricted.directedSystem :
     DirectedSystem
     (fun S : Set ι ↦ ⨂[R] (i : S), s i)
     (fun _ _ hsub ↦ extendTensor hsub s₀) where
@@ -83,7 +84,13 @@ instance Finsupp.directedSystem :
     simp [←LinearMap.coe_comp]
 
 /-- Tensors with finite support -/
-abbrev Finsupp :=
-  Module.DirectLimit (fun S : Finset ι ↦ ⨂[R] (i : S), s i) (fun _ _ hsub ↦ extendTensor hsub s₀)
+def Restricted [DecidableEq (Set ι)] :=
+  Module.DirectLimit (fun S : Set ι ↦ ⨂[R] (i : S), s i) (fun _ _ hsub ↦ extendTensor hsub s₀)
+
+noncomputable def Restricted.of [DecidableEq (Set ι)] {S : Set ι} [Finite S] (z : ⨂[R] i : S, s i)
+    : Restricted (R := R) s₀ :=
+  Module.DirectLimit.of R (Set ι) (fun S : Set ι ↦ ⨂[R] (i : S), s i)
+    (fun _ _ hsub ↦ extendTensor hsub s₀) _ z
+
 
 end PiTensorProduct
