@@ -74,7 +74,7 @@ namespace PiTensorProduct
 
 instance Restricted.directedSystem :
     DirectedSystem
-    (fun S : Set ι ↦ ⨂[R] (i : S), s i)
+    (fun S : {S : Set ι // Finite S} ↦ ⨂[R] (i : S.val), s i)
     (fun _ _ hsub ↦ extendTensor hsub s₀) where
   map_self := by simp
   map_map := by
@@ -87,10 +87,14 @@ instance Restricted.directedSystem :
 -- e.g. Module, AddCommMonoid, etc
 /-- Tensors with finite support -/
 abbrev Restricted :=
-  Module.DirectLimit (fun S : Set ι ↦ ⨂[R] (i : S), s i) (fun _ _ hsub ↦ extendTensor hsub s₀)
+  Module.DirectLimit (fun S : {S : Set ι // Finite S} ↦ ⨂[R] (i : S.val), s i)
+  (fun _ _ hsub ↦ extendTensor hsub s₀)
 
-noncomputable def Restricted.of {S : Set ι} [Finite S]
-    : (⨂[R] i : S, s i) →ₗ[R] Restricted R s₀ :=
-  Module.DirectLimit.of _ _ (fun S : Set ι ↦ ⨂[R] (i : S), s i) ..
+noncomputable def Restricted.of {S : {S : Set ι // Finite S}}
+    : (⨂[R] i : S.val, s i) →ₗ[R] Restricted R s₀ :=
+  Module.DirectLimit.of _ _ (fun S : {S : Set ι // Finite S} ↦ ⨂[R] (i : S.val), s i) ..
+
+
+
 
 end PiTensorProduct
