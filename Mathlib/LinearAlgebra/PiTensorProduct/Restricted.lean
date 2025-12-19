@@ -83,8 +83,7 @@ instance Restricted.directedSystem :
     apply congrFun
     simp [←LinearMap.coe_comp]
 
--- This must be abbrev so that lean automatically creates relevant instances,
--- e.g. Module, AddCommMonoid, etc
+-- An `abbrev` for now, to inherit type class instances.
 /-- Tensors with finite support -/
 abbrev Restricted :=
   Module.DirectLimit (fun S : {S : Set ι // Finite S} ↦ ⨂[R] (i : S.val), s i)
