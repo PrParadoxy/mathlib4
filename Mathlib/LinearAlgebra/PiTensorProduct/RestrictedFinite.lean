@@ -89,11 +89,28 @@ abbrev Restricted :=
   Module.DirectLimit (fun S : {S : Set ι // Finite S} ↦ ⨂[R] (i : S.val), s i)
   (fun _ _ hsub ↦ extendTensor hsub s₀)
 
-noncomputable def Restricted.of {S : {S : Set ι // Finite S}}
+namespace Restricted
+
+noncomputable def of {S : {S : Set ι // Finite S}}
     : (⨂[R] i : S.val, s i) →ₗ[R] Restricted R s₀ :=
   Module.DirectLimit.of _ _ (fun S : {S : Set ι // Finite S} ↦ ⨂[R] (i : S.val), s i) ..
 
 
+instance : IsDirectedOrder { S : Set ι // Finite ↑S } where
+  directed a b := by
+    use ⟨a.val ∪ b.val, by aesop (add safe apply Set.Finite.to_subtype)⟩
+    aesop
 
+instance : Nonempty ({ S : Set ι // Finite ↑S }) := by
+  use ∅
+  exact Finite.of_subsingleton
 
+noncomputable def equiv :
+    Restricted R s₀ ≃ₗ[R]
+      DirectLimit (fun S : {S : Set ι // Finite S} ↦ ⨂[R] (i : S.val), s i)
+        (fun _ _ hsub ↦ extendTensor hsub s₀) :=
+  Module.DirectLimit.linearEquiv (fun S : {S : Set ι // Finite S} ↦ ⨂[R] (i : S.val), s i)
+    (fun _ _ hsub ↦ extendTensor hsub s₀)
+
+end Restricted
 end PiTensorProduct
