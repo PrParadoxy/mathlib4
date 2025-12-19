@@ -101,9 +101,7 @@ instance : IsDirectedOrder { S : Set ι // Finite ↑S } where
     use ⟨a.val ∪ b.val, by aesop (add safe apply Set.Finite.to_subtype)⟩
     aesop
 
-instance : Nonempty ({ S : Set ι // Finite ↑S }) := by
-  use ∅
-  exact Finite.of_subsingleton
+instance : Nonempty ({ S : Set ι // Finite ↑S }) := ⟨∅, Finite.of_subsingleton ⟩
 
 noncomputable def equiv :
     Restricted R s₀ ≃ₗ[R]
