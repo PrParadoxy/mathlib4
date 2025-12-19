@@ -103,12 +103,15 @@ instance : IsDirectedOrder { S : Set ι // Finite ↑S } where
 
 instance : Nonempty ({ S : Set ι // Finite ↑S }) := ⟨∅, Finite.of_subsingleton ⟩
 
+/-- The `Module.DirectLimit` requires no `DirectedSystem` or `IsDirectedOrder` unlike
+  categorical limit. We provide the following isomorphism to show that the instances provided
+  for `Restricted` works as intended. -/
 noncomputable def equiv :
     Restricted R s₀ ≃ₗ[R]
       DirectLimit (fun S : {S : Set ι // Finite S} ↦ ⨂[R] (i : S.val), s i)
         (fun _ _ hsub ↦ extendTensor hsub s₀) :=
-  Module.DirectLimit.linearEquiv (fun S : {S : Set ι // Finite S} ↦ ⨂[R] (i : S.val), s i)
-    (fun _ _ hsub ↦ extendTensor hsub s₀)
+  Module.DirectLimit.linearEquiv _ _
+
 
 end Restricted
 end PiTensorProduct
