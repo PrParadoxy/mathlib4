@@ -70,12 +70,9 @@ variable {s : ι → Type*} {R : Type*}
 variable [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
 variable (s₀ : (i : ι) → s i) [∀ s : Set ι, ∀ i, Decidable (i ∈ s)]
 
-
 namespace PiTensorProduct
 
-instance Restricted.directedSystem :
-    DirectedSystem
-    (fun S : {S : Set ι // Finite S} ↦ ⨂[R] (i : S.val), s i)
+instance (p : Set ι → Prop) : DirectedSystem (fun S : Subtype p ↦ ⨂[R] i : ↑S, s i)
     (fun _ _ hsub ↦ extendTensor hsub s₀) where
   map_self := by simp
   map_map := by
@@ -84,18 +81,37 @@ instance Restricted.directedSystem :
     apply congrFun
     simp [←LinearMap.coe_comp]
 
+variable (R)
 
-variable (R) in
+section Colimit
+
+/-
+There are two distinct, but linearly equivalent, ways of creating a direct limit
+of modules in Mathlib:
+
+* The construction in Algebra/Colimit/DirectLimit.lean assumes `IsDirectedOrder` on the index type, and uses the theory of direct limits for general types.
+* The construction in Algebra/Colimit/Module.lean does not need `IsDirectedOrder`. It uses a construction specific for modules.
+
+In this file, we're mainly interested in the index type `{ S ∈ Set ι // Finite S }`.
+There is a natural `IsDirectedOrder` instance on it, because the union of finite sets is finite.
+Hence, I currently tend to favor the first construction for the theory of
+restricted `PiTensorProducts`.
+However, for completeness and experimentation, we start by stating the variant
+based on "Colimit/Module.lean", which works for general subtypes of `Set ι`.
+-/
+
 -- An `abbrev` for now, to inherit type class instances.
 /-- Tensors with finite support (using the `Module.DirectLimit` construction) -/
-abbrev Restricted :=
-  Module.DirectLimit (fun S : {S : Set ι // Finite S} ↦ ⨂[R] (i : ↑S), s i)
+abbrev Colimit (p : Set ι → Prop) := Module.DirectLimit (fun S : Subtype p ↦ ⨂[R] i : ↑S, s i)
   (fun _ _ hsub ↦ extendTensor hsub s₀)
 
-noncomputable def Restricted.of {S : {S : Set ι // Finite S}} :
-    (⨂[R] i : ↑S, s i) →ₗ[R] Restricted R s₀ :=
-  Module.DirectLimit.of R _ (fun S : {S : Set ι // Finite S} ↦ ⨂[R] (i : ↑S), s i) ..
+noncomputable def Colimit.of {p : Set ι → Prop} (S : Subtype p) :
+    (⨂[R] i : ↑S, s i) →ₗ[R] Colimit R s₀ p :=
+  Module.DirectLimit.of R _ (fun S : Subtype p ↦ ⨂[R] i : ↑S, s i) ..
 
+end Colimit
+
+section Restricted
 
 instance : IsDirectedOrder { S : Set ι // Finite ↑S } where
   directed a b := by
@@ -104,17 +120,19 @@ instance : IsDirectedOrder { S : Set ι // Finite ↑S } where
 
 instance : Nonempty ({ S : Set ι // Finite ↑S }) := ⟨∅, Finite.of_subsingleton ⟩
 
-variable (R) in
 /- Tensors with finite support (using the general `DirectLimit` construction) -/
-abbrev Restricted' := DirectLimit (fun S : {S : Set ι // Finite S} ↦ ⨂[R] (i : ↑S), s i)
+abbrev Restricted :=
+  DirectLimit (fun S : { S : Set ι // Finite ↑S } ↦ ⨂[R] (i : ↑S), s i)
     (fun _ _ hsub ↦ extendTensor hsub s₀)
 
 -- A bit unclear which is preferable. But they are quivalent.
-noncomputable def equiv : Restricted R s₀ ≃ₗ[R] Restricted' R s₀ :=
+noncomputable def equiv : Colimit R s₀ (fun S ↦ Finite S) ≃ₗ[R] Restricted R s₀ :=
   Module.DirectLimit.linearEquiv _ _
 
 
-
+  /-
+  Experimental inner product stuff
+  -/
 
 variable {ι : Type*}
 variable {s : ι → Type*} {R : Type*} (s₀ : (i : ι) → s i)
@@ -175,13 +193,12 @@ noncomputable def inner_aux₁ {S : Set ι} [Finite S] :
 -- a function on it is through `DirectLimit.lift`. This requires defining
 -- `(⨂[R] (i : ↑↑S₂), s ↑i) →ₗ[R] (⨂[R] (i : ↑↑S₁), s ↑i) →ₗ[R] R`, which can be done through
 -- padding of S₂ and S₁ to S₁ ∪ S₂ and using `inner_aux₁`.
-noncomputable def inner :
-    Restricted R s₀ →ₗ[R] Restricted R s₀ →ₗ[R] R :=
-  Module.DirectLimit.lift _ _ _ _ (fun S₁ =>
-    LinearMap.flip (Module.DirectLimit.lift _ _ _ _ (fun S₂ => sorry) (sorry))) (sorry)
+--noncomputable def inner :
+--    Restricted R s₀ →ₗ[R] Restricted R s₀ →ₗ[R] R :=
+--  Module.DirectLimit.lift _ _ _ _ (fun S₁ =>
+--    LinearMap.flip (Module.DirectLimit.lift _ _ _ _ (fun S₂ => sorry) (sorry))) (sorry)
 --                                                Look at here ↑
 
 
-
-
+end Restricted
 end PiTensorProduct
