@@ -123,10 +123,11 @@ variable {s : ι → Type*} {R : Type*} (s₀ : (i : ι) → s i)
   [∀ i, SeminormedAddCommGroup (s i)] [∀ i, InnerProductSpace R (s i)]
 
 open scoped InnerProductSpace
+open scoped ComplexConjugate
 open Function Finset
+#check starRingEnd R
 
-
--- This is not true, as one should use →ₗ⋆[R] instead. But the current lift is not general enough. 
+-- This is not true, as one should use →ₗ⋆[R] instead. But the current lift is not general enough.
 noncomputable def inner_aux₁ {S : Set ι} [Finite S] :
     (⨂[R] i : S, s i) →ₗ[R] (⨂[R] i : S, s i) →ₗ[R] R :=
   haveI := Fintype.ofFinite
@@ -167,20 +168,20 @@ noncomputable def inner_aux₁ {S : Set ι} [Finite S] :
 
   }
 
--- noncomputable def inner :
---     Restricted R s₀ →ₗ[R] Restricted R s₀ →ₗ[R] R :=
---   Module.DirectLimit.lift _ _ _ _ (fun S₁ =>
---     LinearMap.flip (Module.DirectLimit.lift _ _ _ _ (fun S₂ => inner_aux R
+
+-- There is only 1 way to define a function on any `Qutient`, and that is by defining the function
+-- on the underlying elements, and lifting the function to `Qutient` space by showing its
+-- compatibility. See `Quotient.lift`. The `DirectLimit` is a `Quotient`, and the only way to define
+-- a function on it is through `DirectLimit.lift`. This requires defining
+-- `(⨂[R] (i : ↑↑S₂), s ↑i) →ₗ[R] (⨂[R] (i : ↑↑S₁), s ↑i) →ₗ[R] R`, which can be done through
+-- padding of S₂ and S₁ to S₁ ∪ S₂ and using `inner_aux₁`.
+noncomputable def inner :
+    Restricted R s₀ →ₗ[R] Restricted R s₀ →ₗ[R] R :=
+  Module.DirectLimit.lift _ _ _ _ (fun S₁ =>
+    LinearMap.flip (Module.DirectLimit.lift _ _ _ _
+    (fun S₂ => sorry) (sorry))) (sorry)
 
 
---     ) ())
---   )
---   ()
-
-
-
--- instance Inner : Inner R (Restricted R s₀) where
---   inner a b := by
 
 
 
