@@ -5,6 +5,7 @@ Authors: Davood Tehrani, David Gross
 -/
 import Mathlib.LinearAlgebra.PiTensorProduct.Set
 import Mathlib.Algebra.Colimit.Module
+import Mathlib.Analysis.InnerProductSpace.Basic
 
 /-!
 # Tensors with finite support
@@ -65,7 +66,7 @@ open PiTensorProduct
 open scoped TensorProduct
 
 variable {ι : Type*} [DecidableEq (Set ι)]
-variable {s : ι → Type*} (R : Type*)
+variable {s : ι → Type*} {R : Type*}
 variable [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
 variable (s₀ : (i : ι) → s i) [∀ s : Set ι, ∀ i, Decidable (i ∈ s)]
 
@@ -83,7 +84,10 @@ instance Restricted.directedSystem :
     apply congrFun
     simp [←LinearMap.coe_comp]
 
+
+variable (R) in
 -- An `abbrev` for now, to inherit type class instances.
+-- `See https://leanprover.zulipchat.com/#narrow/channel/287929-mathlib4/topic/Why.20WeakDual.20assumes.20TopologicalSpace.20on.20the.20Module.3F/near/560921530`
 /-- Tensors with finite support -/
 abbrev Restricted :=
   Module.DirectLimit (fun S : {S : Set ι // Finite S} ↦ ⨂[R] (i : S.val), s i)
@@ -111,6 +115,72 @@ noncomputable def equiv :
       DirectLimit (fun S : {S : Set ι // Finite S} ↦ ⨂[R] (i : S.val), s i)
         (fun _ _ hsub ↦ extendTensor hsub s₀) :=
   Module.DirectLimit.linearEquiv _ _
+
+
+
+variable {ι : Type*}
+variable {s : ι → Type*} {R : Type*} (s₀ : (i : ι) → s i)
+  [DecidableEq (Set ι)] [RCLike R]
+  [∀ s : Set ι, ∀ i, Decidable (i ∈ s)]
+  [∀ i, SeminormedAddCommGroup (s i)] [∀ i, InnerProductSpace R (s i)]
+
+open scoped InnerProductSpace
+open Function Finset
+
+noncomputable def inner_aux₁ {S : Set ι} [Finite S] :
+    (⨂[R] i : S, s i) →ₗ[R] (⨂[R] i : S, s i) →ₗ[R] R :=
+  haveI := Fintype.ofFinite
+  lift {
+    toFun f₁ := lift {
+      toFun f₂ := ∏ i, ⟪f₁ i, f₂ i⟫_R
+      map_update_add' := by
+        intro _ _ i x y
+        symm
+        apply Finset.prod_add_prod_eq (mem_univ i)
+        all_goals aesop (add safe simp (inner_add_right (f₁ i) x y))
+      map_update_smul' := by
+        intro _ _ i c x
+        rw [prod_eq_mul_prod_diff_singleton (mem_univ i)]
+        conv_rhs => rw [prod_eq_mul_prod_diff_singleton (mem_univ i)]
+        simp only [update_self, inner_smul_right, smul_eq_mul, ←mul_assoc]
+        congr 1
+        exact Finset.prod_congr rfl (by grind)
+    }
+    map_update_add' := by
+      intro _ _ i x y
+      ext f
+      simp only [LinearMap.compMultilinearMap_apply, lift.tprod, MultilinearMap.coe_mk,
+        LinearMap.add_compMultilinearMap, MultilinearMap.add_apply]
+      symm
+      apply Finset.prod_add_prod_eq (mem_univ i)
+      all_goals aesop (add safe simp (inner_add_left x y (f i)))
+    map_update_smul' := by
+      intro _ _ i c x
+      ext f
+      simp only [LinearMap.compMultilinearMap_apply, lift.tprod, MultilinearMap.coe_mk,
+        LinearMap.smul_compMultilinearMap, MultilinearMap.smul_apply]
+      rw [prod_eq_mul_prod_diff_singleton (mem_univ i)]
+      conv_rhs => rw [prod_eq_mul_prod_diff_singleton (mem_univ i)]
+      simp only [update_self]
+      simp [←mul_assoc]
+      sorry -- not true!
+
+  }
+
+-- noncomputable def inner :
+--     Restricted R s₀ →ₗ[R] Restricted R s₀ →ₗ[R] R :=
+--   Module.DirectLimit.lift _ _ _ _ (fun S₁ =>
+--     LinearMap.flip (Module.DirectLimit.lift _ _ _ _ (fun S₂ => inner_aux R
+
+
+--     ) ())
+--   )
+--   ()
+
+
+
+-- instance Inner : Inner R (Restricted R s₀) where
+--   inner a b := by
 
 
 end Restricted
