@@ -84,16 +84,15 @@ instance Restricted.directedSystem :
     simp [←LinearMap.coe_comp]
 
 -- An `abbrev` for now, to inherit type class instances.
-/-- Tensors with finite support -/
+
+/-- Tensors with finite support (using the `Module.DirectLimit` construction) -/
 abbrev Restricted :=
-  Module.DirectLimit (fun S : {S : Set ι // Finite S} ↦ ⨂[R] (i : S.val), s i)
+  Module.DirectLimit (fun S : {S : Set ι // Finite S} ↦ ⨂[R] (i : ↑S), s i)
   (fun _ _ hsub ↦ extendTensor hsub s₀)
 
-namespace Restricted
-
-noncomputable def of {S : {S : Set ι // Finite S}}
-    : (⨂[R] i : S.val, s i) →ₗ[R] Restricted R s₀ :=
-  Module.DirectLimit.of _ _ (fun S : {S : Set ι // Finite S} ↦ ⨂[R] (i : S.val), s i) ..
+noncomputable def Restricted.of {S : {S : Set ι // Finite S}} :
+    (⨂[R] i : ↑S, s i) →ₗ[R] Restricted R s₀ :=
+  Module.DirectLimit.of R _ (fun S : {S : Set ι // Finite S} ↦ ⨂[R] (i : ↑S), s i) ..
 
 
 instance : IsDirectedOrder { S : Set ι // Finite ↑S } where
@@ -103,15 +102,12 @@ instance : IsDirectedOrder { S : Set ι // Finite ↑S } where
 
 instance : Nonempty ({ S : Set ι // Finite ↑S }) := ⟨∅, Finite.of_subsingleton ⟩
 
-/-- The `Module.DirectLimit` requires no `DirectedSystem` or `IsDirectedOrder` unlike
-  categorical limit. We provide the following isomorphism to show that the instances provided
-  for `Restricted` works as intended. -/
-noncomputable def equiv :
-    Restricted R s₀ ≃ₗ[R]
-      DirectLimit (fun S : {S : Set ι // Finite S} ↦ ⨂[R] (i : S.val), s i)
-        (fun _ _ hsub ↦ extendTensor hsub s₀) :=
+/- Tensors with finite support (using the general `DirectLimit` construction) -/
+abbrev Restricted' := DirectLimit (fun S : {S : Set ι // Finite S} ↦ ⨂[R] (i : ↑S), s i)
+    (fun _ _ hsub ↦ extendTensor hsub s₀)
+
+-- A bit unclear which is preferable. But they are quivalent.
+noncomputable def equiv : Restricted R s₀ ≃ₗ[R] Restricted' R s₀ :=
   Module.DirectLimit.linearEquiv _ _
 
-
-end Restricted
 end PiTensorProduct
