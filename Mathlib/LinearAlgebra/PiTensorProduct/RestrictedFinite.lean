@@ -169,8 +169,8 @@ noncomputable def inner_aux₁ {S : Set ι} [Finite S] :
   }
 
 
--- There is only 1 way to define a function on any `Qutient`, and that is by defining the function
--- on the underlying elements, and lifting the function to `Qutient` space by showing its
+-- There is only 1 way to define a function on any `Quotient`, and that is by defining the function
+-- on the underlying elements, and lifting the function to `Quotient` space by showing its
 -- compatibility. See `Quotient.lift`. The `DirectLimit` is a `Quotient`, and the only way to define
 -- a function on it is through `DirectLimit.lift`. This requires defining
 -- `(⨂[R] (i : ↑↑S₂), s ↑i) →ₗ[R] (⨂[R] (i : ↑↑S₁), s ↑i) →ₗ[R] R`, which can be done through
