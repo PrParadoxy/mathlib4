@@ -129,6 +129,9 @@ abbrev Restricted :=
 noncomputable def equiv : Colimit R s₀ (fun S ↦ Finite S) ≃ₗ[R] Restricted R s₀ :=
   Module.DirectLimit.linearEquiv _ _
 
+noncomputable def Restricted.of {S : { S : Set ι // Finite ↑S }} :
+    (⨂[R] i : ↑S, s i) →ₗ[R] Restricted R s₀ :=
+  DirectLimit.Module.of R _ (fun S : { S : Set ι // Finite ↑S } ↦ ⨂[R] i : ↑S, s i) ..
 
   /-
   Experimental inner product stuff
