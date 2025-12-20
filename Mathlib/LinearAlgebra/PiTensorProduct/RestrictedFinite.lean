@@ -65,14 +65,15 @@ _This file is a stub._
 open PiTensorProduct
 open scoped TensorProduct
 
-variable {ι : Type*} [DecidableEq (Set ι)]
+variable {ι : Type*}
 variable {s : ι → Type*} {R : Type*}
 variable [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
-variable (s₀ : (i : ι) → s i) [∀ s : Set ι, ∀ i, Decidable (i ∈ s)]
+variable (s₀ : (i : ι) → s i)
 
 namespace PiTensorProduct
 
-instance (p : Set ι → Prop) : DirectedSystem (fun S : Subtype p ↦ ⨂[R] i : ↑S, s i)
+instance [∀ s : Set ι, ∀ i, Decidable (i ∈ s)] (p : Set ι → Prop)
+    : DirectedSystem (fun S : Subtype p ↦ ⨂[R] i : ↑S, s i)
     (fun _ _ hsub ↦ extendTensor hsub s₀) where
   map_self := by simp
   map_map := by
@@ -101,10 +102,12 @@ based on "Colimit/Module.lean", which works for general subtypes of `Set ι`.
 -/
 
 -- An `abbrev` for now, to inherit type class instances.
+open Classical in
 /-- Tensors with finite support (using the `Module.DirectLimit` construction) -/
 abbrev Colimit (p : Set ι → Prop) := Module.DirectLimit (fun S : Subtype p ↦ ⨂[R] i : ↑S, s i)
   (fun _ _ hsub ↦ extendTensor hsub s₀)
 
+open Classical in
 noncomputable def Colimit.of {p : Set ι → Prop} (S : Subtype p) :
     (⨂[R] i : ↑S, s i) →ₗ[R] Colimit R s₀ p :=
   Module.DirectLimit.of R _ (fun S : Subtype p ↦ ⨂[R] i : ↑S, s i) ..
@@ -120,15 +123,18 @@ instance : IsDirectedOrder { S : Set ι // Finite ↑S } where
 
 instance : Nonempty ({ S : Set ι // Finite ↑S }) := ⟨∅, Finite.of_subsingleton ⟩
 
+open Classical in
 /- Tensors with finite support (using the general `DirectLimit` construction) -/
 abbrev Restricted :=
   DirectLimit (fun S : { S : Set ι // Finite ↑S } ↦ ⨂[R] (i : ↑S), s i)
     (fun _ _ hsub ↦ extendTensor hsub s₀)
 
+open Classical in
 -- A bit unclear which is preferable. But they are quivalent.
 noncomputable def equiv : Colimit R s₀ (fun S ↦ Finite S) ≃ₗ[R] Restricted R s₀ :=
   Module.DirectLimit.linearEquiv _ _
 
+open Classical in
 noncomputable def Restricted.of {S : { S : Set ι // Finite ↑S }} :
     (⨂[R] i : ↑S, s i) →ₗ[R] Restricted R s₀ :=
   DirectLimit.Module.of R _ (fun S : { S : Set ι // Finite ↑S } ↦ ⨂[R] i : ↑S, s i) ..
@@ -137,57 +143,57 @@ noncomputable def Restricted.of {S : { S : Set ι // Finite ↑S }} :
   Experimental inner product stuff
   -/
 
-variable {ι : Type*}
-variable {s : ι → Type*} {R : Type*} (s₀ : (i : ι) → s i)
-  [DecidableEq (Set ι)] [RCLike R]
-  [∀ s : Set ι, ∀ i, Decidable (i ∈ s)]
-  [∀ i, SeminormedAddCommGroup (s i)] [∀ i, InnerProductSpace R (s i)]
+-- variable {ι : Type*}
+-- variable {s : ι → Type*} {R : Type*} (s₀ : (i : ι) → s i)
+--   [DecidableEq (Set ι)] [RCLike R]
+--   [∀ s : Set ι, ∀ i, Decidable (i ∈ s)]
+--   [∀ i, SeminormedAddCommGroup (s i)] [∀ i, InnerProductSpace R (s i)]
 
-open scoped InnerProductSpace
-open scoped ComplexConjugate
-open Function Finset
-#check starRingEnd R
+-- open scoped InnerProductSpace
+-- open scoped ComplexConjugate
+-- open Function Finset
+-- #check starRingEnd R
 
--- This is not true, as one should use →ₗ⋆[R] instead. But the current lift is not general enough.
-noncomputable def inner_aux₁ {S : Set ι} [Finite S] :
-    (⨂[R] i : S, s i) →ₗ[R] (⨂[R] i : S, s i) →ₗ[R] R :=
-  haveI := Fintype.ofFinite
-  lift {
-    toFun f₁ := lift {
-      toFun f₂ := ∏ i, ⟪f₁ i, f₂ i⟫_R
-      map_update_add' := by
-        intro _ _ i x y
-        symm
-        apply Finset.prod_add_prod_eq (mem_univ i)
-        all_goals aesop (add safe simp (inner_add_right (f₁ i) x y))
-      map_update_smul' := by
-        intro _ _ i c x
-        rw [prod_eq_mul_prod_diff_singleton (mem_univ i)]
-        conv_rhs => rw [prod_eq_mul_prod_diff_singleton (mem_univ i)]
-        simp only [update_self, inner_smul_right, smul_eq_mul, ←mul_assoc]
-        congr 1
-        exact Finset.prod_congr rfl (by grind)
-    }
-    map_update_add' := by
-      intro _ _ i x y
-      ext f
-      simp only [LinearMap.compMultilinearMap_apply, lift.tprod, MultilinearMap.coe_mk,
-        LinearMap.add_compMultilinearMap, MultilinearMap.add_apply]
-      symm
-      apply Finset.prod_add_prod_eq (mem_univ i)
-      all_goals aesop (add safe simp (inner_add_left x y (f i)))
-    map_update_smul' := by
-      intro _ _ i c x
-      ext f
-      simp only [LinearMap.compMultilinearMap_apply, lift.tprod, MultilinearMap.coe_mk,
-        LinearMap.smul_compMultilinearMap, MultilinearMap.smul_apply]
-      rw [prod_eq_mul_prod_diff_singleton (mem_univ i)]
-      conv_rhs => rw [prod_eq_mul_prod_diff_singleton (mem_univ i)]
-      simp only [update_self, ]
+-- -- This is not true, as one should use →ₗ⋆[R] instead. But the current lift is not general enough.
+-- noncomputable def inner_aux₁ {S : Set ι} [Finite S] :
+--     (⨂[R] i : S, s i) →ₗ[R] (⨂[R] i : S, s i) →ₗ[R] R :=
+--   haveI := Fintype.ofFinite
+--   lift {
+--     toFun f₁ := lift {
+--       toFun f₂ := ∏ i, ⟪f₁ i, f₂ i⟫_R
+--       map_update_add' := by
+--         intro _ _ i x y
+--         symm
+--         apply Finset.prod_add_prod_eq (mem_univ i)
+--         all_goals aesop (add safe simp (inner_add_right (f₁ i) x y))
+--       map_update_smul' := by
+--         intro _ _ i c x
+--         rw [prod_eq_mul_prod_diff_singleton (mem_univ i)]
+--         conv_rhs => rw [prod_eq_mul_prod_diff_singleton (mem_univ i)]
+--         simp only [update_self, inner_smul_right, smul_eq_mul, ←mul_assoc]
+--         congr 1
+--         exact Finset.prod_congr rfl (by grind)
+--     }
+--     map_update_add' := by
+--       intro _ _ i x y
+--       ext f
+--       simp only [LinearMap.compMultilinearMap_apply, lift.tprod, MultilinearMap.coe_mk,
+--         LinearMap.add_compMultilinearMap, MultilinearMap.add_apply]
+--       symm
+--       apply Finset.prod_add_prod_eq (mem_univ i)
+--       all_goals aesop (add safe simp (inner_add_left x y (f i)))
+--     map_update_smul' := by
+--       intro _ _ i c x
+--       ext f
+--       simp only [LinearMap.compMultilinearMap_apply, lift.tprod, MultilinearMap.coe_mk,
+--         LinearMap.smul_compMultilinearMap, MultilinearMap.smul_apply]
+--       rw [prod_eq_mul_prod_diff_singleton (mem_univ i)]
+--       conv_rhs => rw [prod_eq_mul_prod_diff_singleton (mem_univ i)]
+--       simp only [update_self, ]
 
-      sorry -- not true!
+--       sorry -- not true!
 
-  }
+--   }
 
 
 -- There is only 1 way to define a function on any `Quotient`, and that is by defining the function
