@@ -178,9 +178,8 @@ noncomputable def inner_aux₁ {S : Set ι} [Finite S] :
 noncomputable def inner :
     Restricted R s₀ →ₗ[R] Restricted R s₀ →ₗ[R] R :=
   Module.DirectLimit.lift _ _ _ _ (fun S₁ =>
-    LinearMap.flip (Module.DirectLimit.lift _ _ _ _
-    (fun S₂ => sorry) (sorry))) (sorry)
-
+    LinearMap.flip (Module.DirectLimit.lift _ _ _ _ (fun S₂ => sorry) (sorry))) (sorry)
+--                                                Look at here ↑
 
 
 
