@@ -5,8 +5,8 @@ Authors: Davood Tehrani, David Gross
 -/
 import Mathlib.LinearAlgebra.PiTensorProduct.Set
 import Mathlib.Algebra.Colimit.Module
-import Mathlib.Analysis.InnerProductSpace.Basic
-
+import Mathlib.Analysis.Normed.Module.PiTensorProduct.ProjectiveSeminorm
+import Mathlib.Analysis.Normed.Module.PiTensorProduct.InjectiveSeminorm
 /-!
 # Tensors with finite support
 
@@ -90,8 +90,10 @@ section Colimit
 There are two distinct, but linearly equivalent, ways of creating a direct limit
 of modules in Mathlib:
 
-* The construction in Algebra/Colimit/DirectLimit.lean assumes `IsDirectedOrder` on the index type, and uses the theory of direct limits for general types.
-* The construction in Algebra/Colimit/Module.lean does not need `IsDirectedOrder`. It uses a construction specific for modules.
+* The construction in Algebra/Colimit/DirectLimit.lean assumes
+  `IsDirectedOrder` on the index type, and uses the theory of direct limits for general types.
+* The construction in Algebra/Colimit/Module.lean does not need
+  `IsDirectedOrder`. It uses a construction specific for modules.
 
 In this file, we're mainly interested in the index type `{ S ∈ Set ι // Finite S }`.
 There is a natural `IsDirectedOrder` instance on it, because the union of finite sets is finite.
@@ -130,7 +132,7 @@ abbrev Restricted :=
     (fun _ _ hsub ↦ extendTensor hsub s₀)
 
 open Classical in
--- A bit unclear which is preferable. But they are quivalent.
+-- A bit unclear which is preferable. But they are equivalent.
 noncomputable def equiv : Colimit R s₀ (fun S ↦ Finite S) ≃ₗ[R] Restricted R s₀ :=
   Module.DirectLimit.linearEquiv _ _
 
@@ -139,9 +141,25 @@ noncomputable def Restricted.of {S : { S : Set ι // Finite ↑S }} :
     (⨂[R] i : ↑S, s i) →ₗ[R] Restricted R s₀ :=
   DirectLimit.Module.of R _ (fun S : { S : Set ι // Finite ↑S } ↦ ⨂[R] i : ↑S, s i) ..
 
+
+
   /-
   Experimental inner product stuff
   -/
+
+
+-- # TODO : Define InjectiveSeminorm and ProjectiveSeminorm
+
+
+
+
+
+
+end Restricted
+end PiTensorProduct
+
+
+
 
 -- variable {ι : Type*}
 -- variable {s : ι → Type*} {R : Type*} (s₀ : (i : ι) → s i)
@@ -207,7 +225,3 @@ noncomputable def Restricted.of {S : { S : Set ι // Finite ↑S }} :
 --  Module.DirectLimit.lift _ _ _ _ (fun S₁ =>
 --    LinearMap.flip (Module.DirectLimit.lift _ _ _ _ (fun S₂ => sorry) (sorry))) (sorry)
 --                                                Look at here ↑
-
-
-end Restricted
-end PiTensorProduct
