@@ -72,15 +72,15 @@ variable (s₀ : (i : ι) → s i)
 
 namespace PiTensorProduct
 
-instance [∀ s : Set ι, ∀ i, Decidable (i ∈ s)] (p : Set ι → Prop)
-    : DirectedSystem (fun S : Subtype p ↦ ⨂[R] i : ↑S, s i)
-    (fun _ _ hsub ↦ extendTensor hsub s₀) where
-  map_self := by simp
-  map_map := by
-    intro U T S h1 h2 f
-    rw [←Function.comp_apply (f := extendTensor h2 s₀)]
-    apply congrFun
-    simp [←LinearMap.coe_comp]
+-- instance directedSystem [∀ s : Set ι, ∀ i, Decidable (i ∈ s)] (p : Set ι → Prop)
+--     : DirectedSystem (fun S : Subtype p ↦ ⨂[R] i : ↑S, s i)
+--     (fun _ _ hsub ↦ extendTensor hsub s₀) where
+--   map_self := by simp
+--   map_map := by
+--     intro U T S h1 h2 f
+--     rw [←Function.comp_apply (f := extendTensor h2 s₀)]
+--     apply congrFun
+--     simp [←LinearMap.coe_comp]
 
 variable (R)
 
@@ -126,6 +126,17 @@ instance : IsDirectedOrder { S : Set ι // Finite ↑S } where
 instance : Nonempty ({ S : Set ι // Finite ↑S }) := ⟨∅, Finite.of_subsingleton ⟩
 
 open Classical in
+instance directedSystem : DirectedSystem
+    (fun S : { S : Set ι // Finite S } ↦ ⨂[R] (i : S.val), s i)
+    (fun _ _ hsub ↦ extendTensor hsub s₀) where
+  map_self := by simp
+  map_map := by
+    intro U T S h1 h2 f
+    rw [←Function.comp_apply (f := extendTensor h2 s₀)]
+    apply congrFun
+    simp [←LinearMap.coe_comp]
+
+open Classical in
 /- Tensors with finite support (using the general `DirectLimit` construction) -/
 abbrev Restricted :=
   DirectLimit (fun S : { S : Set ι // Finite ↑S } ↦ ⨂[R] (i : ↑S), s i)
@@ -149,14 +160,29 @@ noncomputable def Restricted.of {S : { S : Set ι // Finite ↑S }} :
 
 
 -- # TODO : Define InjectiveSeminorm and ProjectiveSeminorm
+namespace Restricted
 
+variable {ι : Type*} [Fintype ι]
+variable {R : Type*} [NontriviallyNormedField R]
+variable {s : ι → Type*} (s₀ : (i : ι) → s i)
+  [∀ i, SeminormedAddCommGroup (s i)] [∀ i, Module R (s i)]
+variable [∀ i, NormedSpace R (s i)]
+#check projectiveSeminorm
+#check DirectLimit.map_def
+#check DirectLimit.lift
 
+-- Yeah, Set + Finite is not a good idea. 
+noncomputable def projectiveSeminorm : Seminorm R (Restricted R s₀) where
+  toFun := by
+    haveI := directedSystem R s₀
+    apply DirectLimit.lift
+    swap
+    . intro h
+      haveI : Fintype { S // Finite ↑S } := sorry
+      exact (PiTensorProduct.projectiveSeminorm (ι := { S : Set ι // Finite ↑S }) (𝕜 := R) ).toFun
 
-
-
-
-end Restricted
-end PiTensorProduct
+-- end Restricted
+-- end PiTensorProduct
 
 
 
