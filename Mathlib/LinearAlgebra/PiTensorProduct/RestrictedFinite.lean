@@ -178,13 +178,15 @@ noncomputable def norm_aux (hn : ∀ i, ‖E₀ i‖ = 1)
   haveI := directedSystem (𝕜 := 𝕜) E₀
   apply DirectLimit.lift
   swap
-  . intro S x
+  · intro S x
     haveI := @Fintype.ofFinite S S.prop
     exact projectiveSeminorm x
-  . intro S₁ S₂ hsub x
+  · -- this is compatible lemma above
+    intro S₁ S₂ hsub x
     induction x using PiTensorProduct.induction_on with
     | smul_tprod r f => sorry
-    | add a b ha hb => simp_all
+    | add a b ha hb => sorry
+      -- This requires linearity of projectiveSeminorm, doesn't seem to be true
 
 
 
