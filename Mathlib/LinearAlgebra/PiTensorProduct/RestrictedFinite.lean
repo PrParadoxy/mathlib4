@@ -173,8 +173,8 @@ lemma compatible (hn : ∀ i, ‖E₀ i‖ = 1) :
   ∀ (S₁ S₂ : { S : Set ι // Finite ↑S }) (h : S₁ ≤ S₂) (x : ⨂[𝕜] (i : S₁.val), E i),
   projectiveSeminorm x = projectiveSeminorm ((extendTensor (R := 𝕜) h E₀) x) := sorry
 
-noncomputable def norm_aux
-  (hn : ∀ i, ‖E₀ i‖ = 1) : (Restricted 𝕜 E₀) → ℝ := by
+noncomputable def norm_aux (hn : ∀ i, ‖E₀ i‖ = 1)
+    : (Restricted 𝕜 E₀) → ℝ := by
   haveI := directedSystem (𝕜 := 𝕜) E₀
   apply DirectLimit.lift
   swap
@@ -182,7 +182,9 @@ noncomputable def norm_aux
     haveI := @Fintype.ofFinite S S.prop
     exact projectiveSeminorm x
   . intro S₁ S₂ hsub x
-    sorry -- this is compatible lemma above
+    induction x using PiTensorProduct.induction_on with
+    | smul_tprod r f => sorry
+    | add a b ha hb => simp_all
 
 
 
