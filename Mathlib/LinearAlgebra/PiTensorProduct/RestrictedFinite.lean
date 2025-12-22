@@ -167,16 +167,22 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
 variable {E : ι → Type*} (E₀ : (i : ι) → E i)
   [∀ i, SeminormedAddCommGroup (E i)] [∀ i, NormedSpace 𝕜 (E i)]
 
-
 -- I appologize, but I refuse to dance.
 open Classical in
-lemma compatible : ∀ (S₁ S₂ : { S : Set ι // Finite ↑S }) (h : S₁ ≤ S₂) (x : ⨂[𝕜] (i : S₁.val), E i),
+lemma compatible (hn : ∀ i, ‖E₀ i‖ = 1) :
+  ∀ (S₁ S₂ : { S : Set ι // Finite ↑S }) (h : S₁ ≤ S₂) (x : ⨂[𝕜] (i : S₁.val), E i),
   projectiveSeminorm x = projectiveSeminorm ((extendTensor (R := 𝕜) h E₀) x) := sorry
 
-
-
-
-
+noncomputable def norm_aux
+  (hn : ∀ i, ‖E₀ i‖ = 1) : (Restricted 𝕜 E₀) → ℝ := by
+  haveI := directedSystem (𝕜 := 𝕜) E₀
+  apply DirectLimit.lift
+  swap
+  . intro S x
+    haveI := @Fintype.ofFinite S S.prop
+    exact projectiveSeminorm x
+  . intro S₁ S₂ hsub x
+    sorry -- this is compatible lemma above
 
 
 
