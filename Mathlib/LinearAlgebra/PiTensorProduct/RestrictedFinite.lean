@@ -66,9 +66,9 @@ open PiTensorProduct
 open scoped TensorProduct
 
 variable {ι : Type*}
-variable {s : ι → Type*} {R : Type*}
-variable [CommSemiring R] [∀ i, AddCommMonoid (s i)] [∀ i, Module R (s i)]
-variable (s₀ : (i : ι) → s i)
+variable {E : ι → Type*} {𝕜 : Type*}
+variable [CommSemiring 𝕜] [∀ i, AddCommMonoid (E i)] [∀ i, Module 𝕜 (E i)]
+variable (E₀ : (i : ι) → E i)
 
 namespace PiTensorProduct
 
@@ -82,7 +82,7 @@ namespace PiTensorProduct
 --     apply congrFun
 --     simp [←LinearMap.coe_comp]
 
-variable (R)
+
 
 section Colimit
 
@@ -102,17 +102,17 @@ restricted `PiTensorProducts`.
 However, for completeness and experimentation, we start by stating the variant
 based on "Colimit/Module.lean", which works for general subtypes of `Set ι`.
 -/
-
+variable (𝕜) in
 -- An `abbrev` for now, to inherit type class instances.
 open Classical in
 /-- Tensors with finite support (using the `Module.DirectLimit` construction) -/
-abbrev Colimit (p : Set ι → Prop) := Module.DirectLimit (fun S : Subtype p ↦ ⨂[R] i : ↑S, s i)
-  (fun _ _ hsub ↦ extendTensor hsub s₀)
+abbrev Colimit (p : Set ι → Prop) := Module.DirectLimit (fun S : Subtype p ↦ ⨂[𝕜] i : ↑S, E i)
+  (fun _ _ hsub ↦ extendTensor hsub E₀)
 
 open Classical in
 noncomputable def Colimit.of {p : Set ι → Prop} (S : Subtype p) :
-    (⨂[R] i : ↑S, s i) →ₗ[R] Colimit R s₀ p :=
-  Module.DirectLimit.of R _ (fun S : Subtype p ↦ ⨂[R] i : ↑S, s i) ..
+    (⨂[𝕜] i : ↑S, E i) →ₗ[𝕜] Colimit 𝕜 E₀ p :=
+  Module.DirectLimit.of 𝕜 _ (fun S : Subtype p ↦ ⨂[𝕜] i : ↑S, E i) ..
 
 end Colimit
 
@@ -127,30 +127,31 @@ instance : Nonempty ({ S : Set ι // Finite ↑S }) := ⟨∅, Finite.of_subsing
 
 open Classical in
 instance directedSystem : DirectedSystem
-    (fun S : { S : Set ι // Finite S } ↦ ⨂[R] (i : S.val), s i)
-    (fun _ _ hsub ↦ extendTensor hsub s₀) where
+    (fun S : { S : Set ι // Finite S } ↦ ⨂[𝕜] (i : S.val), E i)
+    (fun _ _ hsub ↦ extendTensor hsub E₀) where
   map_self := by simp
   map_map := by
     intro U T S h1 h2 f
-    rw [←Function.comp_apply (f := extendTensor h2 s₀)]
+    rw [←Function.comp_apply (f := extendTensor h2 E₀)]
     apply congrFun
     simp [←LinearMap.coe_comp]
 
+variable (𝕜) in
 open Classical in
 /- Tensors with finite support (using the general `DirectLimit` construction) -/
 abbrev Restricted :=
-  DirectLimit (fun S : { S : Set ι // Finite ↑S } ↦ ⨂[R] (i : ↑S), s i)
-    (fun _ _ hsub ↦ extendTensor hsub s₀)
+  DirectLimit (fun S : { S : Set ι // Finite ↑S } ↦ ⨂[𝕜] (i : ↑S), E i)
+    (fun _ _ hsub ↦ extendTensor hsub E₀)
 
 open Classical in
 -- A bit unclear which is preferable. But they are equivalent.
-noncomputable def equiv : Colimit R s₀ (fun S ↦ Finite S) ≃ₗ[R] Restricted R s₀ :=
+noncomputable def equiv : Colimit 𝕜 E₀ (fun S ↦ Finite S) ≃ₗ[𝕜] Restricted 𝕜 E₀ :=
   Module.DirectLimit.linearEquiv _ _
 
 open Classical in
 noncomputable def Restricted.of {S : { S : Set ι // Finite ↑S }} :
-    (⨂[R] i : ↑S, s i) →ₗ[R] Restricted R s₀ :=
-  DirectLimit.Module.of R _ (fun S : { S : Set ι // Finite ↑S } ↦ ⨂[R] i : ↑S, s i) ..
+    (⨂[𝕜] i : ↑S, E i) →ₗ[𝕜] Restricted 𝕜 E₀ :=
+  DirectLimit.Module.of 𝕜 _ (fun S : { S : Set ι // Finite ↑S } ↦ ⨂[𝕜] i : ↑S, E i) ..
 
 
 
@@ -162,24 +163,28 @@ noncomputable def Restricted.of {S : { S : Set ι // Finite ↑S }} :
 -- # TODO : Define InjectiveSeminorm and ProjectiveSeminorm
 namespace Restricted
 
-variable {ι : Type*} [Fintype ι]
-variable {R : Type*} [NontriviallyNormedField R]
-variable {s : ι → Type*} (s₀ : (i : ι) → s i)
-  [∀ i, SeminormedAddCommGroup (s i)] [∀ i, Module R (s i)]
-variable [∀ i, NormedSpace R (s i)]
-#check projectiveSeminorm
-#check DirectLimit.map_def
-#check DirectLimit.lift
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
+variable {E : ι → Type*} (E₀ : (i : ι) → E i)
+  [∀ i, SeminormedAddCommGroup (E i)] [∀ i, NormedSpace 𝕜 (E i)]
 
--- Yeah, Set + Finite is not a good idea. 
-noncomputable def projectiveSeminorm : Seminorm R (Restricted R s₀) where
-  toFun := by
-    haveI := directedSystem R s₀
-    apply DirectLimit.lift
-    swap
-    . intro h
-      haveI : Fintype { S // Finite ↑S } := sorry
-      exact (PiTensorProduct.projectiveSeminorm (ι := { S : Set ι // Finite ↑S }) (𝕜 := R) ).toFun
+
+-- I appologize, but I refuse to dance.
+open Classical in
+lemma compatible : ∀ (S₁ S₂ : { S : Set ι // Finite ↑S }) (h : S₁ ≤ S₂) (x : ⨂[𝕜] (i : S₁.val), E i),
+  projectiveSeminorm x = projectiveSeminorm ((extendTensor (R := 𝕜) h E₀) x) := sorry
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 -- end Restricted
 -- end PiTensorProduct
