@@ -185,11 +185,11 @@ noncomputable def norm_aux (hn : ∀ i, ‖E₀ i‖ = 1)
   · intro S x
     haveI := @Fintype.ofFinite S S.prop
     exact projectiveSeminorm x
-  · -- this is compatible lemma above
-    intro S₁ S₂ hsub x
-    haveI := @Fintype.ofFinite S₁ S₁.prop
-    haveI := @Fintype.ofFinite S₂ S₂.prop
-    apply compatible hn S₁ S₂
+  · intro S₁ S₂ hsub x
+    exact @compatible _ _ _ _ E₀ _ _ hn S₁ S₂
+      (@Fintype.ofFinite S₁ S₁.prop)
+      (@Fintype.ofFinite S₂ S₂.prop) hsub x
+
 
 
 
