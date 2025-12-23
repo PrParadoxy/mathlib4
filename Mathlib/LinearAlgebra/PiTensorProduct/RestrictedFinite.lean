@@ -170,7 +170,11 @@ variable {E : ι → Type*} (E₀ : (i : ι) → E i)
 -- I appologize, but I refuse to dance.
 open Classical in
 lemma compatible (hn : ∀ i, ‖E₀ i‖ = 1) :
-  ∀ (S₁ S₂ : { S : Set ι // Finite ↑S }) (h : S₁ ≤ S₂) (x : ⨂[𝕜] (i : S₁.val), E i),
+  ∀
+  (S₁ S₂ : { S : Set ι // Finite ↑S })
+  [Fintype ↑↑S₁] [Fintype ↑↑S₂]
+  (h : S₁ ≤ S₂)
+  (x : ⨂[𝕜] (i : S₁.val), E i),
   projectiveSeminorm x = projectiveSeminorm ((extendTensor (R := 𝕜) h E₀) x) := sorry
 
 noncomputable def norm_aux (hn : ∀ i, ‖E₀ i‖ = 1)
@@ -183,10 +187,9 @@ noncomputable def norm_aux (hn : ∀ i, ‖E₀ i‖ = 1)
     exact projectiveSeminorm x
   · -- this is compatible lemma above
     intro S₁ S₂ hsub x
-    induction x using PiTensorProduct.induction_on with
-    | smul_tprod r f => sorry
-    | add a b ha hb => sorry
-      -- This requires linearity of projectiveSeminorm, doesn't seem to be true
+    haveI := @Fintype.ofFinite S₁ S₁.prop
+    haveI := @Fintype.ofFinite S₂ S₂.prop
+    apply compatible hn S₁ S₂
 
 
 
