@@ -178,7 +178,7 @@ end AlgWeakDual
 
 
 
-/- Above is watershed polished, bottom is not -/
+/- Above is polished, below is not -/
 
 /- ##################################################################################### -/
 
