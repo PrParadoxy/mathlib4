@@ -170,15 +170,10 @@ variable {E : ι → Type*} (E₀ : (i : ι) → E i)
 -- I appologize, but I refuse to dance.
 open Classical in
 lemma compatible (hn : ∀ i, ‖E₀ i‖ = 1) :
-  ∀
-  (S₁ S₂ : { S : Set ι // Finite ↑S })
-  [Fintype ↑↑S₁] [Fintype ↑↑S₂]
-  (h : S₁ ≤ S₂)
-  (x : ⨂[𝕜] (i : S₁.val), E i),
+  ∀ (S₁ S₂ : Set ι) [Fintype ↑S₁] [Fintype ↑S₂] (h : S₁ ≤ S₂) (x : ⨂[𝕜] (i : S₁), E i),
   projectiveSeminorm x = projectiveSeminorm ((extendTensor (R := 𝕜) h E₀) x) := sorry
 
-noncomputable def norm_aux (hn : ∀ i, ‖E₀ i‖ = 1)
-    : (Restricted 𝕜 E₀) → ℝ := by
+noncomputable def norm_aux (hn : ∀ i, ‖E₀ i‖ = 1) : (Restricted 𝕜 E₀) → ℝ := by
   haveI := directedSystem (𝕜 := 𝕜) E₀
   apply DirectLimit.lift
   swap
@@ -186,18 +181,9 @@ noncomputable def norm_aux (hn : ∀ i, ‖E₀ i‖ = 1)
     haveI := @Fintype.ofFinite S S.prop
     exact projectiveSeminorm x
   · intro S₁ S₂ hsub x
-    exact @compatible _ _ _ _ E₀ _ _ hn S₁ S₂
-      (@Fintype.ofFinite S₁ S₁.prop)
-      (@Fintype.ofFinite S₂ S₂.prop) hsub x
-
-
-
-
-
-
-
-
-
+    letI := @Fintype.ofFinite S₁ S₁.prop
+    letI := @Fintype.ofFinite S₂ S₂.prop
+    apply compatible E₀ hn S₁ S₂
 
 -- end Restricted
 -- end PiTensorProduct
@@ -269,3 +255,16 @@ noncomputable def norm_aux (hn : ∀ i, ‖E₀ i‖ = 1)
 --  Module.DirectLimit.lift _ _ _ _ (fun S₁ =>
 --    LinearMap.flip (Module.DirectLimit.lift _ _ _ _ (fun S₂ => sorry) (sorry))) (sorry)
 --                                                Look at here ↑
+
+#check Finset
+#check Fintype
+#check Finsupp
+
+
+def S1 := { n : Nat // n < 4 }
+
+def S2 := ({1, 2, 3} : Finset Nat)
+def S3 := ({2, 1, 3} : Finset Nat)
+
+example : S2 = S3 := by rfl -- fails
+def proof : S2 = S3 := by decide
