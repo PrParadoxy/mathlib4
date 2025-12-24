@@ -39,12 +39,11 @@ theorem projectiveSeminorm_tprod [∀ i, Nontrivial (E i)] (m : Π i, E i) :
     projectiveSeminorm (⨂ₜ[𝕜] i, m i) = ∏ i, ‖m i‖ := by
   by_cases hz : ∀ i, m i ≠ 0
   · apply eq_of_le_of_ge (projectiveSeminorm_tprod_le m)
-    have : Nonempty ↑(⨂ₜ[𝕜] (i : ι), m i).lifts := by aesop
+    haveI := nonempty_subtype.mpr (nonempty_lifts (⨂ₜ[𝕜] i, m i))
     apply le_ciInf (fun x => ?_)
     choose g hg₁ hg₂ using fun i => exists_dual_vector' 𝕜 (m i)
     have h : ‖∏ i, (g i) (m i)‖ = ∏ i, ‖m i‖ := by
-      rw [show ∏ i, (g i) (m i) = ∏ i, ‖m i‖ by simp [hg₂], RCLike.norm_ofReal, abs_prod]
-      simp [abs_norm]
+      simp [show ∏ i, (g i) (m i) = ∏ i, ‖m i‖ by simp [hg₂]]
     have hx := congr_arg (‖·‖) (congr_arg (liftedLinearfamily g) ((mem_lifts_iff _ _).mp x.prop))
     simp only [map_list_sum, List.map_map, liftedLinearfamily_apply hg₂, map_prod, norm_prod,
       norm_algebraMap', norm_norm] at hx
@@ -61,8 +60,7 @@ theorem projectiveSeminorm_tprod [∀ i, Nontrivial (E i)] (m : Π i, E i) :
       simp only [liftedLinearfamily, Function.comp_apply, map_smul, lift.tprod,
         MultilinearMap.coe_mk, smul_eq_mul, norm_mul, norm_prod]
       gcongr with i hi
-      simpa using (ContinuousLinearMap.opNorm_le_iff (by simp : (0 : ℝ) ≤ 1)).mp
-        (le_of_eq (hg₁ i)) (p.2 i)
+      simpa using (ContinuousLinearMap.opNorm_le_iff (by simp : (0 : ℝ) ≤ 1)).mp (hg₁ i).le _
   · simp only [ne_eq, not_forall, not_not] at hz
     rw [show (⨂ₜ[𝕜] (i : ι), m i) = 0 from zero_tprodCoeff' _ _ _ hz.choose_spec]
     simpa using (Finset.prod_eq_zero_iff.mpr ⟨hz.choose, by simp [hz.choose_spec]⟩).symm
