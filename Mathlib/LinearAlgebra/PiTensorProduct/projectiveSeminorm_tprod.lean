@@ -34,7 +34,7 @@ lemma liftedLinearfamily_apply {g : Π i, StrongDual 𝕜 (E i)}
     : ‖liftedLinearfamily g (⨂ₜ[𝕜] i, m i)‖ = ∏ i, ‖m i‖ := by
   simp [liftedLinearfamily, hg]
 
-theorem projectiveSeminorm_tprod (m : Π i, E i) {g : (i : ι) → StrongDual 𝕜 (E i)}
+theorem projectiveSeminorm_tprod {g : (i : ι) → StrongDual 𝕜 (E i)} (m : Π i, E i)
     (hg₁ : ∀ (i : ι), ‖g i‖ = 1) (hg₂ : ∀ (i : ι), ‖(g i) (m i)‖ = ‖m i‖)
     : projectiveSeminorm (⨂ₜ[𝕜] i, m i) = ∏ i, ‖m i‖ := by
   by_cases hz : ∀ i, m i ≠ 0
