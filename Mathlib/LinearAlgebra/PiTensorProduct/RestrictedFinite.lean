@@ -7,6 +7,7 @@ import Mathlib.LinearAlgebra.PiTensorProduct.Set
 import Mathlib.Algebra.Colimit.Module
 import Mathlib.Analysis.Normed.Module.PiTensorProduct.ProjectiveSeminorm
 import Mathlib.Analysis.Normed.Module.PiTensorProduct.InjectiveSeminorm
+import Mathlib.LinearAlgebra.PiTensorProduct.projectiveSeminorm_tprod
 /-!
 # Tensors with finite support
 
@@ -154,26 +155,77 @@ noncomputable def Restricted.of {S : { S : Set ι // Finite ↑S }} :
   DirectLimit.Module.of 𝕜 _ (fun S : { S : Set ι // Finite ↑S } ↦ ⨂[𝕜] i : ↑S, E i) ..
 
 
-
+#check ciInf_eq_of_forall_ge_of_forall_gt_exists_lt
   /-
   Experimental inner product stuff
   -/
 
-
 -- # TODO : Define InjectiveSeminorm and ProjectiveSeminorm
 namespace Restricted
 
-variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
+variable {𝕜 : Type*} [RCLike 𝕜]
 variable {E : ι → Type*} (E₀ : (i : ι) → E i)
-  [∀ i, SeminormedAddCommGroup (E i)] [∀ i, NormedSpace 𝕜 (E i)]
+  [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace 𝕜 (E i)]
 
--- I appologize, but I refuse to dance.
+
+
 open Classical in
-lemma compatible (hn : ∀ i, ‖E₀ i‖ = 1) :
-  ∀ (S₁ S₂ : Set ι) [Fintype ↑S₁] [Fintype ↑S₂] (h : S₁ ≤ S₂) (x : ⨂[𝕜] (i : S₁), E i),
-  projectiveSeminorm x = projectiveSeminorm ((extendTensor (R := 𝕜) h E₀) x) := sorry
+lemma compatible [∀ i, Nontrivial (E i)] (hn : ∀ i, ‖E₀ i‖ = 1) :
+    ∀ (S₁ S₂ : Set ι) [Fintype ↑S₁] [Fintype ↑S₂] (h : S₁ ≤ S₂) (x : ⨂[𝕜] (i : S₁), E i),
+    projectiveSeminorm x = projectiveSeminorm ((extendTensor (R := 𝕜) h E₀) x) := by
+  intro S₁ S₂ _ _ hsub x
+  have ⟨p, hp⟩:= nonempty_lifts x
+  have hx₁ := (mem_lifts_iff _ _).mp hp
 
-noncomputable def norm_aux (hn : ∀ i, ‖E₀ i‖ = 1) : (Restricted 𝕜 E₀) → ℝ := by
+  have hx₂ := congr_arg (extendTensor (R := 𝕜) (s := E) hsub E₀) hx₁
+  rw [map_list_sum, List.map_map] at hx₂
+
+  rw [←hx₂, ←hx₁]
+
+  -- rw [projectiveSeminorm_apply]
+  -- have h := nonempty_subtype.mpr (nonempty_lifts x)
+  -- apply ciInf_eq_of_forall_ge_of_forall_gt_exists_lt
+  -- . intro p
+  --   simp [projectiveSeminormAux, projectiveSeminorm_apply]
+  --   apply ciInf_le_of_le (bddBelow_projectiveSemiNormAux ((extendTensor (R := 𝕜) hsub E₀) x))
+  --   . sorry
+  --   . sorry
+  -- . intro w
+  --   contrapose!
+  --   intro h₂
+  --   have ⟨p, hp⟩ := h
+  --   let pp : x.lifts := ⟨p, hp⟩
+  --   trans (projectiveSeminormAux pp.val)
+  --   . exact h₂ pp
+  --   . have : Nonempty ↑((extendTensor (R := 𝕜) hsub E₀) x).lifts := by aesop
+  --     apply le_ciInf
+  --     intro y
+  --     simp [projectiveSeminormAux]
+
+
+  -- have ⟨p, hp⟩:= nonempty_lifts x
+  -- replace hp := (mem_lifts_iff _ _).mp hp
+  -- simp [← hp, map_list_sum]
+
+  -- rw [show (⇑(extendTensor (R := 𝕜) hsub E₀) ∘ fun x ↦ x.1 • ⨂ₜ[𝕜] i, x.2 i) =
+  --   fun x : 𝕜 × ((i : ↑S₁) → E ↑i) ↦ ⇑(extendTensor (R := 𝕜) hsub E₀) (x.1 • ⨂ₜ[𝕜] i, x.2 i) by aesop]
+
+  -- simp
+
+
+
+
+  -- have h := span_tprod_eq_top (R := 𝕜) (s := fun i : S₁ => E i) ▸ Submodule.mem_top (R := 𝕜) (x := x)
+  -- rw [←Set.image_univ, Submodule.mem_span_image_iff_exists_fun] at h
+  -- simp only [Set.subset_univ, Finset.univ_eq_attach, true_and] at h
+  -- obtain ⟨t, c, hx⟩ := h
+  -- rw [← hx]
+  -- simp [projectiveSeminorm, Seminorm.ofSMulLE, Seminorm.of]
+
+
+
+noncomputable def norm_aux [∀ i, Nontrivial (E i)] (hn : ∀ i, ‖E₀ i‖ = 1)
+    : (Restricted 𝕜 E₀) → ℝ := by
   haveI := directedSystem (𝕜 := 𝕜) E₀
   apply DirectLimit.lift
   swap
@@ -255,16 +307,3 @@ noncomputable def norm_aux (hn : ∀ i, ‖E₀ i‖ = 1) : (Restricted 𝕜 E�
 --  Module.DirectLimit.lift _ _ _ _ (fun S₁ =>
 --    LinearMap.flip (Module.DirectLimit.lift _ _ _ _ (fun S₂ => sorry) (sorry))) (sorry)
 --                                                Look at here ↑
-
-#check Finset
-#check Fintype
-#check Finsupp
-
-
-def S1 := { n : Nat // n < 4 }
-
-def S2 := ({1, 2, 3} : Finset Nat)
-def S3 := ({2, 1, 3} : Finset Nat)
-
-example : S2 = S3 := by rfl -- fails
-def proof : S2 = S3 := by decide
