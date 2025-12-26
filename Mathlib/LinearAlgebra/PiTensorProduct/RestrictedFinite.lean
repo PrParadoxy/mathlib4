@@ -8,6 +8,7 @@ import Mathlib.Algebra.Colimit.Module
 import Mathlib.Analysis.Normed.Module.PiTensorProduct.ProjectiveSeminorm
 import Mathlib.Analysis.Normed.Module.PiTensorProduct.InjectiveSeminorm
 import Mathlib.LinearAlgebra.PiTensorProduct.projectiveSeminorm_tprod
+
 /-!
 # Tensors with finite support
 
@@ -171,24 +172,43 @@ set_option linter.style.openClassical false
 open Classical
 
 
-noncomputable def ee_aux {S₁ S₂ : Set ι} [Fintype ↑S₁] [Fintype ↑S₂]
-    (h : S₁ ≤ S₂) (E₀ : (i : ι) → E i) (g : (i : ↑(S₂ \ S₁)) → StrongDual 𝕜 (E ↑i)) :=
-  extendFunctionalDiff h
-    (dualDistrib (M := fun i : ↑(S₂ \ S₁) ↦ E i) (⨂ₜ[𝕜] i, g i)) ∘ₗ ((extendTensor (R := 𝕜) h E₀))
+-- noncomputable def ee_aux {S₁ S₂ : Set ι} [Fintype ↑S₁] [Fintype ↑S₂]
+--     (h : S₁ ≤ S₂) (E₀ : (i : ι) → E i) (g : (i : ↑(S₂ \ S₁)) → StrongDual 𝕜 (E ↑i)) :=
+--   extendFunctionalDiff h
+--     (dualDistrib (M := fun i : ↑(S₂ \ S₁) ↦ E i) (⨂ₜ[𝕜] i, g i)) ∘ₗ ((extendTensor (R := 𝕜) h E₀))
 
-lemma ee_eq {S₁ S₂ : Set ι} {E₀ : (i : ι) → E i} [Fintype ↑S₁] [Fintype ↑S₂]
+-- lemma ee_eq {S₁ S₂ : Set ι} {E₀ : (i : ι) → E i} [Fintype ↑S₁] [Fintype ↑S₂]
+--     {g : (i : ↑(S₂ \ S₁)) → StrongDual 𝕜 (E ↑i)} (h : S₁ ≤ S₂)
+--     (hn : ∀ i, ‖E₀ i‖ = 1) (hg : ∀ (i : ↑(S₂ \ S₁)), (g i) (E₀ i) = ↑‖E₀ i‖)
+--     : ee_aux h E₀ g = LinearMap.id := by
+--   ext f
+--   simp [ee_aux, show ∀ x : ↑(S₂ \ S₁), ¬(↑x : ι) ∈ S₁ by simp, hg, hn]
+
+-- noncomputable def ee {S₁ S₂ : Set ι} [Fintype ↑S₁] [Fintype ↑S₂]
+--     (h : S₁ ≤ S₂) (E₀ : (i : ι) → E i) (g : (i : ↑(S₂ \ S₁)) → StrongDual 𝕜 (E ↑i))
+--     (hn : ∀ i, ‖E₀ i‖ = 1) (hg : ∀ (i : ↑(S₂ \ S₁)), (g i) (E₀ i) = ↑‖E₀ i‖) :
+--   (⨂[𝕜] (i : ↑S₁), E ↑i) →L[𝕜] ⨂[𝕜] (i₂ : ↑S₁), E ↑i₂ := by
+--   apply ContinuousLinearMap.mk (ee_aux h E₀ g) ?_
+--   rw [ee_eq h hn hg]
+--   fun_prop
+
+noncomputable def shrink {S₁ S₂ : Set ι} [Fintype ↑S₁] [Fintype ↑S₂]
+    (h : S₁ ≤ S₂) (g : (i : ↑(S₂ \ S₁)) → StrongDual 𝕜 (E ↑i)) :=
+  extendFunctionalDiff h (dualDistrib (M := fun i : ↑(S₂ \ S₁) ↦ E i) (⨂ₜ[𝕜] i, g i))
+
+lemma shrink_extend_eq_id {S₁ S₂ : Set ι} {E₀ : (i : ι) → E i} [Fintype ↑S₁] [Fintype ↑S₂]
     {g : (i : ↑(S₂ \ S₁)) → StrongDual 𝕜 (E ↑i)} (h : S₁ ≤ S₂)
     (hn : ∀ i, ‖E₀ i‖ = 1) (hg : ∀ (i : ↑(S₂ \ S₁)), (g i) (E₀ i) = ↑‖E₀ i‖)
-    : ee_aux h E₀ g = LinearMap.id := by
+    : shrink h g ∘ₗ extendTensor (R := 𝕜) h E₀ = LinearMap.id := by
   ext f
-  simp [ee_aux, show ∀ x : ↑(S₂ \ S₁), ¬(↑x : ι) ∈ S₁ by simp, hg, hn]
+  simp [shrink, show ∀ x : ↑(S₂ \ S₁), ¬(↑x : ι) ∈ S₁ by simp, hg, hn]
 
-noncomputable def ee {S₁ S₂ : Set ι} [Fintype ↑S₁] [Fintype ↑S₂]
+noncomputable def shrink_extend {S₁ S₂ : Set ι} [Fintype ↑S₁] [Fintype ↑S₂]
     (h : S₁ ≤ S₂) (E₀ : (i : ι) → E i) (g : (i : ↑(S₂ \ S₁)) → StrongDual 𝕜 (E ↑i))
     (hn : ∀ i, ‖E₀ i‖ = 1) (hg : ∀ (i : ↑(S₂ \ S₁)), (g i) (E₀ i) = ↑‖E₀ i‖) :
   (⨂[𝕜] (i : ↑S₁), E ↑i) →L[𝕜] ⨂[𝕜] (i₂ : ↑S₁), E ↑i₂ := by
-  apply ContinuousLinearMap.mk (ee_aux h E₀ g) ?_
-  rw [ee_eq h hn hg]
+  apply ContinuousLinearMap.mk (shrink h g ∘ₗ extendTensor (R := 𝕜) h E₀) ?_
+  rw [shrink_extend_eq_id h hn hg]
   fun_prop
 
 lemma compatible [∀ i, Nontrivial (E i)] (hn : ∀ i, ‖E₀ i‖ = 1) :
@@ -197,11 +217,17 @@ lemma compatible [∀ i, Nontrivial (E i)] (hn : ∀ i, ‖E₀ i‖ = 1) :
   intro S₁ S₂ _ _ hsub x
   apply eq_of_le_of_ge
   · haveI := nonempty_subtype.mpr (nonempty_lifts ((extendTensor (R := 𝕜) hsub E₀) x))
-    apply le_ciInf (fun p => ?_)
     choose g hg₁ hg₂ using fun i : ↑(S₂ \ S₁) ↦ exists_dual_vector'' 𝕜 (E₀ i)
-    have hx : x = ee hsub E₀ g hn hg₂ x := by simp [ee, ee_eq hsub hn hg₂]
-    conv_lhs => rw [hx]
-    
+    have hx : x = shrink_extend hsub E₀ g hn hg₂ x := by
+      simp [shrink_extend, shrink_extend_eq_id hsub hn hg₂]
+    nth_rewrite 1 [hx]
+    dsimp [shrink_extend]
+ 
+
+    -- have := (mem_lifts_iff _ _).mp p.prop
+
+    -- grw [ContinuousLinearMap.le_opNorm (shrink hsub g) ((extendTensor hsub E₀) x)]
+    -- trans ‖ee hsub E₀ g hn hg₂‖ * ‖x‖
 
 
   · haveI := nonempty_subtype.mpr (nonempty_lifts x)
