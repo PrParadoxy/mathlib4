@@ -11,13 +11,13 @@ variable {ι : Type uι} [Fintype ι]
 variable {𝕜 : Type u𝕜} [NontriviallyNormedField 𝕜]
 variable {E : ι → Type uE} [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace 𝕜 (E i)]
  -- define `norm_list_sum_le`?
-theorem projectiveSeminorm_tprod_golfed {g : (i : ι) → StrongDual 𝕜 (E i)}
-    (m : Π i, E i) (hg₁ : ∀ (i : ι), ‖g i‖ ≤ 1) (hg₂ : ∀ (i : ι), ‖(g i) (m i)‖ = ‖m i‖) :
+theorem projectiveSeminorm_tprod_golfed {g : Π i, StrongDual 𝕜 (E i)}
+    (m : Π i, E i) (hg₁ : ∀ i, ‖g i‖ ≤ 1) (hg₂ : ∀ i, ‖(g i) (m i)‖ = ‖m i‖) :
     projectiveSeminorm (⨂ₜ[𝕜] i, m i) = ∏ i, ‖m i‖ := by
   apply eq_of_le_of_ge (projectiveSeminorm_tprod_le m)
   haveI := nonempty_subtype.mpr (nonempty_lifts (⨂ₜ[𝕜] i, m i))
   apply le_ciInf (fun x ↦ ?_)
-  have hx := congr_arg (norm ∘ dualDistrib (tprod 𝕜 (g ·))) ((mem_lifts_iff _ _).mp x.prop)
+  have hx := congr_arg (norm ∘ dualDistrib (⨂ₜ[𝕜] i, g i)) ((mem_lifts_iff _ _).mp x.prop)
   simp only [Function.comp_apply, dualDistrib_apply, ContinuousLinearMap.coe_coe, hg₂, norm_prod,
      map_list_sum, List.map_map] at hx
   grw [← hx, List.le_sum_of_subadditive norm norm_zero.le norm_add_le, List.map_map]
