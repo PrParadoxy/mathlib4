@@ -7,6 +7,10 @@ module
 
 public import Mathlib.Analysis.Normed.Module.Multilinear.Basic
 public import Mathlib.LinearAlgebra.PiTensorProduct
+public import Mathlib.Analysis.RCLike.Basic
+
+import Mathlib.Analysis.Normed.Module.HahnBanach
+import Mathlib.LinearAlgebra.PiTensorProduct.Dual
 
 /-!
 # Projective seminorm on the tensor of a finite family of normed spaces.
@@ -30,9 +34,6 @@ for every `m` in `Π i, Eᵢ` is bounded above by the projective seminorm.
   `E = Π i, Eᵢ` and `x` is in `⨂[𝕜] i, Eᵢ`, then `‖f.lift x‖ ≤ projectiveSeminorm x * ‖f‖`.
 
 ## TODO
-* If the base field is `ℝ` or `ℂ` (or more generally if the injection of `Eᵢ` into its bidual is
-  an isometry for every `i`), then we have `projectiveSeminorm ⨂ₜ[𝕜] i, mᵢ = Π i, ‖mᵢ‖`.
-
 * The functoriality.
 
 -/
@@ -118,6 +119,37 @@ theorem projectiveSeminorm_tprod_le (m : Π i, E i) :
   convert ciInf_le (bddBelow_projectiveSemiNormAux _) ⟨FreeAddMonoid.of ((1 : 𝕜), m), ?_⟩
   · simp [projectiveSeminormAux]
   · rw [mem_lifts_iff, FreeAddMonoid.toList_of, List.map_singleton, List.sum_singleton, one_smul]
+
+/- The projective seminorm is multiplicative, `projectiveSeminorm ⨂ₜ[𝕜] i, mᵢ = Π i, ‖mᵢ‖`,
+if for every `m i`, there exists a functional `g i` of norm at most one such that
+`‖(g i) (m i)‖ = ‖m i‖`. -/
+theorem projectiveSeminorm_tprod {g : Π i, StrongDual 𝕜 (E i)}
+    (m : Π i, E i) (hg₁ : ∀ i, ‖g i‖ ≤ 1) (hg₂ : ∀ i, ‖(g i) (m i)‖ = ‖m i‖) :
+    projectiveSeminorm (⨂ₜ[𝕜] i, m i) = ∏ i, ‖m i‖ := by
+  apply eq_of_le_of_ge (projectiveSeminorm_tprod_le m)
+  haveI := nonempty_subtype.mpr (nonempty_lifts (⨂ₜ[𝕜] i, m i))
+  apply le_ciInf (fun x ↦ ?_)
+  have hx := congr_arg (norm ∘ dualDistrib (⨂ₜ[𝕜] i, g i)) ((mem_lifts_iff _ _).mp x.prop)
+  simp only [Function.comp_apply, dualDistrib_apply, ContinuousLinearMap.coe_coe, hg₂, norm_prod,
+     map_list_sum, List.map_map] at hx
+  grw [← hx, List.le_sum_of_subadditive norm norm_zero.le norm_add_le, List.map_map]
+  apply List.sum_le_sum (fun _ _ ↦ ?_)
+  simp only [Function.comp_apply, map_smul, dualDistrib_apply, ContinuousLinearMap.coe_coe,
+    smul_eq_mul, norm_mul, norm_prod]
+  gcongr
+  grw [ContinuousLinearMap.le_opNorm, hg₁, one_mul]
+
+section RCLike
+
+variable {𝕜 : Type u𝕜} [RCLike 𝕜]
+variable {E : ι → Type uE} [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace 𝕜 (E i)]
+
+theorem projectiveSeminorm_tprod_of_rclike (m : Π i, E i)
+    : projectiveSeminorm (⨂ₜ[𝕜] i, m i) = ∏ i, ‖m i‖ := by
+  choose g hg₁ hg₂ using fun i ↦ exists_dual_vector'' 𝕜 (m i)
+  exact projectiveSeminorm_tprod m hg₁ (by simp [hg₂])
+
+end RCLike
 
 theorem norm_eval_le_projectiveSeminorm (x : ⨂[𝕜] i, E i) (G : Type*) [SeminormedAddCommGroup G]
     [NormedSpace 𝕜 G] (f : ContinuousMultilinearMap 𝕜 E G) :
