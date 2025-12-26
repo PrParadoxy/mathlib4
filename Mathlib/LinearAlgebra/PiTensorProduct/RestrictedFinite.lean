@@ -6,7 +6,7 @@ Authors: Davood Tehrani, David Gross
 import Mathlib.LinearAlgebra.PiTensorProduct.Set
 import Mathlib.Algebra.Colimit.Module
 import Mathlib.Analysis.Normed.Module.PiTensorProduct.ProjectiveSeminorm
-import Mathlib.Analysis.Normed.Module.PiTensorProduct.InjectiveSeminorm
+-- import Mathlib.Analysis.Normed.Module.PiTensorProduct.InjectiveSeminorm
 import Mathlib.LinearAlgebra.PiTensorProduct.projectiveSeminorm_tprod
 
 /-!
@@ -168,72 +168,50 @@ variable {𝕜 : Type*} [RCLike 𝕜]
 variable {E : ι → Type*} (E₀ : (i : ι) → E i)
   [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace 𝕜 (E i)]
 
-set_option linter.style.openClassical false
-open Classical
 
-
--- noncomputable def ee_aux {S₁ S₂ : Set ι} [Fintype ↑S₁] [Fintype ↑S₂]
---     (h : S₁ ≤ S₂) (E₀ : (i : ι) → E i) (g : (i : ↑(S₂ \ S₁)) → StrongDual 𝕜 (E ↑i)) :=
---   extendFunctionalDiff h
---     (dualDistrib (M := fun i : ↑(S₂ \ S₁) ↦ E i) (⨂ₜ[𝕜] i, g i)) ∘ₗ ((extendTensor (R := 𝕜) h E₀))
-
--- lemma ee_eq {S₁ S₂ : Set ι} {E₀ : (i : ι) → E i} [Fintype ↑S₁] [Fintype ↑S₂]
---     {g : (i : ↑(S₂ \ S₁)) → StrongDual 𝕜 (E ↑i)} (h : S₁ ≤ S₂)
---     (hn : ∀ i, ‖E₀ i‖ = 1) (hg : ∀ (i : ↑(S₂ \ S₁)), (g i) (E₀ i) = ↑‖E₀ i‖)
---     : ee_aux h E₀ g = LinearMap.id := by
---   ext f
---   simp [ee_aux, show ∀ x : ↑(S₂ \ S₁), ¬(↑x : ι) ∈ S₁ by simp, hg, hn]
-
--- noncomputable def ee {S₁ S₂ : Set ι} [Fintype ↑S₁] [Fintype ↑S₂]
---     (h : S₁ ≤ S₂) (E₀ : (i : ι) → E i) (g : (i : ↑(S₂ \ S₁)) → StrongDual 𝕜 (E ↑i))
---     (hn : ∀ i, ‖E₀ i‖ = 1) (hg : ∀ (i : ↑(S₂ \ S₁)), (g i) (E₀ i) = ↑‖E₀ i‖) :
---   (⨂[𝕜] (i : ↑S₁), E ↑i) →L[𝕜] ⨂[𝕜] (i₂ : ↑S₁), E ↑i₂ := by
---   apply ContinuousLinearMap.mk (ee_aux h E₀ g) ?_
---   rw [ee_eq h hn hg]
---   fun_prop
-
-noncomputable def shrink {S₁ S₂ : Set ι} [Fintype ↑S₁] [Fintype ↑S₂]
-    (h : S₁ ≤ S₂) (g : (i : ↑(S₂ \ S₁)) → StrongDual 𝕜 (E ↑i)) :=
-  extendFunctionalDiff h (dualDistrib (M := fun i : ↑(S₂ \ S₁) ↦ E i) (⨂ₜ[𝕜] i, g i))
-
-lemma shrink_extend_eq_id {S₁ S₂ : Set ι} {E₀ : (i : ι) → E i} [Fintype ↑S₁] [Fintype ↑S₂]
-    {g : (i : ↑(S₂ \ S₁)) → StrongDual 𝕜 (E ↑i)} (h : S₁ ≤ S₂)
-    (hn : ∀ i, ‖E₀ i‖ = 1) (hg : ∀ (i : ↑(S₂ \ S₁)), (g i) (E₀ i) = ↑‖E₀ i‖)
-    : shrink h g ∘ₗ extendTensor (R := 𝕜) h E₀ = LinearMap.id := by
-  ext f
-  simp [shrink, show ∀ x : ↑(S₂ \ S₁), ¬(↑x : ι) ∈ S₁ by simp, hg, hn]
-
-noncomputable def shrink_extend {S₁ S₂ : Set ι} [Fintype ↑S₁] [Fintype ↑S₂]
-    (h : S₁ ≤ S₂) (E₀ : (i : ι) → E i) (g : (i : ↑(S₂ \ S₁)) → StrongDual 𝕜 (E ↑i))
-    (hn : ∀ i, ‖E₀ i‖ = 1) (hg : ∀ (i : ↑(S₂ \ S₁)), (g i) (E₀ i) = ↑‖E₀ i‖) :
-  (⨂[𝕜] (i : ↑S₁), E ↑i) →L[𝕜] ⨂[𝕜] (i₂ : ↑S₁), E ↑i₂ := by
-  apply ContinuousLinearMap.mk (shrink h g ∘ₗ extendTensor (R := 𝕜) h E₀) ?_
-  rw [shrink_extend_eq_id h hn hg]
-  fun_prop
-
+open Classical in
 lemma compatible [∀ i, Nontrivial (E i)] (hn : ∀ i, ‖E₀ i‖ = 1) :
     ∀ (S₁ S₂ : Set ι) [Fintype ↑S₁] [Fintype ↑S₂] (h : S₁ ≤ S₂) (x : ⨂[𝕜] (i : S₁), E i),
     projectiveSeminorm x = projectiveSeminorm ((extendTensor (R := 𝕜) h E₀) x) := by
   intro S₁ S₂ _ _ hsub x
   apply eq_of_le_of_ge
   · haveI := nonempty_subtype.mpr (nonempty_lifts ((extendTensor (R := 𝕜) hsub E₀) x))
-    choose g hg₁ hg₂ using fun i : ↑(S₂ \ S₁) ↦ exists_dual_vector'' 𝕜 (E₀ i)
-    have hx : x = shrink_extend hsub E₀ g hn hg₂ x := by
-      simp [shrink_extend, shrink_extend_eq_id hsub hn hg₂]
-    nth_rewrite 1 [hx]
-    dsimp [shrink_extend]
- 
-
-    -- have := (mem_lifts_iff _ _).mp p.prop
-
-    -- grw [ContinuousLinearMap.le_opNorm (shrink hsub g) ((extendTensor hsub E₀) x)]
-    -- trans ‖ee hsub E₀ g hn hg₂‖ * ‖x‖
-
-
+    have ⟨p, hp⟩ := nonempty_lifts x
+    apply le_ciInf (fun pe => ?_)
+    choose g hg₁ hg₂ using fun i : ↑(S₂ \ S₁) ↦ exists_dual_vector' 𝕜 (E₀ i)
+    simp only [hn, map_one] at hg₂
+    let p := shrinkTensor_repr hsub (fun i => (g i).toLinearMap) pe.val
+    have hp := shrinkTensor_repr_lifts hsub E₀ hg₂ pe.prop
+    have hxp : projectiveSeminorm x ≤ projectiveSeminormAux p :=
+      ciInf_le (bddBelow_projectiveSemiNormAux x) ⟨p, hp⟩
+    grw [hxp]
+    simp only [projectiveSeminormAux, shrinkTensor_repr, ContinuousLinearMap.coe_coe,
+      FreeAddMonoid.lift_apply, FreeAddMonoid.toList_sum, List.map_map, List.map_flatten,
+      List.sum_flatten, ge_iff_le, p]
+    apply List.sum_le_sum (fun a ha => ?_)
+    simp only [Function.comp_apply, FreeAddMonoid.toList_of, List.map_cons, norm_mul, norm_prod,
+      mul_assoc, List.map_nil, List.sum_cons, List.sum_nil, add_zero]
+    gcongr
+    rw [← Fintype.prod_subtype_mul_prod_subtype (ι := S₂) (fun i => i.val ∈ S₁), mul_comm]
+    gcongr
+    · exact (Fintype.prod_equiv ((Equiv.subtypeSubtypeEquivSubtype
+        (q := fun i => i ∈ S₁) (fun u => Set.mem_of_subset_of_mem hsub u)).symm) _ _ (by aesop)).le
+    · trans ∏ b : ↑(S₂ \ S₁), ‖g ⟨b.val, by simp⟩‖ * ‖a.2 ⟨b.val, by grind⟩‖
+      · gcongr
+        grw [ContinuousLinearMap.le_opNorm]
+      · simp only [subset_refl, Set.coe_inclusion, hg₁, one_mul]
+        apply le_of_eq
+        let e : ↑(S₂ \ S₁) ≃ { x : S₂ // ↑x ∉ S₁ } :=
+          { toFun := fun x => ⟨⟨x.val, x.prop.1⟩, x.prop.2⟩
+            invFun := fun x => ⟨x.val.val, x.val.prop, x.prop⟩
+            left_inv := by intro; rfl
+            right_inv := by intro; rfl}
+        apply Fintype.prod_equiv e
+        aesop
   · haveI := nonempty_subtype.mpr (nonempty_lifts x)
     apply le_ciInf (fun p => ?_)
     let pe := (extendTensor_repr S₂ E₀) p.val
-    have hpe := extendTensor_repr_lifts (R := 𝕜) hsub x p.prop E₀
+    have hpe := extendTensor_repr_lifts (R := 𝕜) hsub p.prop E₀
     have hexp : projectiveSeminorm (extendTensor (R := 𝕜) hsub E₀ x) ≤ projectiveSeminormAux pe :=
       ciInf_le (bddBelow_projectiveSemiNormAux (extendTensor (R := 𝕜) hsub E₀ x)) ⟨pe, hpe⟩
     grw [hexp]
@@ -247,100 +225,12 @@ lemma compatible [∀ i, Nontrivial (E i)] (hn : ∀ i, ‖E₀ i‖ = 1) :
     exact (Fintype.prod_equiv (Equiv.subtypeSubtypeEquivSubtype
       (fun u => Set.mem_of_subset_of_mem hsub u)) _ _ (by aesop)).le
 
-
-
-
-
-#check Equiv.subtypeSubtypeEquivSubtype
-  -- have ⟨p, hp⟩ := nonempty_lifts x
-  -- have hx := (mem_lifts_iff _ _).mp hp
-  -- have hxp : projectiveSeminorm x ≤ projectiveSeminormAux p :=
-  --   ciInf_le (bddBelow_projectiveSemiNormAux x) ⟨p, hp⟩
-  -- let pe := (extendTensor_repr S₂ E₀) p
-  -- have hpe := extendTensor_repr_lifts (R := 𝕜) hsub x hp E₀
-  -- have hexp : projectiveSeminorm (extendTensor (R := 𝕜) hsub E₀ x) ≤ projectiveSeminormAux pe :=
-  --   ciInf_le (bddBelow_projectiveSemiNormAux (extendTensor (R := 𝕜) hsub E₀ x)) ⟨pe, hpe⟩
-
 noncomputable def norm_aux [∀ i, Nontrivial (E i)] (hn : ∀ i, ‖E₀ i‖ = 1)
-    : (Restricted 𝕜 E₀) → ℝ := by
+    : (Restricted 𝕜 E₀) → ℝ :=
   haveI := directedSystem (𝕜 := 𝕜) E₀
-  apply DirectLimit.lift
-  swap
-  · intro S x
-    haveI := @Fintype.ofFinite S S.prop
-    exact projectiveSeminorm x
-  · intro S₁ S₂ hsub x
+  DirectLimit.lift _ _ (fun S₁ S₂ hsub x =>
     letI := @Fintype.ofFinite S₁ S₁.prop
     letI := @Fintype.ofFinite S₂ S₂.prop
-    apply compatible E₀ hn S₁ S₂
+    compatible (𝕜 := 𝕜) E₀ hn S₁ S₂ hsub x
+  )
 
--- end Restricted
--- end PiTensorProduct
-
-
-
-
--- variable {ι : Type*}
--- variable {s : ι → Type*} {R : Type*} (s₀ : (i : ι) → s i)
---   [DecidableEq (Set ι)] [RCLike R]
---   [∀ s : Set ι, ∀ i, Decidable (i ∈ s)]
---   [∀ i, SeminormedAddCommGroup (s i)] [∀ i, InnerProductSpace R (s i)]
-
--- open scoped InnerProductSpace
--- open scoped ComplexConjugate
--- open Function Finset
--- #check starRingEnd R
-
--- -- This is not true, as one should use →ₗ⋆[R] instead. But the current lift is not general enough.
--- noncomputable def inner_aux₁ {S : Set ι} [Finite S] :
---     (⨂[R] i : S, s i) →ₗ[R] (⨂[R] i : S, s i) →ₗ[R] R :=
---   haveI := Fintype.ofFinite
---   lift {
---     toFun f₁ := lift {
---       toFun f₂ := ∏ i, ⟪f₁ i, f₂ i⟫_R
---       map_update_add' := by
---         intro _ _ i x y
---         symm
---         apply Finset.prod_add_prod_eq (mem_univ i)
---         all_goals aesop (add safe simp (inner_add_right (f₁ i) x y))
---       map_update_smul' := by
---         intro _ _ i c x
---         rw [prod_eq_mul_prod_diff_singleton (mem_univ i)]
---         conv_rhs => rw [prod_eq_mul_prod_diff_singleton (mem_univ i)]
---         simp only [update_self, inner_smul_right, smul_eq_mul, ←mul_assoc]
---         congr 1
---         exact Finset.prod_congr rfl (by grind)
---     }
---     map_update_add' := by
---       intro _ _ i x y
---       ext f
---       simp only [LinearMap.compMultilinearMap_apply, lift.tprod, MultilinearMap.coe_mk,
---         LinearMap.add_compMultilinearMap, MultilinearMap.add_apply]
---       symm
---       apply Finset.prod_add_prod_eq (mem_univ i)
---       all_goals aesop (add safe simp (inner_add_left x y (f i)))
---     map_update_smul' := by
---       intro _ _ i c x
---       ext f
---       simp only [LinearMap.compMultilinearMap_apply, lift.tprod, MultilinearMap.coe_mk,
---         LinearMap.smul_compMultilinearMap, MultilinearMap.smul_apply]
---       rw [prod_eq_mul_prod_diff_singleton (mem_univ i)]
---       conv_rhs => rw [prod_eq_mul_prod_diff_singleton (mem_univ i)]
---       simp only [update_self, ]
-
---       sorry -- not true!
-
---   }
-
-
--- There is only 1 way to define a function on any `Quotient`, and that is by defining the function
--- on the underlying elements, and lifting the function to `Quotient` space by showing its
--- compatibility. See `Quotient.lift`. The `DirectLimit` is a `Quotient`, and the only way to define
--- a function on it is through `DirectLimit.lift`. This requires defining
--- `(⨂[R] (i : ↑↑S₂), s ↑i) →ₗ[R] (⨂[R] (i : ↑↑S₁), s ↑i) →ₗ[R] R`, which can be done through
--- padding of S₂ and S₁ to S₁ ∪ S₂ and using `inner_aux₁`.
---noncomputable def inner :
---    Restricted R s₀ →ₗ[R] Restricted R s₀ →ₗ[R] R :=
---  Module.DirectLimit.lift _ _ _ _ (fun S₁ =>
---    LinearMap.flip (Module.DirectLimit.lift _ _ _ _ (fun S₂ => sorry) (sorry))) (sorry)
---                                                Look at here ↑

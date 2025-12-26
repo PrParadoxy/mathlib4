@@ -9,7 +9,7 @@ public import Mathlib.LinearAlgebra.PiTensorProduct
 public import Mathlib.LinearAlgebra.PiTensorProduct.Nested
 public import Mathlib.LinearAlgebra.TensorProduct.Associator
 public import Mathlib.RingTheory.PiTensorProduct
-
+public import Mathlib.LinearAlgebra.PiTensorProduct.Dual
 /-!
 # PiTensorProducts indexed by sets
 
@@ -327,13 +327,42 @@ def extendTensor_repr (s₀ : (i : ι) → s i)
   FreeAddMonoid.lift (fun ⟨r, f⟩ =>
     FreeAddMonoid.of ⟨r, fun i => if h : i.val ∈ S then f ⟨i, h⟩ else s₀ i⟩)
 
-theorem extendTensor_repr_lifts {p} (x : ⨂[R] i : S, s i) (hp : p ∈ x.lifts) (s₀ : (i : ι) → s i)
+theorem extendTensor_repr_lifts {p} {x : ⨂[R] i : S, s i} (hp : p ∈ x.lifts) (s₀ : (i : ι) → s i)
     : (extendTensor_repr T s₀ p) ∈ (extendTensor hsub s₀ x).lifts := by
   rw [mem_lifts_iff, ← (mem_lifts_iff _ _).mp hp, map_list_sum, List.map_map]
   simp only [extendTensor_repr, FreeAddMonoid.lift_apply, FreeAddMonoid.toList_sum,
     List.map_map, List.map_flatten, List.sum_flatten]
   congr 2
   aesop
+
+open Classical in
+noncomputable def shrink [Fintype T] (g : (i : ↑(T \ S)) → (s i) →ₗ[R] R) :=
+  extendFunctionalDiff hsub (dualDistrib (M := fun i : ↑(T \ S) ↦ s i) (⨂ₜ[R] i, g i))
+
+lemma shrink_extend_eq_id {g : (i : ↑(T \ S)) → (s i) →ₗ[R] R} [Fintype T]
+    (s₀ : (i : ι) → s i) (hg : ∀ (i : ↑(T \ S)), (g i) (s₀ i) = 1)
+    : shrink hsub g ∘ₗ extendTensor hsub s₀ = LinearMap.id := by
+  ext f
+  simp [shrink, show ∀ x : ↑(T \ S), ¬(↑x : ι) ∈ S by simp, hg]
+
+def shrinkTensor_repr (g : (i : ↑(T \ S)) → s i →ₗ[R] R) [Fintype T] :
+    FreeAddMonoid (R × ((i : T) → s i)) →+ FreeAddMonoid (R × ((i : S) → s i)) :=
+  FreeAddMonoid.lift (fun ⟨r, f⟩ => FreeAddMonoid.of ⟨r * ∏ i : ↑(T \ S), g i (f ⟨i, i.prop.1⟩),
+    fun i => f ⟨i, hsub i.prop⟩⟩)
+
+theorem shrinkTensor_repr_lifts {p} {x : ⨂[R] i : S, s i} [Fintype T]
+    (s₀ : (i : ι) → s i) {g : (i : ↑(T \ S)) → s i →ₗ[R] R}
+    (hg : ∀ (i : ↑(T \ S)), (g i) (s₀ i) = 1) (hp : p ∈ (extendTensor hsub s₀ x).lifts) :
+    (shrinkTensor_repr hsub g p) ∈ x.lifts := by
+  have h := congr_arg (shrink hsub g) ((mem_lifts_iff _ _).mp hp)
+  conv_rhs at h =>
+    rw [← Function.comp_apply (f := (shrink hsub g)),
+    ← LinearMap.coe_comp, shrink_extend_eq_id hsub s₀ hg]
+  simp only [LinearMap.id_coe, id_eq] at h
+  simp only [← h, map_list_sum, List.map_map, shrinkTensor_repr, FreeAddMonoid.lift_apply,
+    mem_lifts_iff, FreeAddMonoid.toList_sum, List.map_flatten, List.sum_flatten]
+  congr 2 with j
+  simp [shrink, smul_smul]
 
 end ExtendTensor
 
