@@ -120,11 +120,10 @@ theorem projectiveSeminorm_tprod_le (m : Π i, E i) :
   · simp [projectiveSeminormAux]
   · rw [mem_lifts_iff, FreeAddMonoid.toList_of, List.map_singleton, List.sum_singleton, one_smul]
 
-/- The projective seminorm is multiplicative, `projectiveSeminorm ⨂ₜ[𝕜] i, mᵢ = Π i, ‖mᵢ‖`,
-if for every `m i`, there exists a functional `g i` of norm at most one such that
-`‖(g i) (m i)‖ = ‖m i‖`. -/
-theorem projectiveSeminorm_tprod {g : Π i, StrongDual 𝕜 (E i)}
-    (m : Π i, E i) (hg₁ : ∀ i, ‖g i‖ ≤ 1) (hg₂ : ∀ i, ‖(g i) (m i)‖ = ‖m i‖) :
+/- The projective seminorm is multiplicative, `projectiveSeminorm ⨂ₜ[𝕜] i, mᵢ = Π i, ‖mᵢ‖`, if for
+every `mᵢ`, there exists a dual vector `gᵢ` of norm at most one, such that `‖gᵢ mᵢ‖ = ‖mᵢ‖`. -/
+theorem projectiveSeminorm_tprod_of_dual_vectors {g : Π i, StrongDual 𝕜 (E i)}
+    (m : Π i, E i) (hg₁ : ∀ i, ‖g i‖ ≤ 1) (hg₂ : ∀ i, ‖g i (m i)‖ = ‖m i‖) :
     projectiveSeminorm (⨂ₜ[𝕜] i, m i) = ∏ i, ‖m i‖ := by
   apply eq_of_le_of_ge (projectiveSeminorm_tprod_le m)
   haveI := nonempty_subtype.mpr (nonempty_lifts (⨂ₜ[𝕜] i, m i))
@@ -147,7 +146,7 @@ variable {E : ι → Type uE} [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSp
 theorem projectiveSeminorm_tprod_of_rclike (m : Π i, E i)
     : projectiveSeminorm (⨂ₜ[𝕜] i, m i) = ∏ i, ‖m i‖ := by
   choose g hg₁ hg₂ using fun i ↦ exists_dual_vector'' 𝕜 (m i)
-  exact projectiveSeminorm_tprod m hg₁ (by simp [hg₂])
+  exact projectiveSeminorm_tprod_of_dual_vectors m hg₁ (by simp [hg₂])
 
 end RCLike
 
