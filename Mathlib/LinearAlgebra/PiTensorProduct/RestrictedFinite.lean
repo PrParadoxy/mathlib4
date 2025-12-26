@@ -155,7 +155,7 @@ noncomputable def Restricted.of {S : { S : Set ι // Finite ↑S }} :
   DirectLimit.Module.of 𝕜 _ (fun S : { S : Set ι // Finite ↑S } ↦ ⨂[𝕜] i : ↑S, E i) ..
 
 
-#check ciInf_eq_of_forall_ge_of_forall_gt_exists_lt
+#check NormedSpace
   /-
   Experimental inner product stuff
   -/
@@ -168,61 +168,45 @@ variable {E : ι → Type*} (E₀ : (i : ι) → E i)
   [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace 𝕜 (E i)]
 
 
-
 open Classical in
 lemma compatible [∀ i, Nontrivial (E i)] (hn : ∀ i, ‖E₀ i‖ = 1) :
     ∀ (S₁ S₂ : Set ι) [Fintype ↑S₁] [Fintype ↑S₂] (h : S₁ ≤ S₂) (x : ⨂[𝕜] (i : S₁), E i),
     projectiveSeminorm x = projectiveSeminorm ((extendTensor (R := 𝕜) h E₀) x) := by
   intro S₁ S₂ _ _ hsub x
-  have ⟨p, hp⟩:= nonempty_lifts x
-  have hx₁ := (mem_lifts_iff _ _).mp hp
+  apply eq_of_le_of_ge
+  · haveI := nonempty_subtype.mpr (nonempty_lifts ((extendTensor (R := 𝕜) hsub E₀) x))
+    apply le_ciInf (fun p => ?_)
+    sorry
 
-  have hx₂ := congr_arg (extendTensor (R := 𝕜) (s := E) hsub E₀) hx₁
-  rw [map_list_sum, List.map_map] at hx₂
-
-  rw [←hx₂, ←hx₁]
-
-  -- rw [projectiveSeminorm_apply]
-  -- have h := nonempty_subtype.mpr (nonempty_lifts x)
-  -- apply ciInf_eq_of_forall_ge_of_forall_gt_exists_lt
-  -- . intro p
-  --   simp [projectiveSeminormAux, projectiveSeminorm_apply]
-  --   apply ciInf_le_of_le (bddBelow_projectiveSemiNormAux ((extendTensor (R := 𝕜) hsub E₀) x))
-  --   . sorry
-  --   . sorry
-  -- . intro w
-  --   contrapose!
-  --   intro h₂
-  --   have ⟨p, hp⟩ := h
-  --   let pp : x.lifts := ⟨p, hp⟩
-  --   trans (projectiveSeminormAux pp.val)
-  --   . exact h₂ pp
-  --   . have : Nonempty ↑((extendTensor (R := 𝕜) hsub E₀) x).lifts := by aesop
-  --     apply le_ciInf
-  --     intro y
-  --     simp [projectiveSeminormAux]
-
-
-  -- have ⟨p, hp⟩:= nonempty_lifts x
-  -- replace hp := (mem_lifts_iff _ _).mp hp
-  -- simp [← hp, map_list_sum]
-
-  -- rw [show (⇑(extendTensor (R := 𝕜) hsub E₀) ∘ fun x ↦ x.1 • ⨂ₜ[𝕜] i, x.2 i) =
-  --   fun x : 𝕜 × ((i : ↑S₁) → E ↑i) ↦ ⇑(extendTensor (R := 𝕜) hsub E₀) (x.1 • ⨂ₜ[𝕜] i, x.2 i) by aesop]
-
-  -- simp
+  · have : Nonempty ↑x.lifts := nonempty_subtype.mpr (nonempty_lifts x)
+    apply le_ciInf (fun p => ?_)
+    let pe := (extendTensor_repr S₂ E₀) p.val
+    have hpe := extendTensor_repr_lifts (R := 𝕜) hsub x p.prop E₀
+    have hexp : projectiveSeminorm (extendTensor (R := 𝕜) hsub E₀ x) ≤ projectiveSeminormAux pe :=
+      ciInf_le (bddBelow_projectiveSemiNormAux (extendTensor (R := 𝕜) hsub E₀ x)) ⟨pe, hpe⟩
+    grw [hexp]
+    simp only [projectiveSeminormAux, extendTensor_repr, FreeAddMonoid.lift_apply,
+      FreeAddMonoid.toList_sum, List.map_map, List.map_flatten, List.sum_flatten, ge_iff_le, pe]
+    apply List.sum_le_sum (fun a ha => ?_)
+    simp only [Function.comp_apply, FreeAddMonoid.toList_of, List.map_cons, apply_dite norm,
+      Finset.prod_dite, Finset.univ_eq_attach, List.map_nil, List.sum_cons, List.sum_nil, add_zero,
+      hn, Finset.prod_const_one, mul_one]
+    gcongr
+    sorry --trivial, yet very ugly
 
 
 
 
-  -- have h := span_tprod_eq_top (R := 𝕜) (s := fun i : S₁ => E i) ▸ Submodule.mem_top (R := 𝕜) (x := x)
-  -- rw [←Set.image_univ, Submodule.mem_span_image_iff_exists_fun] at h
-  -- simp only [Set.subset_univ, Finset.univ_eq_attach, true_and] at h
-  -- obtain ⟨t, c, hx⟩ := h
-  -- rw [← hx]
-  -- simp [projectiveSeminorm, Seminorm.ofSMulLE, Seminorm.of]
 
 
+  -- have ⟨p, hp⟩ := nonempty_lifts x
+  -- have hx := (mem_lifts_iff _ _).mp hp
+  -- have hxp : projectiveSeminorm x ≤ projectiveSeminormAux p :=
+  --   ciInf_le (bddBelow_projectiveSemiNormAux x) ⟨p, hp⟩
+  -- let pe := (extendTensor_repr S₂ E₀) p
+  -- have hpe := extendTensor_repr_lifts (R := 𝕜) hsub x hp E₀
+  -- have hexp : projectiveSeminorm (extendTensor (R := 𝕜) hsub E₀ x) ≤ projectiveSeminormAux pe :=
+  --   ciInf_le (bddBelow_projectiveSemiNormAux (extendTensor (R := 𝕜) hsub E₀ x)) ⟨pe, hpe⟩
 
 noncomputable def norm_aux [∀ i, Nontrivial (E i)] (hn : ∀ i, ‖E₀ i‖ = 1)
     : (Restricted 𝕜 E₀) → ℝ := by

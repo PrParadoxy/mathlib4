@@ -303,6 +303,21 @@ theorem extendTensor_trans [(i : ι) → Decidable (i ∈ T)] {U : Set ι} (hsub
     LinearMap.coe_mk, AddHom.coe_mk, Function.comp_apply, tmulUnifyEquiv_tprod]
   grind
 
+variable (T) in
+@[simp]
+def extendTensor_repr (s₀ : (i : ι) → s i)
+    : FreeAddMonoid (R × ((i : S) → s i)) →+ FreeAddMonoid (R × ((i : T) → s i)) :=
+  FreeAddMonoid.lift (fun ⟨r, f⟩ =>
+    FreeAddMonoid.of ⟨r, fun i => if h : i.val ∈ S then f ⟨i, h⟩ else s₀ i⟩)
+
+theorem extendTensor_repr_lifts {p} (x : ⨂[R] i : S, s i) (hp : p ∈ x.lifts) (s₀ : (i : ι) → s i)
+    : (extendTensor_repr T s₀ p) ∈ (extendTensor hsub s₀ x).lifts := by
+  rw [mem_lifts_iff, ← (mem_lifts_iff _ _).mp hp, map_list_sum, List.map_map]
+  simp only [extendTensor_repr, FreeAddMonoid.lift_apply, FreeAddMonoid.toList_sum,
+    List.map_map, List.map_flatten, List.sum_flatten]
+  congr 2
+  aesop
+
 end ExtendTensor
 
 end Extensions
