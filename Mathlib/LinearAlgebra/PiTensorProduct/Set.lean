@@ -245,7 +245,7 @@ def extendEnd : End R (⨂[R] i : S, s i) →ₗ[R] End R (⨂[R] i : T, s i) :=
   (tmulUnifyEquiv hsub).congrRight.toLinearMap ∘ₗ extendLinearHom hsub
 
 /-- A functional on tensors with index set `S ⊆ T` contracts tensors with index
-set `T` to tensors with index set `T \ S`. Bundled as a linear map. -/
+set `T` to tensors with index set `T \ S`. BuFndled as a linear map. -/
 def extendFunctional :
     ((⨂[R] i : S, s i) →ₗ[R] R) →ₗ[R] (⨂[R] i : T, s i) →ₗ[R] ⨂[R] (i₂ : ↑(T \ S)), s i₂ :=
   (TensorProduct.lid R _).congrRight.toLinearMap ∘ₗ (extendLinearHom hsub)
@@ -258,8 +258,7 @@ theorem extendLinear_tprod (l : (⨂[R] i : S, s i) →ₗ[R] M) (f : (i : T) �
 
 @[simp]
 theorem extendEnd_tprod (l : End _ (⨂[R] i : S, s i)) (f : (i : T) → s i) :
-    extendEnd hsub l (⨂ₜ[R] i, f i)
-    = (tmulUnifyEquiv hsub) (l (⨂ₜ[R] i₁ : S, f ⟨i₁, by grind⟩)
+    extendEnd hsub l (⨂ₜ[R] i, f i) = (tmulUnifyEquiv hsub) (l (⨂ₜ[R] i₁ : S, f ⟨i₁, by grind⟩)
       ⊗ₜ[R] (⨂ₜ[R] i₂ : ↑(T \ S), f ⟨i₂, by grind⟩)) := by
   simp [extendEnd, LinearEquiv.congrRight]
 
@@ -268,6 +267,24 @@ theorem extendFunctional_tprod (l : (⨂[R] i : S, s i) →ₗ[R] R) (f : (i : T
     extendFunctional hsub l (⨂ₜ[R] i, f i)
     = (l (⨂ₜ[R] i : S, f ⟨i, by grind⟩)) • ⨂ₜ[R] i : ↑(T \ S), f ⟨i, by grind⟩ := by
   simp [extendFunctional, LinearEquiv.congrRight]
+
+def extendFunctionalDiff [(i : ι) → Decidable (i ∈ T \ S)] :
+    ((⨂[R] (i₂ : ↑(T \ S)), s i₂) →ₗ[R] R) →ₗ[R] (⨂[R] i : T, s i) →ₗ[R] ⨂[R] (i₂ : S), s i₂ :=
+  (LinearMap.llcomp R _ _ _ (reindex R (fun i : ↑(T \ (T \ S)) => s i)
+    (Equiv.setCongr (diff_diff_cancel_left hsub))).toLinearMap).comp
+      (extendFunctional (Set.diff_subset))
+
+omit [(i : ι) → Decidable (i ∈ S)] in
+@[simp]
+theorem extendFunctionalDiff_tprod [(i : ι) → Decidable (i ∈ T \ S)]
+    (l : (⨂[R] i : ↑(T \ S), s i) →ₗ[R] R) (f : (i : T) → s i) :
+    extendFunctionalDiff hsub l (⨂ₜ[R] i, f i)
+    = (l (⨂ₜ[R] i : ↑(T \ S), f ⟨i, by aesop⟩)) • ⨂ₜ[R] i : S, f ⟨i, by aesop⟩ := by
+  simp only [extendFunctionalDiff, Equiv.setCongr_symm_apply, LinearMap.coe_comp,
+    Function.comp_apply, LinearMap.llcomp_apply, extendFunctional_tprod, sdiff_sdiff_right_self,
+    inf_eq_inter, inter_subset_left, coe_inclusion, map_smul, LinearEquiv.coe_coe]
+  conv_lhs => arg 2 ; apply reindex_tprod
+  simp
 
 end LinearMap
 

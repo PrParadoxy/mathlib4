@@ -167,8 +167,30 @@ variable {𝕜 : Type*} [RCLike 𝕜]
 variable {E : ι → Type*} (E₀ : (i : ι) → E i)
   [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace 𝕜 (E i)]
 
+set_option linter.style.openClassical false
+open Classical
 
-open Classical in
+
+noncomputable def ee_aux {S₁ S₂ : Set ι} [Fintype ↑S₁] [Fintype ↑S₂]
+    (h : S₁ ≤ S₂) (E₀ : (i : ι) → E i) (g : (i : ↑(S₂ \ S₁)) → StrongDual 𝕜 (E ↑i)) :=
+  extendFunctionalDiff h
+    (dualDistrib (M := fun i : ↑(S₂ \ S₁) ↦ E i) (⨂ₜ[𝕜] i, g i)) ∘ₗ ((extendTensor (R := 𝕜) h E₀))
+
+lemma ee_eq {S₁ S₂ : Set ι} {E₀ : (i : ι) → E i} [Fintype ↑S₁] [Fintype ↑S₂]
+    {g : (i : ↑(S₂ \ S₁)) → StrongDual 𝕜 (E ↑i)} (h : S₁ ≤ S₂)
+    (hn : ∀ i, ‖E₀ i‖ = 1) (hg : ∀ (i : ↑(S₂ \ S₁)), (g i) (E₀ i) = ↑‖E₀ i‖)
+    : ee_aux h E₀ g = LinearMap.id := by
+  ext f
+  simp [ee_aux, show ∀ x : ↑(S₂ \ S₁), ¬(↑x : ι) ∈ S₁ by simp, hg, hn]
+
+noncomputable def ee {S₁ S₂ : Set ι} [Fintype ↑S₁] [Fintype ↑S₂]
+    (h : S₁ ≤ S₂) (E₀ : (i : ι) → E i) (g : (i : ↑(S₂ \ S₁)) → StrongDual 𝕜 (E ↑i))
+    (hn : ∀ i, ‖E₀ i‖ = 1) (hg : ∀ (i : ↑(S₂ \ S₁)), (g i) (E₀ i) = ↑‖E₀ i‖) :
+  (⨂[𝕜] (i : ↑S₁), E ↑i) →L[𝕜] ⨂[𝕜] (i₂ : ↑S₁), E ↑i₂ := by
+  apply ContinuousLinearMap.mk (ee_aux h E₀ g) ?_
+  rw [ee_eq h hn hg]
+  fun_prop
+
 lemma compatible [∀ i, Nontrivial (E i)] (hn : ∀ i, ‖E₀ i‖ = 1) :
     ∀ (S₁ S₂ : Set ι) [Fintype ↑S₁] [Fintype ↑S₂] (h : S₁ ≤ S₂) (x : ⨂[𝕜] (i : S₁), E i),
     projectiveSeminorm x = projectiveSeminorm ((extendTensor (R := 𝕜) h E₀) x) := by
@@ -176,9 +198,13 @@ lemma compatible [∀ i, Nontrivial (E i)] (hn : ∀ i, ‖E₀ i‖ = 1) :
   apply eq_of_le_of_ge
   · haveI := nonempty_subtype.mpr (nonempty_lifts ((extendTensor (R := 𝕜) hsub E₀) x))
     apply le_ciInf (fun p => ?_)
-    sorry
+    choose g hg₁ hg₂ using fun i : ↑(S₂ \ S₁) ↦ exists_dual_vector'' 𝕜 (E₀ i)
+    have hx : x = ee hsub E₀ g hn hg₂ x := by simp [ee, ee_eq hsub hn hg₂]
+    conv_lhs => rw [hx]
+    
 
-  · have : Nonempty ↑x.lifts := nonempty_subtype.mpr (nonempty_lifts x)
+
+  · haveI := nonempty_subtype.mpr (nonempty_lifts x)
     apply le_ciInf (fun p => ?_)
     let pe := (extendTensor_repr S₂ E₀) p.val
     have hpe := extendTensor_repr_lifts (R := 𝕜) hsub x p.prop E₀
