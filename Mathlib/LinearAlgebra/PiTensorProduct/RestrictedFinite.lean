@@ -188,17 +188,18 @@ lemma compatible [∀ i, Nontrivial (E i)] (hn : ∀ i, ‖E₀ i‖ = 1) :
     simp only [projectiveSeminormAux, extendTensor_repr, FreeAddMonoid.lift_apply,
       FreeAddMonoid.toList_sum, List.map_map, List.map_flatten, List.sum_flatten, ge_iff_le, pe]
     apply List.sum_le_sum (fun a ha => ?_)
-    simp only [Function.comp_apply, FreeAddMonoid.toList_of, List.map_cons, apply_dite norm,
-      Finset.prod_dite, Finset.univ_eq_attach, List.map_nil, List.sum_cons, List.sum_nil, add_zero,
-      hn, Finset.prod_const_one, mul_one]
+    simp only [Function.comp_apply, FreeAddMonoid.toList_of, List.map_cons, apply_dite norm, hn,
+      Fintype.prod_dite, Finset.prod_const_one, mul_one, List.map_nil, List.sum_cons, List.sum_nil,
+      add_zero]
     gcongr
-    sorry --trivial, yet very ugly
+    exact (Fintype.prod_equiv (Equiv.subtypeSubtypeEquivSubtype
+      (fun u => Set.mem_of_subset_of_mem hsub u)) _ _ (by aesop)).le
 
 
 
 
 
-
+#check Equiv.subtypeSubtypeEquivSubtype
   -- have ⟨p, hp⟩ := nonempty_lifts x
   -- have hx := (mem_lifts_iff _ _).mp hp
   -- have hxp : projectiveSeminorm x ≤ projectiveSeminormAux p :=
