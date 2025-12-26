@@ -10,7 +10,7 @@ universe uι u𝕜 uE uF
 variable {ι : Type uι} [Fintype ι]
 variable {𝕜 : Type u𝕜} [NontriviallyNormedField 𝕜]
 variable {E : ι → Type uE} [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace 𝕜 (E i)]
-
+ -- define `norm_list_sum_le`?
 theorem projectiveSeminorm_tprod_golfed {g : (i : ι) → StrongDual 𝕜 (E i)}
     (m : Π i, E i) (hg₁ : ∀ (i : ι), ‖g i‖ ≤ 1) (hg₂ : ∀ (i : ι), ‖(g i) (m i)‖ = ‖m i‖) :
     projectiveSeminorm (⨂ₜ[𝕜] i, m i) = ∏ i, ‖m i‖ := by
@@ -20,9 +20,8 @@ theorem projectiveSeminorm_tprod_golfed {g : (i : ι) → StrongDual 𝕜 (E i)}
   have hx := congr_arg (norm ∘ dualDistrib (tprod 𝕜 (g ·))) ((mem_lifts_iff _ _).mp x.prop)
   simp only [Function.comp_apply, dualDistrib_apply, ContinuousLinearMap.coe_coe, hg₂, norm_prod,
      map_list_sum, List.map_map] at hx
-  grw [←hx, List.le_sum_of_subadditive norm norm_zero.le norm_add_le] -- define `norm_list_sum_le`?
-  simp only [List.map_map, projectiveSeminormAux]
-  apply List.sum_le_sum (fun p hp ↦ ?_)
+  grw [←hx, List.le_sum_of_subadditive norm norm_zero.le norm_add_le, List.map_map]
+  apply List.sum_le_sum (fun _ _ ↦ ?_)
   simp only [Function.comp_apply, map_smul, dualDistrib_apply, ContinuousLinearMap.coe_coe,
     smul_eq_mul, norm_mul, norm_prod]
   gcongr
