@@ -42,7 +42,7 @@ for every `m` in `Π i, Eᵢ` is bounded above by the projective seminorm.
 universe uι u𝕜 uE uF
 
 variable {ι : Type uι} [Fintype ι]
-variable {𝕜 : Type u𝕜} [NontriviallyNormedField 𝕜]
+variable {𝕜 : Type u𝕜} [NormedField 𝕜]
 variable {E : ι → Type uE} [∀ i, SeminormedAddCommGroup (E i)]
 
 open scoped TensorProduct
@@ -119,6 +119,12 @@ theorem projectiveSeminorm_tprod_le (m : Π i, E i) :
   · simp [projectiveSeminormAux]
   · rw [mem_lifts_iff, FreeAddMonoid.toList_of, List.map_singleton, List.sum_singleton, one_smul]
 
+section NontriviallyNormedField
+
+variable {𝕜 : Type u𝕜} [NontriviallyNormedField 𝕜]
+variable {E : ι → Type uE} [∀ i, SeminormedAddCommGroup (E i)]
+variable [∀ i, NormedSpace 𝕜 (E i)]
+
 theorem norm_eval_le_projectiveSeminorm (x : ⨂[𝕜] i, E i) (G : Type*) [SeminormedAddCommGroup G]
     [NormedSpace 𝕜 G] (f : ContinuousMultilinearMap 𝕜 E G) :
     ‖lift f.toMultilinearMap x‖ ≤ projectiveSeminorm x * ‖f‖ := by
@@ -139,5 +145,7 @@ theorem norm_eval_le_projectiveSeminorm (x : ⨂[𝕜] i, E i) (G : Type*) [Semi
   intro a m _
   rw [norm_smul, ← mul_assoc, mul_comm ‖f‖ _, mul_assoc]
   exact mul_le_mul_of_nonneg_left (f.le_opNorm _) (norm_nonneg _)
+
+end NontriviallyNormedField
 
 end PiTensorProduct
