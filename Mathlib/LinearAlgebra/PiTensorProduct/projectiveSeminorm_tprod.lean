@@ -11,7 +11,7 @@ variable {ι : Type uι} [Fintype ι]
 variable {𝕜 : Type u𝕜} [NontriviallyNormedField 𝕜]
 variable {E : ι → Type uE} [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace 𝕜 (E i)]
  -- define `norm_list_sum_le`?
-theorem projectiveSeminorm_tprod_golfed {g : Π i, StrongDual 𝕜 (E i)}
+theorem projectiveSeminorm_tprod {g : Π i, StrongDual 𝕜 (E i)}
     (m : Π i, E i) (hg₁ : ∀ i, ‖g i‖ ≤ 1) (hg₂ : ∀ i, ‖(g i) (m i)‖ = ‖m i‖) :
     projectiveSeminorm (⨂ₜ[𝕜] i, m i) = ∏ i, ‖m i‖ := by
   apply eq_of_le_of_ge (projectiveSeminorm_tprod_le m)
@@ -32,16 +32,17 @@ section RCLike
 variable {𝕜 : Type u𝕜} [RCLike 𝕜]
 variable {E : ι → Type uE} [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace 𝕜 (E i)]
 
-theorem projectiveSeminorm_tprod_golfed_rclike (m : Π i, E i)
+theorem projectiveSeminorm_tprod_rclike (m : Π i, E i)
     : projectiveSeminorm (⨂ₜ[𝕜] i, m i) = ∏ i, ‖m i‖ := by
   choose g hg₁ hg₂ using fun i ↦ exists_dual_vector'' 𝕜 (m i)
-  exact projectiveSeminorm_tprod_golfed m hg₁ (by simp [hg₂])
+  exact projectiveSeminorm_tprod m hg₁ (by simp [hg₂])
 
 end RCLike
 
-noncomputable def liftedLinearfamily (g : (i : ι) → StrongDual 𝕜 (E i))
-    : (⨂[𝕜] i, E i) →ₗ[𝕜] 𝕜 := lift {
-  toFun m := ∏ i, (g i) (m i)
+
+
+def dualFamily (g : Π i, StrongDual 𝕜 (E i)) : ContinuousMultilinearMap 𝕜 E 𝕜 where
+  toFun := fun x => ∏ i, g i (x i)
   map_update_add' _ i _ _:= by
     simp only [prod_eq_mul_prod_diff_singleton (mem_univ i), Function.update_self, map_add, add_mul]
     congr 2 <;> aesop (add safe apply Finset.prod_congr)
@@ -51,47 +52,90 @@ noncomputable def liftedLinearfamily (g : (i : ι) → StrongDual 𝕜 (E i))
       smul_eq_mul, ←mul_assoc]
     congr 1
     aesop (add safe apply Finset.prod_congr)
-}
+  cont := by fun_prop
 
 @[simp]
-lemma liftedLinearfamily_apply {g : Π i, StrongDual 𝕜 (E i)}
-    {m : Π i, E i} (hg : ∀ i, ‖(g i) (m i)‖ = ‖m i‖)
-    : ‖liftedLinearfamily g (⨂ₜ[𝕜] i, m i)‖ = ∏ i, ‖m i‖ := by
-  simp [liftedLinearfamily, hg]
+lemma dualFamily_apply {g : Π i, StrongDual 𝕜 (E i)} {m : Π i, E i}
+    (hg : ∀ i, ‖(g i) (m i)‖ = ‖m i‖)
+    : ‖(lift (dualFamily g).toMultilinearMap) (⨂ₜ[𝕜] i, m i)‖ = ∏ i, ‖m i‖ := by
+  simp [dualFamily, hg]
 
-theorem projectiveSeminorm_tprod {g : (i : ι) → StrongDual 𝕜 (E i)} (m : Π i, E i)
-    (hg₁ : ∀ (i : ι), ‖g i‖ = 1) (hg₂ : ∀ (i : ι), ‖(g i) (m i)‖ = ‖m i‖)
-    : projectiveSeminorm (⨂ₜ[𝕜] i, m i) = ∏ i, ‖m i‖ := by
-  by_cases hz : ∀ i, m i ≠ 0
-  · apply eq_of_le_of_ge (projectiveSeminorm_tprod_le m)
-    haveI := nonempty_subtype.mpr (nonempty_lifts (⨂ₜ[𝕜] i, m i))
-    apply le_ciInf (fun x => ?_)
-    have h : ‖∏ i, (g i) (m i)‖ = ∏ i, ‖m i‖ := by simp [hg₂]
-    have hx := congr_arg (‖·‖) (congr_arg (liftedLinearfamily g) ((mem_lifts_iff _ _).mp x.prop))
-    simp only [map_list_sum, List.map_map, liftedLinearfamily_apply hg₂] at hx
-    rw [← hx]
-    trans ((List.map (norm) (List.map (⇑(liftedLinearfamily g) ∘ fun x ↦ x.1 • ⨂ₜ[𝕜] (i : ι), x.2 i)
-          (FreeAddMonoid.toList x.val))).sum)
-    · apply List.le_sum_nonempty_of_subadditive norm norm_add_le
-      intro hx₂
-      simp_all only [ne_eq, nonempty_subtype, norm_prod, List.empty_eq, List.sum_nil, norm_zero,
-        List.map_eq_nil_iff]
-      simpa [hz] using prod_eq_zero_iff.mp hx.symm
-    · rw [List.map_map]
-      apply List.sum_le_sum (fun p hp => ?_)
-      simp only [liftedLinearfamily, Function.comp_apply, map_smul, lift.tprod,
-        MultilinearMap.coe_mk, smul_eq_mul, norm_mul, norm_prod]
-      gcongr with i hi
-      simpa using (ContinuousLinearMap.opNorm_le_iff (by simp : (0 : ℝ) ≤ 1)).mp (hg₁ i).le _
-  · simp only [ne_eq, not_forall, not_not] at hz
-    rw [show (⨂ₜ[𝕜] (i : ι), m i) = 0 from zero_tprodCoeff' _ _ _ hz.choose_spec]
-    simpa using (Finset.prod_eq_zero_iff.mpr ⟨hz.choose, by simp [hz.choose_spec]⟩).symm
+-- is not true, unless very strong assumptions are assumed
+@[simp]
+lemma dualFamily_nonzero {z} {g : Π i, StrongDual 𝕜 (E i)} (hz : z ≠ 0) (hg : ∀ i, g i ≠ 0)
+    : ‖(lift (dualFamily g).toMultilinearMap) z‖ ≠ 0 := by sorry
 
 
-variable {𝕜 : Type u𝕜} [RCLike 𝕜]
-variable {E : ι → Type uE} [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace 𝕜 (E i)]
+noncomputable instance : NormedAddCommGroup (⨂[𝕜] i, E i) where
+  norm := projectiveSeminorm
+  dist_self x := by simp
+  dist_comm x y := by intros; rw [←neg_sub, map_neg_eq_map]
+  eq_of_dist_eq_zero := by
+    intro x y h
+    set c := x - y
+    suffices c = 0 by aesop (add safe forward sub_eq_zero)
 
-theorem projectiveSeminorm_tprod_rclike [∀ i, Nontrivial (E i)] (m : Π i, E i)
-    : projectiveSeminorm (⨂ₜ[𝕜] i, m i) = ∏ i, ‖m i‖ := by
-  choose g hg₁ hg₂ using fun i => exists_dual_vector' 𝕜 (m i)
-  exact projectiveSeminorm_tprod m hg₁ (by simp [hg₂])
+
+
+
+
+
+
+
+
+-- noncomputable def liftedLinearfamily (g : (i : ι) → StrongDual 𝕜 (E i))
+--     : (⨂[𝕜] i, E i) →ₗ[𝕜] 𝕜 := lift {
+--   toFun m := ∏ i, (g i) (m i)
+--   map_update_add' _ i _ _:= by
+--     simp only [prod_eq_mul_prod_diff_singleton (mem_univ i), Function.update_self, map_add, add_mul]
+--     congr 2 <;> aesop (add safe apply Finset.prod_congr)
+--   map_update_smul' := by
+--     intro _ m i c x
+--     simp only [prod_eq_mul_prod_diff_singleton (mem_univ i), Function.update_self, map_smul,
+--       smul_eq_mul, ←mul_assoc]
+--     congr 1
+--     aesop (add safe apply Finset.prod_congr)
+-- }
+
+-- @[simp]
+-- lemma liftedLinearfamily_apply {g : Π i, StrongDual 𝕜 (E i)}
+--     {m : Π i, E i} (hg : ∀ i, ‖(g i) (m i)‖ = ‖m i‖)
+--     : ‖liftedLinearfamily g (⨂ₜ[𝕜] i, m i)‖ = ∏ i, ‖m i‖ := by
+--   simp [liftedLinearfamily, hg]
+
+-- theorem projectiveSeminorm_tprod {g : (i : ι) → StrongDual 𝕜 (E i)} (m : Π i, E i)
+--     (hg₁ : ∀ (i : ι), ‖g i‖ = 1) (hg₂ : ∀ (i : ι), ‖(g i) (m i)‖ = ‖m i‖)
+--     : projectiveSeminorm (⨂ₜ[𝕜] i, m i) = ∏ i, ‖m i‖ := by
+--   by_cases hz : ∀ i, m i ≠ 0
+--   · apply eq_of_le_of_ge (projectiveSeminorm_tprod_le m)
+--     haveI := nonempty_subtype.mpr (nonempty_lifts (⨂ₜ[𝕜] i, m i))
+--     apply le_ciInf (fun x => ?_)
+--     have h : ‖∏ i, (g i) (m i)‖ = ∏ i, ‖m i‖ := by simp [hg₂]
+--     have hx := congr_arg (‖·‖) (congr_arg (liftedLinearfamily g) ((mem_lifts_iff _ _).mp x.prop))
+--     simp only [map_list_sum, List.map_map, liftedLinearfamily_apply hg₂] at hx
+--     rw [← hx]
+--     trans ((List.map (norm) (List.map (⇑(liftedLinearfamily g) ∘ fun x ↦ x.1 • ⨂ₜ[𝕜] (i : ι), x.2 i)
+--           (FreeAddMonoid.toList x.val))).sum)
+--     · apply List.le_sum_nonempty_of_subadditive norm norm_add_le
+--       intro hx₂
+--       simp_all only [ne_eq, nonempty_subtype, norm_prod, List.empty_eq, List.sum_nil, norm_zero,
+--         List.map_eq_nil_iff]
+--       simpa [hz] using prod_eq_zero_iff.mp hx.symm
+--     · rw [List.map_map]
+--       apply List.sum_le_sum (fun p hp => ?_)
+--       simp only [liftedLinearfamily, Function.comp_apply, map_smul, lift.tprod,
+--         MultilinearMap.coe_mk, smul_eq_mul, norm_mul, norm_prod]
+--       gcongr with i hi
+--       simpa using (ContinuousLinearMap.opNorm_le_iff (by simp : (0 : ℝ) ≤ 1)).mp (hg₁ i).le _
+--   · simp only [ne_eq, not_forall, not_not] at hz
+--     rw [show (⨂ₜ[𝕜] (i : ι), m i) = 0 from zero_tprodCoeff' _ _ _ hz.choose_spec]
+--     simpa using (Finset.prod_eq_zero_iff.mpr ⟨hz.choose, by simp [hz.choose_spec]⟩).symm
+
+
+-- variable {𝕜 : Type u𝕜} [RCLike 𝕜]
+-- variable {E : ι → Type uE} [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace 𝕜 (E i)]
+
+-- theorem projectiveSeminorm_tprod_rclike [∀ i, Nontrivial (E i)] (m : Π i, E i)
+--     : projectiveSeminorm (⨂ₜ[𝕜] i, m i) = ∏ i, ‖m i‖ := by
+--   choose g hg₁ hg₂ using fun i => exists_dual_vector' 𝕜 (m i)
+--   exact projectiveSeminorm_tprod m hg₁ (by simp [hg₂])
