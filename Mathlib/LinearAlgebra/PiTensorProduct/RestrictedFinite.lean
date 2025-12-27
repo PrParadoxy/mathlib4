@@ -156,7 +156,7 @@ noncomputable def Restricted.of {S : { S : Set ι // Finite ↑S }} :
   DirectLimit.Module.of 𝕜 _ (fun S : { S : Set ι // Finite ↑S } ↦ ⨂[𝕜] i : ↑S, E i) ..
 
 
-#check NormedSpace
+
   /-
   Experimental inner product stuff
   -/
@@ -168,7 +168,6 @@ variable {𝕜 : Type*} [RCLike 𝕜]
 variable {E : ι → Type*} (E₀ : (i : ι) → E i)
   [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace 𝕜 (E i)]
 
-
 open Classical in
 lemma compatible [∀ i, Nontrivial (E i)] (hn : ∀ i, ‖E₀ i‖ = 1) :
     ∀ (S₁ S₂ : Set ι) [Fintype ↑S₁] [Fintype ↑S₂] (h : S₁ ≤ S₂) (x : ⨂[𝕜] (i : S₁), E i),
@@ -176,54 +175,37 @@ lemma compatible [∀ i, Nontrivial (E i)] (hn : ∀ i, ‖E₀ i‖ = 1) :
   intro S₁ S₂ _ _ hsub x
   apply eq_of_le_of_ge
   · haveI := nonempty_subtype.mpr (nonempty_lifts ((extendTensor (R := 𝕜) hsub E₀) x))
-    have ⟨p, hp⟩ := nonempty_lifts x
     apply le_ciInf (fun pe => ?_)
     choose g hg₁ hg₂ using fun i : ↑(S₂ \ S₁) ↦ exists_dual_vector' 𝕜 (E₀ i)
     simp only [hn, map_one] at hg₂
     let p := shrinkTensor_repr hsub (fun i => (g i).toLinearMap) pe.val
     have hp := shrinkTensor_repr_lifts hsub E₀ hg₂ pe.prop
-    have hxp : projectiveSeminorm x ≤ projectiveSeminormAux p :=
-      ciInf_le (bddBelow_projectiveSemiNormAux x) ⟨p, hp⟩
-    grw [hxp]
-    simp only [projectiveSeminormAux, shrinkTensor_repr, ContinuousLinearMap.coe_coe,
+    trans projectiveSeminormAux p
+    · exact ciInf_le (bddBelow_projectiveSemiNormAux x) ⟨p, hp⟩
+    · simp only [projectiveSeminormAux, shrinkTensor_repr, ContinuousLinearMap.coe_coe,
       FreeAddMonoid.lift_apply, FreeAddMonoid.toList_sum, List.map_map, List.map_flatten,
-      List.sum_flatten, ge_iff_le, p]
-    apply List.sum_le_sum (fun a ha => ?_)
-    simp only [Function.comp_apply, FreeAddMonoid.toList_of, List.map_cons, norm_mul, norm_prod,
-      mul_assoc, List.map_nil, List.sum_cons, List.sum_nil, add_zero]
-    gcongr
-    rw [← Fintype.prod_subtype_mul_prod_subtype (ι := S₂) (fun i => i.val ∈ S₁), mul_comm]
-    gcongr
-    · exact (Fintype.prod_equiv ((Equiv.subtypeSubtypeEquivSubtype
-        (q := fun i => i ∈ S₁) (fun u => Set.mem_of_subset_of_mem hsub u)).symm) _ _ (by aesop)).le
-    · trans ∏ b : ↑(S₂ \ S₁), ‖g ⟨b.val, by simp⟩‖ * ‖a.2 ⟨b.val, by grind⟩‖
-      · gcongr
-        grw [ContinuousLinearMap.le_opNorm]
-      · simp only [subset_refl, Set.coe_inclusion, hg₁, one_mul]
-        apply le_of_eq
-        let e : ↑(S₂ \ S₁) ≃ { x : S₂ // ↑x ∉ S₁ } :=
-          { toFun := fun x => ⟨⟨x.val, x.prop.1⟩, x.prop.2⟩
-            invFun := fun x => ⟨x.val.val, x.val.prop, x.prop⟩
-            left_inv := by intro; rfl
-            right_inv := by intro; rfl}
-        apply Fintype.prod_equiv e
-        aesop
+      List.sum_flatten, p]
+      apply List.sum_le_sum (fun a ha => ?_)
+      simp only [Function.comp_apply, FreeAddMonoid.toList_of, List.map_cons, norm_mul, norm_prod,
+        mul_assoc, List.map_nil, List.sum_cons, List.sum_nil, add_zero]
+      gcongr
+      trans (∏ b : ↑(S₂ \ S₁), ‖(a.2 ⟨↑b, by grind⟩)‖) * ∏ x : S₁, ‖a.2 ⟨↑x, by aesop⟩‖
+      · gcongr; grw [ContinuousLinearMap.le_opNorm, hg₁, one_mul]
+      · rw [mul_comm, ← Fintype.prod_sumElim, Fintype.prod_equiv (Equiv.Set.sumDiffSubset hsub)
+          (Sum.elim (fun i : S₁ => ‖a.2 ⟨↑i, by aesop⟩‖)
+          (fun b : ↑(S₂ \ S₁) => ‖a.2 ⟨↑b, by grind⟩‖)) (fun x : S₂ => ‖a.2 x‖) (by simp)]
   · haveI := nonempty_subtype.mpr (nonempty_lifts x)
     apply le_ciInf (fun p => ?_)
-    let pe := (extendTensor_repr S₂ E₀) p.val
+    let pe := extendTensor_repr S₂ E₀ p.val
     have hpe := extendTensor_repr_lifts (R := 𝕜) hsub p.prop E₀
-    have hexp : projectiveSeminorm (extendTensor (R := 𝕜) hsub E₀ x) ≤ projectiveSeminormAux pe :=
-      ciInf_le (bddBelow_projectiveSemiNormAux (extendTensor (R := 𝕜) hsub E₀ x)) ⟨pe, hpe⟩
-    grw [hexp]
-    simp only [projectiveSeminormAux, extendTensor_repr, FreeAddMonoid.lift_apply,
-      FreeAddMonoid.toList_sum, List.map_map, List.map_flatten, List.sum_flatten, ge_iff_le, pe]
-    apply List.sum_le_sum (fun a ha => ?_)
-    simp only [Function.comp_apply, FreeAddMonoid.toList_of, List.map_cons, apply_dite norm, hn,
-      Fintype.prod_dite, Finset.prod_const_one, mul_one, List.map_nil, List.sum_cons, List.sum_nil,
-      add_zero]
-    gcongr
-    exact (Fintype.prod_equiv (Equiv.subtypeSubtypeEquivSubtype
-      (fun u => Set.mem_of_subset_of_mem hsub u)) _ _ (by aesop)).le
+    trans projectiveSeminormAux pe
+    · exact ciInf_le (bddBelow_projectiveSemiNormAux (extendTensor (R := 𝕜) hsub E₀ x)) ⟨pe, hpe⟩
+    · simp only [projectiveSeminormAux, extendTensor_repr, FreeAddMonoid.lift_apply,
+      FreeAddMonoid.toList_sum, List.map_map, List.map_flatten, List.sum_flatten, pe]
+      apply List.sum_le_sum (fun a ha => ?_)
+      simpa [apply_dite norm, hn, Fintype.prod_dite] using
+       mul_le_mul_of_nonneg_left (Fintype.prod_equiv (Equiv.subtypeSubtypeEquivSubtype
+        (fun u => Set.mem_of_subset_of_mem hsub u)) _ _ (by aesop)).le (norm_nonneg a.1)
 
 noncomputable def norm_aux [∀ i, Nontrivial (E i)] (hn : ∀ i, ‖E₀ i‖ = 1)
     : (Restricted 𝕜 E₀) → ℝ :=
@@ -233,4 +215,3 @@ noncomputable def norm_aux [∀ i, Nontrivial (E i)] (hn : ∀ i, ‖E₀ i‖ =
     letI := @Fintype.ofFinite S₂ S₂.prop
     compatible (𝕜 := 𝕜) E₀ hn S₁ S₂ hsub x
   )
-

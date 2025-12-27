@@ -345,6 +345,7 @@ lemma shrink_extend_eq_id {g : (i : ↑(T \ S)) → (s i) →ₗ[R] R} [Fintype 
   ext f
   simp [shrink, show ∀ x : ↑(T \ S), ¬(↑x : ι) ∈ S by simp, hg]
 
+@[simp]
 def shrinkTensor_repr (g : (i : ↑(T \ S)) → s i →ₗ[R] R) [Fintype T] :
     FreeAddMonoid (R × ((i : T) → s i)) →+ FreeAddMonoid (R × ((i : S) → s i)) :=
   FreeAddMonoid.lift (fun ⟨r, f⟩ => FreeAddMonoid.of ⟨r * ∏ i : ↑(T \ S), g i (f ⟨i, i.prop.1⟩),
@@ -356,9 +357,8 @@ theorem shrinkTensor_repr_lifts {p} {x : ⨂[R] i : S, s i} [Fintype T]
     (shrinkTensor_repr hsub g p) ∈ x.lifts := by
   have h := congr_arg (shrink hsub g) ((mem_lifts_iff _ _).mp hp)
   conv_rhs at h =>
-    rw [← Function.comp_apply (f := (shrink hsub g)),
-    ← LinearMap.coe_comp, shrink_extend_eq_id hsub s₀ hg]
-  simp only [LinearMap.id_coe, id_eq] at h
+    simp only [← Function.comp_apply (f := (shrink hsub g)),
+    ← LinearMap.coe_comp, shrink_extend_eq_id hsub s₀ hg, LinearMap.id_coe, id_eq]
   simp only [← h, map_list_sum, List.map_map, shrinkTensor_repr, FreeAddMonoid.lift_apply,
     mem_lifts_iff, FreeAddMonoid.toList_sum, List.map_flatten, List.sum_flatten]
   congr 2 with j
