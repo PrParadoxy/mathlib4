@@ -2,6 +2,7 @@ import Mathlib.Analysis.LocallyConvex.Separation
 import Mathlib.Analysis.LocallyConvex.WeakDual
 import Mathlib.LinearAlgebra.PiTensorProduct.Dual
 import Mathlib.Topology.Algebra.Module.WeakDual
+import Mathlib.Topology.Algebra.Module.StrongTopology
 
 open Module Topology WeakBilin Submodule
 
@@ -126,15 +127,25 @@ noncomputable def StrongAlgWeakDualEquiv : V ≃ₗ[R] StrongDual R (AlgWeakDual
     rw [← LinearEquiv.apply_symm_apply (StrongAlgWeakDualEquiv R V) v, StrongAlgWeakDualEquiv_apply]
   rfl
 
-#check LinearEquiv.dualMap
 variable (R V) in
-def algWeakDual_equiv_weakDual [TopologicalSpace V] :
-    StrongDual R (AlgWeakDual R V) ≃ₗ[R] StrongDual R (WeakDual R V) := sorry
+def algWeakDualWeakDualHomeomorph [TopologicalSpace V] [DiscreteTopology V] :
+    AlgWeakDual R V ≃L[R] WeakDual R V where
+  toFun f := ContinuousLinearMap.mk f (continuous_of_discreteTopology)
+  invFun f := f.toLinearMap
+  map_add' := by intros; congr
+  map_smul' := by intros; congr
+  continuous_invFun := continuous_induced_rng.2 continuous_induced_dom
+  continuous_toFun := continuous_induced_rng.2 continuous_induced_dom
 
-noncomputable def StrongWeakDualEquiv' [TopologicalSpace V] :
+variable (R V) in
+def algWeakDualWeakDualBiDualEquiv [TopologicalSpace V] [DiscreteTopology V] :
+    StrongDual R (AlgWeakDual R V) ≃L[R] StrongDual R (WeakDual R V) :=
+  ContinuousLinearEquiv.arrowCongr (algWeakDualWeakDualHomeomorph R V)
+    (ContinuousLinearEquiv.refl R R)
+
+noncomputable def StrongWeakDualEquiv [TopologicalSpace V] [DiscreteTopology V] :
     V ≃ₗ[R] StrongDual R (WeakDual R V) :=
-  (StrongAlgWeakDualEquiv R V) ≪≫ₗ (algWeakDual_equiv_weakDual R V)
-
+  (StrongAlgWeakDualEquiv R V) ≪≫ₗ (algWeakDualWeakDualBiDualEquiv R V).toLinearEquiv
 
 variable {V : Type*} [AddCommGroup V] [Module ℝ V] {s : Set (AlgWeakDual ℝ V)}
 
