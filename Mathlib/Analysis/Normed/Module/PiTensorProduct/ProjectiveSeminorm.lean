@@ -34,6 +34,12 @@ for every `m` in `Π i, Eᵢ` is bounded above by the projective seminorm.
   `E = Π i, Eᵢ` and `x` is in `⨂[𝕜] i, Eᵢ`, then `‖f.lift x‖ ≤ projectiveSeminorm x * ‖f‖`.
 
 ## TODO
+* The projective seminorm is multiplicative if the evaluation map embedding `Eᵢ`
+into its bidual is an isometry for every `i`. Under the slightly stronger
+assumption that every `mᵢ` attains its norm over the closed unit ball of the
+continuous dual, this is proved by `projectiveSeminorm_tprod_of_dual_vectors`.
+(By Hahn-Banach, this always happens over `ℝ` or `ℂ`). TBD: Treat the more
+general case where the supremum may not be attained.
 * The functoriality.
 
 -/
@@ -143,7 +149,7 @@ section RCLike
 variable {𝕜 : Type u𝕜} [RCLike 𝕜]
 variable {E : ι → Type uE} [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace 𝕜 (E i)]
 
-theorem projectiveSeminorm_tprod_of_rclike (m : Π i, E i)
+theorem projectiveSeminorm_tprod (m : Π i, E i)
     : projectiveSeminorm (⨂ₜ[𝕜] i, m i) = ∏ i, ‖m i‖ := by
   choose g hg₁ hg₂ using fun i ↦ exists_dual_vector'' 𝕜 (m i)
   exact projectiveSeminorm_tprod_of_dual_vectors m hg₁ (by simp [hg₂])
