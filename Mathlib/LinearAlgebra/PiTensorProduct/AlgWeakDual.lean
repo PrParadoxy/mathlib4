@@ -1,8 +1,7 @@
 import Mathlib.Analysis.LocallyConvex.Separation
 import Mathlib.Analysis.LocallyConvex.WeakDual
-import Mathlib.LinearAlgebra.PiTensorProduct.Dual
-import Mathlib.Topology.Algebra.Module.WeakDual
 import Mathlib.Topology.Algebra.Module.StrongTopology
+import Mathlib.Topology.Algebra.Module.WeakDual
 
 open Module Topology WeakBilin Submodule
 
