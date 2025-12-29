@@ -556,12 +556,9 @@ theorem injectiveSeminorm_equals_projectiveSeminorm (x : ⨂[𝕜] i, E i) :
       use projectiveSeminormedAddCommGroup
       use projectiveNormedSpace
   · have h :=
-      ContinuousLinearMap.le_opNorm
-        ((toDualContinuousMultilinearMap (⨂[𝕜] (i : ι), E i)) x)
-        (tprodL 𝕜)
+      ContinuousLinearMap.le_opNorm ((toDualContinuousMultilinearMap (⨂[𝕜] (i : ι), E i)) x) (tprodL 𝕜)
     grw [norm_tprodL_le] at h
-    simp at h
-    assumption
+    simpa using h
 
 end dualCharacterization
 
