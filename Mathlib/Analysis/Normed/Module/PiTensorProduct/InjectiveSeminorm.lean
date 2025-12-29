@@ -257,8 +257,8 @@ theorem injectiveSeminorm_equals_projectiveSeminorm (x : ⨂[𝕜] i, E i) :
   · constructor
     · simp
       use (⨂[𝕜] (i : ι), E i)
-      sorry
-    · exact projectiveSeminorm
+      use projectiveSeminormedAddCommGroup
+      use projectiveNormedSpace
   ·
     sorry
 
