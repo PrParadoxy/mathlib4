@@ -49,12 +49,15 @@ general case where the supremum may not be attained.
 universe uι u𝕜 uE uF
 
 variable {ι : Type uι} [Fintype ι]
-variable {𝕜 : Type u𝕜} [NontriviallyNormedField 𝕜]
-variable {E : ι → Type uE} [∀ i, SeminormedAddCommGroup (E i)]
 
 open scoped TensorProduct
 
 namespace PiTensorProduct
+
+section NormedField
+
+variable {𝕜 : Type u𝕜} [NormedField 𝕜]
+variable {E : ι → Type uE} [∀ i, SeminormedAddCommGroup (E i)]
 
 /-- A lift of the projective seminorm to `FreeAddMonoid (𝕜 × Π i, Eᵢ)`, useful to prove the
 properties of `projectiveSeminorm`.
@@ -126,6 +129,25 @@ theorem projectiveSeminorm_tprod_le (m : Π i, E i) :
   · simp [projectiveSeminormAux]
   · rw [mem_lifts_iff, FreeAddMonoid.toList_of, List.map_singleton, List.sum_singleton, one_smul]
 
+noncomputable instance projectiveSeminormedAddCommGroup :
+  SeminormedAddCommGroup (⨂[𝕜] i, E i) :=
+  AddGroupSeminorm.toSeminormedAddCommGroup projectiveSeminorm.toAddGroupSeminorm
+
+noncomputable instance projectiveNormedSpace :
+  NormedSpace 𝕜 (⨂[𝕜] i, E i) where
+    norm_smul_le a x := by
+      change projectiveSeminorm.toFun (a • x) ≤ _
+      rw [projectiveSeminorm.smul']
+      rfl
+
+end NormedField
+
+section NontriviallyNormedField
+
+variable {𝕜 : Type u𝕜} [NontriviallyNormedField 𝕜]
+variable {E : ι → Type uE} [∀ i, SeminormedAddCommGroup (E i)]
+variable [∀ i, NormedSpace 𝕜 (E i)]
+
 /- The projective seminorm is multiplicative, `projectiveSeminorm ⨂ₜ[𝕜] i, mᵢ = Π i, ‖mᵢ‖`, if for
 every `mᵢ`, there exists a dual vector `gᵢ` of norm at most one, such that `‖gᵢ mᵢ‖ = ‖mᵢ‖`. -/
 theorem projectiveSeminorm_tprod_of_dual_vectors {g : Π i, StrongDual 𝕜 (E i)}
@@ -178,17 +200,6 @@ theorem norm_eval_le_projectiveSeminorm {G : Type*} [SeminormedAddCommGroup G]
   rw [norm_smul, ← mul_assoc, mul_comm ‖f‖ _, mul_assoc]
   exact mul_le_mul_of_nonneg_left (f.le_opNorm _) (norm_nonneg _)
 
-noncomputable instance projectiveSeminormedAddCommGroup :
-  SeminormedAddCommGroup (⨂[𝕜] i, E i) :=
-  AddGroupSeminorm.toSeminormedAddCommGroup projectiveSeminorm.toAddGroupSeminorm
-
-noncomputable instance projectiveNormedSpace :
-  NormedSpace 𝕜 (⨂[𝕜] i, E i) where
-    norm_smul_le a x := by
-      change projectiveSeminorm.toFun (a • x) ≤ _
-      rw [projectiveSeminorm.smul']
-      rfl
-
 
 variable {F : Type uF} [SeminormedAddCommGroup F] [NormedSpace 𝕜 F]
 
@@ -225,7 +236,6 @@ noncomputable def liftIsometry : ContinuousMultilinearMap 𝕜 E F ≃ₗᵢ[�
         conv_lhs => rw [← (liftEquiv 𝕜 E F).symm_apply_apply f]
         rw [liftEquiv_symm_apply]
         exact MultilinearMap.mkContinuous_norm_le _ (norm_nonneg _) _ }
-
 
 variable {𝕜 E F}
 
@@ -507,5 +517,6 @@ theorem injectiveSeminorm_equals_projectiveSeminorm :
 
 end dualCharacterization
 
+end NontriviallyNormedField
 
 end PiTensorProduct
