@@ -500,11 +500,10 @@ theorem injectiveSeminorm_equals_projectiveSeminorm :
   ext x
   symm
   apply eq_of_le_of_ge (toDualContinuousMultilinearMap_le_projectiveSeminorm x)
-  have h := ContinuousLinearMap.le_opNorm
+  have := ContinuousLinearMap.le_opNorm
       ((toDualContinuousMultilinearMap (⨂[𝕜] (i : ι), E i)) x) (tprodL 𝕜)
-  grw [norm_tprodL_le] at h
-  simp at h
-  simpa using h
+  grw [norm_tprodL_le, mul_one] at this
+  simpa
 
 end dualCharacterization
 
