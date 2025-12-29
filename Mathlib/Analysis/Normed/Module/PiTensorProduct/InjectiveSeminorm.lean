@@ -249,7 +249,8 @@ theorem injectiveSeminorm_equals_projectiveSeminorm (x : ⨂[𝕜] i, E i) :
   apply eq_of_le_of_ge (injectiveSeminorm_le_projectiveSeminorm x)
   dsimp
   rw [injectiveSeminorm_apply]
-  conv_rhs => apply le_ciSup _ _
+  apply le_ciSup ?_ ?_
+
 
   sorry
 
