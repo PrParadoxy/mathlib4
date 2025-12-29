@@ -233,11 +233,23 @@ section RCLike
 variable {𝕜 : Type u𝕜} [RCLike 𝕜]
 variable {E : ι → Type uE} [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace 𝕜 (E i)]
 
+noncomputable instance projectiveSeminormedAddCommGroup :
+  SeminormedAddCommGroup (⨂[𝕜] i, E i) :=
+  AddGroupSeminorm.toSeminormedAddCommGroup projectiveSeminorm.toAddGroupSeminorm
+
+noncomputable instance projectiveNormedSpace :
+  NormedSpace 𝕜 (⨂[𝕜] i, E i) where
+    norm_smul_le a x := by
+      change projectiveSeminorm.toFun (a • x) ≤ _
+      rw [projectiveSeminorm.smul']
+      rfl
+
 theorem injectiveSeminorm_equals_projectiveSeminorm (x : ⨂[𝕜] i, E i) :
   injectiveSeminorm x = projectiveSeminorm x := by
   apply eq_of_le_of_ge (injectiveSeminorm_le_projectiveSeminorm x)
   dsimp
   rw [injectiveSeminorm_apply]
+  conv_rhs => apply le_ciSup _ _
 
   sorry
 
