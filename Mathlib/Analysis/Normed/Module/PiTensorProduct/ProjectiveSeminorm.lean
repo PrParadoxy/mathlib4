@@ -490,73 +490,21 @@ theorem injectiveSeminorm_le_projectiveSeminorm :
     rw [h]; intro x; simp only [Seminorm.comp_apply, coe_normSeminorm]
     exact toDualContinuousMultilinearMap_le_projectiveSeminorm _
 
-theorem injectiveSeminorm_equals_projectiveSeminorm (x : ⨂[𝕜] i, E i) :
-  injectiveSeminorm x = projectiveSeminorm x := by
-  apply eq_of_le_of_ge (injectiveSeminorm_le_projectiveSeminorm x)
-  dsimp
-  rw [injectiveSeminorm_apply]
-  refine le_ciSup_of_le ?_ ?_ ?_
-  ·
-    obtain ⟨M, hM⟩ := dualSeminorms_bounded (𝕜 := 𝕜) (E := E)
-    refine ⟨M x, ?_⟩
-    intro p hp
-
-    simp_all
-
-    simp only [Set.mem_range, forall_exists_index, Subtype.exists, Set.mem_setOf_eq]
-
-    refine ⟨injectiveSeminorm x, ?_⟩
-
-    exact hM hp x
-
-
-
-    refine ⟨injectiveSeminorm x, ?_⟩
-    rintro _ ⟨p, rfl⟩
-    rw [injectiveSeminorm_apply]
-
-    refine le_ciSup (α:=ℝ) ?_ p
-    -- boundedness of the range
-    refine ⟨injectiveSeminorm x, ?_⟩
-    rintro _ ⟨q, rfl⟩
-    -- unfold once, then use the defining property of `sSup`
-    simp [injectiveSeminorm_apply]
-
-    refine ⟨injectiveSeminorm x, ?_⟩
-    rintro _ ⟨p, rfl⟩
-    simp
-    rw [injectiveSeminorm_apply]
-    refine ⟨injectiveSeminorm x, ?_⟩
-
-    rintro _ ⟨p, rfl⟩
-    exact le_iSup (fun q : {p | ∃ G, _} => (q : Seminorm 𝕜 _) x) p
-
-
-
-    apply le_iSup
-
-    rw [<-injectiveSeminorm_apply]
-
-    rw [<-injectiveSeminorm_apply]
-
-    exact toDualContinuousMultilinearMap_le_projectiveSeminorm x
-
-    simp [Set.range]
-    have h := dualSeminorms_bounded (𝕜:=𝕜) (E:=E)
-    sorry
-
-    erw [Seminorm.comp_apply] at h
-
-    erw [<-Seminorm.comp_apply]
-    simp [Seminorm.zero_apply, Seminorm.comp_apply, coe_normSeminorm] at h
-    simp [Seminorm.sSup_apply, dualSeminorms_bounded, h]
-
-  · constructor
-    · use (⨂[𝕜] (i : ι), E i), projectiveSeminormedAddCommGroup, projectiveNormedSpace
-  · have h :=
-      ContinuousLinearMap.le_opNorm ((toDualContinuousMultilinearMap (⨂[𝕜] (i : ι), E i)) x) (tprodL 𝕜)
-    grw [norm_tprodL_le] at h
-    simpa using h
+theorem injectiveSeminorm_equals_projectiveSeminorm :
+  injectiveSeminorm (𝕜 := 𝕜) (E := E) = projectiveSeminorm := by
+  apply eq_of_le_of_ge injectiveSeminorm_le_projectiveSeminorm
+  rw [injectiveSeminorm]
+  refine le_csSup_of_le (dualSeminorms_bounded) ?_ (le_refl projectiveSeminorm)
+  simp only [Set.mem_setOf_eq]
+  use (⨂[𝕜] (i : ι), E i), projectiveSeminormedAddCommGroup, projectiveNormedSpace
+  ext x
+  symm
+  apply eq_of_le_of_ge (toDualContinuousMultilinearMap_le_projectiveSeminorm x)
+  have h := ContinuousLinearMap.le_opNorm
+      ((toDualContinuousMultilinearMap (⨂[𝕜] (i : ι), E i)) x) (tprodL 𝕜)
+  grw [norm_tprodL_le] at h
+  simp at h
+  simpa using h
 
 end dualCharacterization
 
