@@ -228,6 +228,21 @@ theorem injectiveSeminorm_tprod_le (m : Π (i : ι), E i) :
     injectiveSeminorm (⨂ₜ[𝕜] i, m i) ≤ ∏ i, ‖m i‖ :=
   le_trans (injectiveSeminorm_le_projectiveSeminorm _) (projectiveSeminorm_tprod_le m)
 
+section RCLike
+
+variable {𝕜 : Type u𝕜} [RCLike 𝕜]
+variable {E : ι → Type uE} [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace 𝕜 (E i)]
+
+theorem injectiveSeminorm_equals_projectiveSeminorm (x : ⨂[𝕜] i, E i) :
+  injectiveSeminorm x = projectiveSeminorm x := by
+  apply eq_of_le_of_ge (injectiveSeminorm_le_projectiveSeminorm x)
+  dsimp
+  rw [injectiveSeminorm_apply]
+
+  sorry
+
+end RCLike
+
 noncomputable instance : SeminormedAddCommGroup (⨂[𝕜] i, E i) :=
   AddGroupSeminorm.toSeminormedAddCommGroup injectiveSeminorm.toAddGroupSeminorm
 
