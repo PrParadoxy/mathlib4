@@ -244,13 +244,23 @@ noncomputable instance projectiveNormedSpace :
       rw [projectiveSeminorm.smul']
       rfl
 
+#check le_iSup_of_le
+
 theorem injectiveSeminorm_equals_projectiveSeminorm (x : ⨂[𝕜] i, E i) :
   injectiveSeminorm x = projectiveSeminorm x := by
   apply eq_of_le_of_ge (injectiveSeminorm_le_projectiveSeminorm x)
   dsimp
   rw [injectiveSeminorm_apply]
-  apply le_ciSup ?_ ?_
-
+  refine le_ciSup_of_le ?_ ?_ ?_
+  · -- apply dualSeminorms_bounded
+    sorry
+  · constructor
+    · simp
+      use (⨂[𝕜] (i : ι), E i)
+      sorry
+    · exact projectiveSeminorm
+  ·
+    sorry
 
   sorry
 
