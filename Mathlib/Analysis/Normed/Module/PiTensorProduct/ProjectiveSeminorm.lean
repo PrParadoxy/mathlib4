@@ -177,44 +177,59 @@ theorem norm_eval_le_projectiveSeminorm (x : ⨂[𝕜] i, E i) (G : Type*) [Semi
   rw [norm_smul, ← mul_assoc, mul_comm ‖f‖ _, mul_assoc]
   exact mul_le_mul_of_nonneg_left (f.le_opNorm _) (norm_nonneg _)
 
+noncomputable instance projectiveSeminormedAddCommGroup :
+  SeminormedAddCommGroup (⨂[𝕜] i, E i) :=
+  AddGroupSeminorm.toSeminormedAddCommGroup projectiveSeminorm.toAddGroupSeminorm
 
--- variable {𝕜 : Type u𝕜} [RCLike 𝕜]
--- variable {E : ι → Type uE} [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace 𝕜 (E i)]
--- variable {F : Type uF} [SeminormedAddCommGroup F] [NormedSpace 𝕜 F]
---
--- variable (𝕜 E F)
---
--- noncomputable def liftEquiv_pi : ContinuousMultilinearMap 𝕜 E F ≃ₗ[𝕜] (⨂[𝕜] i, E i) →L[𝕜] F where
---   toFun f := LinearMap.mkContinuous (lift f.toMultilinearMap) ‖f‖ fun x ↦
---     by -- TBD: simplify
---       grw [mul_comm, norm_eval_le_projectiveSeminorm x F f]
---       rfl
---   map_add' f g := by ext _; simp only [ContinuousMultilinearMap.toMultilinearMap_add, map_add,
---     LinearMap.mkContinuous_apply, LinearMap.add_apply, ContinuousLinearMap.add_apply]
---   map_smul' a f := by ext _; simp only [ContinuousMultilinearMap.toMultilinearMap_smul, map_smul,
---     LinearMap.mkContinuous_apply, LinearMap.smul_apply, RingHom.id_apply,
---     ContinuousLinearMap.coe_smul', Pi.smul_apply]
---   invFun l := MultilinearMap.mkContinuous (lift.symm l.toLinearMap) ‖l‖ fun x ↦ by
---     simp only [lift_symm, LinearMap.compMultilinearMap_apply, ContinuousLinearMap.coe_coe]
---     exact ContinuousLinearMap.le_opNorm_of_le _ (projectiveSeminorm_tprod_le x)
---   left_inv f := by ext x; simp only [LinearMap.mkContinuous_coe, LinearEquiv.symm_apply_apply,
---       MultilinearMap.coe_mkContinuous, ContinuousMultilinearMap.coe_coe]
---   right_inv l := by
---     rw [← ContinuousLinearMap.coe_inj]
---     apply PiTensorProduct.ext; ext m
---     simp
---
--- noncomputable def liftIsometry_pi : ContinuousMultilinearMap 𝕜 E F ≃ₗᵢ[𝕜] (⨂[𝕜] i, E i) →L[𝕜] F :=
---   { liftEquiv_pi 𝕜 E F with
---     norm_map' := by
---       intro f
---       refine le_antisymm ?_ ?_
---       · simp only [liftEquiv_pi]
---         exact LinearMap.mkContinuous_norm_le _ (norm_nonneg f) _
---       · conv_lhs => rw [← (liftEquiv 𝕜 E F).symm_apply_apply f]
---         rw [liftEquiv_symm_apply]
---         exact MultilinearMap.mkContinuous_norm_le _ (norm_nonneg _) _ }
+noncomputable instance projectiveNormedSpace :
+  NormedSpace 𝕜 (⨂[𝕜] i, E i) where
+    norm_smul_le a x := by
+      change projectiveSeminorm.toFun (a • x) ≤ _
+      rw [projectiveSeminorm.smul']
+      rfl
+
+section RCLike
+
+variable {𝕜 : Type u𝕜} [RCLike 𝕜]
+variable {E : ι → Type uE} [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace 𝕜 (E i)]
+variable {F : Type uF} [SeminormedAddCommGroup F] [NormedSpace 𝕜 F]
+
+variable (𝕜 E F)
+
+noncomputable def liftEquiv_pi : ContinuousMultilinearMap 𝕜 E F ≃ₗ[𝕜] (⨂[𝕜] i, E i) →L[𝕜] F where
+  toFun f := LinearMap.mkContinuous (lift f.toMultilinearMap) ‖f‖ fun x ↦
+    by -- TBD: simplify
+      grw [mul_comm, norm_eval_le_projectiveSeminorm x F f]
+      rfl
+  map_add' f g := by ext _; simp only [ContinuousMultilinearMap.toMultilinearMap_add, map_add,
+    LinearMap.mkContinuous_apply, LinearMap.add_apply, ContinuousLinearMap.add_apply]
+  map_smul' a f := by ext _; simp only [ContinuousMultilinearMap.toMultilinearMap_smul, map_smul,
+    LinearMap.mkContinuous_apply, LinearMap.smul_apply, RingHom.id_apply,
+    ContinuousLinearMap.coe_smul', Pi.smul_apply]
+  invFun l := MultilinearMap.mkContinuous (lift.symm l.toLinearMap) ‖l‖ fun x ↦ by
+    simp only [lift_symm, LinearMap.compMultilinearMap_apply, ContinuousLinearMap.coe_coe]
+    exact ContinuousLinearMap.le_opNorm_of_le _ (projectiveSeminorm_tprod_le x)
+  left_inv f := by ext x; simp only [LinearMap.mkContinuous_coe, LinearEquiv.symm_apply_apply,
+      MultilinearMap.coe_mkContinuous, ContinuousMultilinearMap.coe_coe]
+  right_inv l := by
+    rw [← ContinuousLinearMap.coe_inj]
+    apply PiTensorProduct.ext; ext m
+    simp
+
+noncomputable def liftIsometry_pi : ContinuousMultilinearMap 𝕜 E F ≃ₗᵢ[𝕜] (⨂[𝕜] i, E i) →L[𝕜] F :=
+  { liftEquiv_pi 𝕜 E F with
+    norm_map' := by
+      intro f
+      refine le_antisymm ?_ ?_
+      · simp only [liftEquiv_pi]
+        simp
+
+        exact LinearMap.mkContinuous_norm_le _ (norm_nonneg f) _
+      · conv_lhs => rw [← (liftEquiv 𝕜 E F).symm_apply_apply f]
+        rw [liftEquiv_symm_apply]
+        exact MultilinearMap.mkContinuous_norm_le _ (norm_nonneg _) _ }
 
 
+end RCLike
 
 end PiTensorProduct
