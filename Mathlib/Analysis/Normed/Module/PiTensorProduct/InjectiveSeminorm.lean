@@ -244,6 +244,20 @@ noncomputable instance projectiveNormedSpace :
       rw [projectiveSeminorm.smul']
       rfl
 
+open ContinuousLinearMap in
+lemma embed_ge_projectiveSeminorm (x : ⨂[𝕜] i, E i) :
+    projectiveSeminorm x ≤ ‖toDualContinuousMultilinearMap (⨂[𝕜] (i : ι), E i) x‖ := by
+
+  have h := ratio_le_opNorm
+      (toDualContinuousMultilinearMap (⨂[𝕜] (i : ι), E i) x)
+      (tprod 𝕜)
+
+  grw [ratio_le_opNorm]
+
+  grw [ContinuousLinearMap.le_opNorm]
+
+  sorry
+
 #check le_iSup_of_le
 
 theorem injectiveSeminorm_equals_projectiveSeminorm (x : ⨂[𝕜] i, E i) :
@@ -255,11 +269,31 @@ theorem injectiveSeminorm_equals_projectiveSeminorm (x : ⨂[𝕜] i, E i) :
   · -- apply dualSeminorms_bounded
     sorry
   · constructor
-    · simp
-      use (⨂[𝕜] (i : ι), E i)
+    · use (⨂[𝕜] (i : ι), E i)
       use projectiveSeminormedAddCommGroup
       use projectiveNormedSpace
-  ·
+  · simp
+
+    grw [ContinuousLinearMap.le_opNorm]
+
+    simp [toDualContinuousMultilinearMap]
+    aesop
+
+
+    exact MultilinearMap.mkContinuous_norm_le _ (norm_nonneg _) _
+
+
+    have h := toDualContinuousMultilinearMap_le_projectiveSeminorm (E:=E) (F:=⨂[𝕜] (i : ι), E i) x
+
+
+    have xxx := toDualContinuousMultilinearMap_le_projectiveSeminorm x
+
+    grw [LinearMap.mkContinuous_norm_le _ (norm_nonneg x) _]
+
+    rw [liftEquiv_symm_apply]
+    exact MultilinearMap.mkContinuous_norm_le _ (norm_nonneg _) _
+
+    simp only [liftEquiv_apply]
     sorry
 
   sorry
