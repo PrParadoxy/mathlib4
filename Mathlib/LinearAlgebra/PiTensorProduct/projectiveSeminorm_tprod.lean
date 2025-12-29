@@ -66,14 +66,14 @@ lemma dualFamily_nonzero {z} {g : Π i, StrongDual 𝕜 (E i)} (hz : z ≠ 0) (h
     : ‖(lift (dualFamily g).toMultilinearMap) z‖ ≠ 0 := by sorry
 
 
-noncomputable instance : NormedAddCommGroup (⨂[𝕜] i, E i) where
-  norm := projectiveSeminorm
-  dist_self x := by simp
-  dist_comm x y := by intros; rw [←neg_sub, map_neg_eq_map]
-  eq_of_dist_eq_zero := by
-    intro x y h
-    set c := x - y
-    suffices c = 0 by aesop (add safe forward sub_eq_zero)
+-- noncomputable instance : NormedAddCommGroup (⨂[𝕜] i, E i) where
+--   norm := projectiveSeminorm
+--   dist_self x := by simp
+--   dist_comm x y := by intros; rw [←neg_sub, map_neg_eq_map]
+--   eq_of_dist_eq_zero := by
+--     intro x y h
+--     set c := x - y
+--     suffices c = 0 by aesop (add safe forward sub_eq_zero)
 
 
 
