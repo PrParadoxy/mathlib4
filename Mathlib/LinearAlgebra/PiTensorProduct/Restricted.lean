@@ -32,7 +32,6 @@ noncomputable instance decidable : ∀ s : FiniteSet ι, ∀ m : ι, Decidable (
 
 end FiniteSet
 
-
 instance directedSystem : DirectedSystem
     (fun S : FiniteSet ι ↦ ⨂[𝕜] (i : S.val), E i)
     (fun _ _ hsub ↦ extendTensor hsub E₀) where
@@ -42,3 +41,6 @@ instance directedSystem : DirectedSystem
     rw [←Function.comp_apply (f := extendTensor h2 E₀)]
     apply congrFun
     simp [←LinearMap.coe_comp]
+
+abbrev Restricted :=
+  DirectLimit (fun S : FiniteSet ι ↦ ⨂[𝕜] (i : ↑S), E i) (fun _ _ hsub ↦ extendTensor hsub E₀)
