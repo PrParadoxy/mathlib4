@@ -43,7 +43,9 @@ instance directedSystem : DirectedSystem
 variable (R) in
 abbrev Restricted :=
   DirectLimit (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i) (fun _ _ hsub ↦ extendTensor hsub E₀)
+
 namespace Restricted
+
 noncomputable def of {S : FiniteSet ι} :
     (⨂[R] i : ↑S, E i) →ₗ[R] Restricted R E₀ :=
   DirectLimit.Module.of R _ (fun S : FiniteSet ι ↦ ⨂[R] i : ↑S, E i) ..
