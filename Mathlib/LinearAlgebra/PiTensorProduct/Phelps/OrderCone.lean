@@ -187,7 +187,9 @@ theorem isCompact : IsCompact (PosDual o) := by
   have prod_compact : IsCompact prod := by
     simpa [prod, Set.pi] using isCompact_pi_infinite (fun v => isCompact_closedBall 0 (M v))
   have h_subset : dualembed '' (PosDual o) ⊆ prod := by
-    simp [dualembed, Set.subset_def, prod, family]
+    simp only [dualembed, subset_def, mem_image, mem_pi, mem_univ, Metric.mem_closedBall,
+      dist_zero_right, Real.norm_eq_abs, forall_const, forall_exists_index, and_imp,
+      forall_apply_eq_imp_iff₂, prod, family]
     exact fun fembed hf v => (pointwise_bounded o v).choose_spec ⟨fembed, hf⟩
   exact isCompact_image_dualembed (isClosed o) prod_compact h_subset
 
@@ -382,12 +384,13 @@ theorem subset_maximalProduct :
 
 /- For the empty index set, `smul_mem'` is not true. Since in that case `MinimalProduct` reduces
   to the set of all natural numbers which is not closed under real real number multiplication. -/
-theorem smul_mem [DecidableEq ι] :
+theorem smul_mem :
   Nonempty ↥F → ∀ ⦃c : ℝ⦄, 0 < c →
     ∀ ⦃x⦄, x ∈ MinimalProductCarrier O → c • x ∈ MinimalProductCarrier O := by
   intro _ c hc _ hx
   obtain ⟨n, vf, hx, hvf⟩ := hx
   let j := Classical.arbitrary F
+  classical
   use n, (fun i => update (vf i) j (c • (vf i j)))
   constructor
   · simpa [Finset.smul_sum] using congr_arg (fun v => c • v) hx
@@ -448,7 +451,6 @@ theorem refTensor_mem_core : (h : Nonempty ↥F) →
     intro hne
     apply ConvexCone.piTensorProduct_mem_core (fun r f => ?_)
     rcases isEmpty_or_nonempty F with hf | hf
-
     -- Base case
     · have hs : Subsingleton ↑(insert i₀ F) := by
         rw [show (insert i₀ F) = {i₀} by aesop]
@@ -460,50 +462,39 @@ theorem refTensor_mem_core : (h : Nonempty ↥F) →
       use 1, (fun j : Fin 1 => Function.update (fun i : ↑(insert i₀ F) => (O i).ref) ⟨i₀, by simp⟩
         ((O ⟨i₀, _⟩).ref + δ • r • f ⟨i₀, _⟩))
       constructor
-      · apply (subsingletonEquivDep ⟨i₀, by simp⟩ (s := (fun i : ↑(insert i₀ F) => s i))).injective
+      · apply (subsingletonEquiv ⟨i₀, by simp⟩ (s := (fun i : ↑(insert i₀ F) => s i))).injective
         simp [RefTensor]
       · intro _ j
         have hj : j = ⟨i₀, by simp⟩ := hs.allEq j ⟨i₀, by simp⟩
         aesop
-
     -- Inductive Step
     · obtain ⟨εf, hεf, hδf⟩ := @ih (fun i => O ⟨i, by simp⟩) hf (⨂ₜ[ℝ] i : F, f ⟨i, by simp⟩)
       obtain ⟨ε₀, hε₀, hδ₀⟩ := (O ⟨i₀, by simp⟩).hcore (r • f ⟨i₀, _⟩)
-
       use (min εf ε₀)^2
       simp_all only [lt_inf_iff, pow_succ_pos, true_and]
       intro δ hδ
-
       set μ := Real.sqrt |δ| with hμ₀
       have hμ : |μ| ≤ (min εf ε₀) := by
         simpa only [abs_of_nonneg (Real.sqrt_nonneg |δ|), μ] using
           Real.sqrt_sq (show 0 ≤ (min εf ε₀) by positivity) ▸ Real.sqrt_le_sqrt hδ
-
       have ht₁ := hδf μ (le_min_iff.mp hμ).left
       have ht₂ := hδf (-μ) (abs_neg μ ▸ (le_min_iff.mp hμ).left)
       have hv₁ := hδ₀ μ (le_min_iff.mp hμ).right
       have hv₂ := hδ₀ (-μ) (abs_neg μ ▸ (le_min_iff.mp hμ).right)
-
       rw [neg_smul, ←sub_eq_add_neg] at hv₂ ht₂
-
       have ht₁v₁ := extended_mem h₀ ht₁ hv₁
       have ht₂v₂ := extended_mem h₀ ht₂ hv₂
       have ht₁v₂ := extended_mem h₀ ht₁ hv₂
       have ht₂v₁ := extended_mem h₀ ht₂ hv₁
-
       have half : (0 : ℝ) < 1/2 := by simp
       have hδp := smul_mem hne half (add_mem ht₁v₁ ht₂v₂)
       have hδn := smul_mem hne half (add_mem ht₁v₂ ht₂v₁)
-
       clear ht₁ ht₂ hv₁ hv₂ ht₁v₁ ht₂v₂ ht₁v₂ ht₂v₁ half
-
       rw [←map_add, TensorProduct.add_tmul_add_add_sub_tmul_sub] at hδp
       rw [←map_add, add_comm, TensorProduct.add_tmul_sub_add_sub_tmul_add] at hδn
-
       simp only [one_div, TensorProduct.tmul_smul, map_smul, map_sub,
         ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, inv_smul_smul₀, smul_add, map_add,
         TensorProduct.smul_tmul, smul_smul μ μ] at hδn hδp
-
       by_cases h : 0 ≤ δ
       · convert hδp using 1
         apply ((tmulFinsetInsertEquiv h₀ (s := s)).symm).injective
@@ -527,13 +518,14 @@ end MinimalProduct
 
 namespace MaximalProduct
 
-variable [DecidableEq ι]
 
+open Classical in
 theorem refTensor_mem_core (h : Nonempty ↥F) :
     RefTensor O ∈ core (MaximalProduct.toConvexCone (O := O)) :=
   mem_core_of_subset_mem_core MinimalProduct.subset_maximalProduct
     (MinimalProduct.refTensor_mem_core h)
 
+open Classical in
 theorem is_generating (h : Nonempty ↥F) : generating (MaximalProductCarrier O) :=
   subset_generating MinimalProduct.subset_maximalProduct (MinimalProduct.is_generating h)
 
@@ -557,3 +549,5 @@ def MinimalProduct [DecidableEq ι] (h : Nonempty ↥F) : OrderCone (⨂[ℝ] i 
   ref := RefTensor O
   hcore := MinimalProduct.refTensor_mem_core (O := O) h
   pointed := MinimalProduct.pointed
+
+end MultiVectorSpace
