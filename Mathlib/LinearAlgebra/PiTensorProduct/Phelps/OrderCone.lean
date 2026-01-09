@@ -260,7 +260,7 @@ theorem nonempty [∀ i, Nontrivial (s i)] (hs : ∀ i, PosDual.separating (O i)
 
 end PiPosDual
 
-#check PiTensorProduct
+
 open PiTensorProduct Function Finset
 open scoped TensorProduct
 
