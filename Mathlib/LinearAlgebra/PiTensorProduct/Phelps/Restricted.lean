@@ -66,3 +66,4 @@ theorem lift_unique (l : Restricted R E₀ →ₗ[R] M₂) :
       (fun i j hij x ↦ by simp [of]) := by
   ext; simp [of]
 
+end Restricted
