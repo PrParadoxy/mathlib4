@@ -6,9 +6,12 @@ open scoped TensorProduct
 open Module Submodule
 
 
-variable (R : Type*) [DivisionRing R] {V : Type*} [AddCommGroup V] [Module R V]
+variable (R : Type*) [DivisionRing R]
+variable {M : Type*} [AddCommGroup M] [Module R M]
+variable {N : Type*} [AddCommGroup N] [Module R N]
+
 theorem exists_dual_vec_ne_zero :
-    ∀ v : V, v ≠ 0 → ∃ dv : Dual R V, dv v ≠ 0 := fun v hv => by
+    ∀ v : M, v ≠ 0 → ∃ dv : Dual R M, dv v ≠ 0 := fun v hv => by
   obtain ⟨g, hg⟩ := LinearMap.exists_extend
     (LinearPMap.mkSpanSingleton (K := R) v (1: R) (hv)).toFun
   use g, fun hc => ?_
