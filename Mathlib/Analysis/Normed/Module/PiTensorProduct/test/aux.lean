@@ -5,8 +5,8 @@ import Mathlib.Analysis.Normed.Module.Multilinear.Basic
 import Mathlib.Analysis.Normed.Module.Dual
 import Mathlib.Analysis.Normed.Module.HahnBanach
 
-section norm
 
+section norm
 
 variable (𝕜 : Type*) (E : Type*)
 variable [NontriviallyNormedField 𝕜]
@@ -15,68 +15,41 @@ variable [NormedAddCommGroup E] [NormedSpace 𝕜 E]
 open Filter NormedSpace
 
 theorem norm_seq (v : E) (h : ‖v‖ ≤ ‖inclusionInDoubleDual 𝕜 E v‖) :
-  ∃ g : ℕ → StrongDual 𝕜 E,
-    Tendsto (fun i => ‖g i v‖ / ‖g i‖) atTop (nhds ‖v‖) := by
-  replace h := eq_of_le_of_ge h (double_dual_bound _ _ v)
+  ∃ g : ℕ → StrongDual 𝕜 E, Tendsto (fun i => ‖g i v‖ / ‖g i‖) atTop (nhds ‖v‖) := by
   by_cases hv : v = 0
-  · use 0
-    simp [hv]
-  · rw [ContinuousLinearMap.norm_def] at h
-    conv_rhs at h => arg 1; arg 1; ext c; arg 2; ext x; rw [dual_def]
-    have hl : ∀ n : ℕ, ∃ f : StrongDual 𝕜 E, (‖v‖ - ‖v‖/(n+1)) < ‖f v‖ / ‖f‖  := by
-      intro n
-      have hn : ‖v‖ - ‖v‖/(n+1) ∉ {c | 0 ≤ c ∧ ∀ (f : StrongDual 𝕜 E), ‖f v‖ ≤ c * ‖f‖} := by
-        intro hmem
-        have hp : ‖v‖ - ‖v‖/(n+1) ≥ sInf {c | 0 ≤ c ∧ ∀ (f : StrongDual 𝕜 E), ‖f v‖ ≤ c * ‖f‖} :=
-          csInf_le ⟨0, fun c hc => by simp_all⟩ (by simp_all)
-        simp [←h] at hp
-        have : 0 < ‖v‖ / (↑n + 1) := (div_pos_iff_of_pos_left (by simp [hv])).mpr (by linarith)
-        linarith
+  any_goals aesop
+  replace h : ‖v‖ = sInf {c | 0 ≤ c ∧ ∀ (x : StrongDual 𝕜 E), ‖x v‖ ≤ c * ‖x‖} := by
+    simp [eq_of_le_of_ge h (double_dual_bound _ _ v), ContinuousLinearMap.norm_def]
+  have hs : ∀ n : ℕ, ∃ f : StrongDual 𝕜 E, (‖v‖ - ‖v‖ / (n + 1)) < ‖f v‖ / ‖f‖ := by
+    intro n
+    have hn : ‖v‖ - ‖v‖ / (n+1) ∉ {c | 0 ≤ c ∧ ∀ (f : StrongDual 𝕜 E), ‖f v‖ ≤ c * ‖f‖} := by
+      intro hmem
+      have hp := csInf_le ⟨0, fun c hc => hc.1⟩ hmem
+      simp only [← h, le_sub_self_iff] at hp
+      linarith [show 0 < ‖v‖ / (↑n + 1) by positivity]
+    replace hn : ∃ x : StrongDual 𝕜 E, (‖v‖ - ‖v‖ / (↑n + 1)) * ‖x‖ < ‖x v‖ := by
       simp only [Set.mem_setOf_eq, sub_nonneg, not_and, not_forall, not_le] at hn
-      replace hn := hn (by
-        refine (div_le_comm₀ ?_ ?_).mpr ?_
-        · linarith
-        · simp [hv]
-        · field_simp
-          linarith)
-      choose g hg using hn
-      replace hg := div_lt_div_of_pos_right hg (by aesop : 0 < ‖g‖)
-      simp [mul_div_assoc, show ‖g‖ / ‖g‖ = 1 by aesop] at hg
-      grind
+      exact hn (by field_simp; norm_cast; omega)
+    choose f hf using hn
+    exact ⟨f, (lt_div_iff₀ (by aesop : 0 < ‖f‖)).mpr hf⟩
+  choose g hg using hs
+  use g
+  apply NormedAddCommGroup.tendsto_atTop.mpr (fun ε hε => ?_)
+  have ⟨N, hN⟩ := exists_nat_gt (‖v‖ / ε)
+  have hN' : 0 < (N : ℝ) := by linarith [show 0 < ‖v‖ / ε by positivity]
+  use N, fun n hn => ?_
+  have hu : ‖(g n) v‖ / ‖g n‖ ≤ ‖v‖ := by
+    by_cases hz : g n = 0
+    · simp [hz]
+    · grw [div_le_iff₀ (by positivity), (g n).le_opNorm v, mul_comm]
+  simp only [Real.norm_eq_abs, abs_sub_comm, gt_iff_lt]
+  rw [abs_of_nonneg (by linarith [hg n])]
+  calc
+    ‖v‖ - ‖(g n) v‖ / ‖g n‖ < ‖v‖ / (↑n + 1) := by linarith [hg n]
+    _ ≤ ‖v‖ / (↑N + 1) := by gcongr
+    _ < ‖v‖ / ↑N := by gcongr; simp
+    _ < ε := (div_lt_comm₀ hε hN').mp hN
 
-    choose g hg using hl
-    use g
-    refine NormedAddCommGroup.tendsto_atTop.mpr ?_
-    intro ε hε
-    have : 0 < ‖v‖ / ε := by positivity
-    obtain ⟨N, hN⟩ := exists_nat_gt (‖v‖ / ε)
-    have hN' : 0 < (N : ℝ) := by
-      norm_cast
-      apply Nat.lt_of_not_le (fun hc => ?_)
-      grw [hc] at hN
-      linarith
-
-    use N
-    intro n hn
-    have upper_bound : ‖(g n) v‖ / ‖g n‖ ≤ ‖v‖ := by
-      by_cases h_zero : g n = 0
-      · simp [h_zero]
-      · have : 0 < ‖g n‖ := norm_pos_iff.mpr h_zero
-        grw [div_le_iff₀ this, (g n).le_opNorm v]
-        simp [mul_comm]
-    have lower_bound := hg n
-    simp only [Real.norm_eq_abs, abs_sub_comm, gt_iff_lt]
-    rw [abs_of_nonneg (by linarith)]
-
-    calc ‖v‖ - ‖(g n) v‖ / ‖g n‖
-      < ‖v‖ / (↑n + 1) := by linarith
-      _ ≤ ‖v‖ / (↑N + 1) := by gcongr
-      _ < ‖v‖ / ↑N := by gcongr; simp
-      _ < ε := by
-        field_simp at hN
-        have hp := div_lt_div_of_pos_right hN hN'
-        have : (↑N / ↑N) = (1 : ℝ) := by aesop
-        simpa [mul_div_assoc, this] using hp
 
 
 end norm
