@@ -16,15 +16,14 @@ open Filter NormedSpace
 
 theorem norm_seq (v : E) (h : ‖v‖ ≤ ‖inclusionInDoubleDual 𝕜 E v‖) :
   ∃ g : ℕ → StrongDual 𝕜 E,
-    Tendsto (fun i => ‖g i v‖) atTop (nhds ‖v‖) := by
+    Tendsto (fun i => ‖g i v‖ / ‖g i‖) atTop (nhds ‖v‖) := by
   replace h := eq_of_le_of_ge h (double_dual_bound _ _ v)
   by_cases hv : v = 0
   · use 0
     simp [hv]
-  ·
-    rw [ContinuousLinearMap.norm_def] at h
+  · rw [ContinuousLinearMap.norm_def] at h
     conv_rhs at h => arg 1; arg 1; ext c; arg 2; ext x; rw [dual_def]
-    have hl : ∀ n : ℕ, ∃ f : StrongDual 𝕜 E, ‖f‖ = 1 ∧ ‖v‖ - ‖v‖/(n+1) < ‖f v‖ := by
+    have hl : ∀ n : ℕ, ∃ f : StrongDual 𝕜 E, (‖v‖ - ‖v‖/(n+1)) < ‖f v‖ / ‖f‖  := by
       intro n
       have hn : ‖v‖ - ‖v‖/(n+1) ∉ {c | 0 ≤ c ∧ ∀ (f : StrongDual 𝕜 E), ‖f v‖ ≤ c * ‖f‖} := by
         intro hmem
@@ -36,47 +35,50 @@ theorem norm_seq (v : E) (h : ‖v‖ ≤ ‖inclusionInDoubleDual 𝕜 E v‖) 
       simp only [Set.mem_setOf_eq, sub_nonneg, not_and, not_forall, not_le] at hn
       replace hn := hn (by
         refine (div_le_comm₀ ?_ ?_).mpr ?_
-        . linarith
-        . simp [hv]
-        . field_simp
-          linarith
-        )
+        · linarith
+        · simp [hv]
+        · field_simp
+          linarith)
       choose g hg using hn
+      replace hg := div_lt_div_of_pos_right hg (by aesop : 0 < ‖g‖)
+      simp [mul_div_assoc, show ‖g‖ / ‖g‖ = 1 by aesop] at hg
+      grind
+
+    choose g hg using hl
+    use g
+    refine NormedAddCommGroup.tendsto_atTop.mpr ?_
+    intro ε hε
+    have : 0 < ‖v‖ / ε := by positivity
+    obtain ⟨N, hN⟩ := exists_nat_gt (‖v‖ / ε)
+    have hN' : 0 < (N : ℝ) := by
+      norm_cast
+      apply Nat.lt_of_not_le (fun hc => ?_)
+      grw [hc] at hN
+      linarith
+
+    use N
+    intro n hn
+    have upper_bound : ‖(g n) v‖ / ‖g n‖ ≤ ‖v‖ := by
+      by_cases h_zero : g n = 0
+      · simp [h_zero]
+      · have : 0 < ‖g n‖ := norm_pos_iff.mpr h_zero
+        grw [div_le_iff₀ this, (g n).le_opNorm v]
+        simp [mul_comm]
+    have lower_bound := hg n
+    simp only [Real.norm_eq_abs, abs_sub_comm, gt_iff_lt]
+    rw [abs_of_nonneg (by linarith)]
+
+    calc ‖v‖ - ‖(g n) v‖ / ‖g n‖
+      < ‖v‖ / (↑n + 1) := by linarith
+      _ ≤ ‖v‖ / (↑N + 1) := by gcongr
+      _ < ‖v‖ / ↑N := by gcongr; simp
+      _ < ε := by
+        field_simp at hN
+        have hp := div_lt_div_of_pos_right hN hN'
+        have : (↑N / ↑N) = (1 : ℝ) := by aesop
+        simpa [mul_div_assoc, this] using hp
 
 
-
-#check ContinuousLinearMap.sSup_sphere_eq_norm
-#check ContinuousLinearMap.bounds_bddBelow
-#check csInf_le
-  -- by_cases hv : v = 0
-  -- · use 0
-  --   simp [hv]
-  -- ·
-  --   have : ∀ n : ℕ, ∃ f : StrongDual 𝕜 E, ‖f‖ ≤ 1 ∧ ‖v‖ - 1/(n+1) < ‖f v‖ := by
-  --     intro n
-  --     rw [ContinuousLinearMap.norm_def] at h
-  --     conv_rhs at h => arg 1; arg 1; ext c; arg 2; ext x; rw [dual_def]
-  --     have : ‖v‖ - 1/(n+1) ∉ {c | 0 ≤ c ∧ ∀ (f : StrongDual 𝕜 E), ‖f v‖ ≤ c * ‖f‖} := by
-  --       intro hmem
-  --       have : ‖v‖ - 1/(n+1) ≥ sInf {c | 0 ≤ c ∧ ∀ (f : StrongDual 𝕜 E), ‖f v‖ ≤ c * ‖f‖} :=
-  --         csInf_le ⟨0, fun c hc => by simp_all⟩ (by simp_all)
-  --       simp_all
-  --       linarith
-  --     simp at this
--- have h₂ : ‖inclusionInDoubleDual 𝕜 E‖ = 1 := by
---       apply eq_of_le_of_ge (inclusionInDoubleDual_norm_le 𝕜 E)
---       by_cases hzero : ‖inclusionInDoubleDual 𝕜 E v‖ = 0
---       · simp_all
---       · have h_pos : 0 < ‖(inclusionInDoubleDual 𝕜 E) v‖ := norm_pos_iff.mpr (by simp_all)
---         have := div_le_div_of_nonneg_right
---           (h ▸ (inclusionInDoubleDual 𝕜 E).le_opNorm v) (le_of_lt h_pos)
---         aesop
-#check Filter.eventually_atTop
-#check Filter.tendsto_atTop'
-#check Filter.tendsto_iff_eventually
-#check Filter.tendsto_atTop_add_right_of_le'
-#check mem_nhds_iff
-#check ContinuousLinearMap.norm_def
 end norm
 
 
