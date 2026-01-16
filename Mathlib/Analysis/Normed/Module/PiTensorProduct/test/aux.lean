@@ -7,7 +7,7 @@ import Mathlib.Analysis.Normed.Module.HahnBanach
 
 section norm
 
-#check ContinuousLinearMap.norm_def
+
 variable (𝕜 : Type*) (E : Type*)
 variable [NontriviallyNormedField 𝕜]
 variable [NormedAddCommGroup E] [NormedSpace 𝕜 E]
@@ -21,40 +21,31 @@ theorem norm_seq (v : E) (h : ‖v‖ ≤ ‖inclusionInDoubleDual 𝕜 E v‖) 
   by_cases hv : v = 0
   · use 0
     simp [hv]
-  · have h₂ : ‖inclusionInDoubleDual 𝕜 E‖ = 1 := by
-      apply eq_of_le_of_ge (inclusionInDoubleDual_norm_le 𝕜 E)
-      by_cases hzero : ‖inclusionInDoubleDual 𝕜 E v‖ = 0
-      · simp_all
-      · have h_pos : 0 < ‖(inclusionInDoubleDual 𝕜 E) v‖ := norm_pos_iff.mpr (by simp_all)
-        have := div_le_div_of_nonneg_right
-          (h ▸ (inclusionInDoubleDual 𝕜 E).le_opNorm v) (le_of_lt h_pos)
-        aesop
+  ·
     rw [ContinuousLinearMap.norm_def] at h
     conv_rhs at h => arg 1; arg 1; ext c; arg 2; ext x; rw [dual_def]
-    have : ∀ n : ℕ, ∃ f : StrongDual 𝕜 E, ‖f‖ ≤ 1 ∧ ‖v‖ - ‖v‖/(n+1) < ‖f v‖ := by
+    have hl : ∀ n : ℕ, ∃ f : StrongDual 𝕜 E, ‖f‖ ≤ 1 ∧ ‖v‖ - ‖v‖/(n+1) < ‖f v‖ := by
       intro n
-      have : ‖v‖ - ‖v‖/(n+1) ∉ {c | 0 ≤ c ∧ ∀ (f : StrongDual 𝕜 E), ‖f v‖ ≤ c * ‖f‖} := by
+      have hn : ‖v‖ - ‖v‖/(n+1) ∉ {c | 0 ≤ c ∧ ∀ (f : StrongDual 𝕜 E), ‖f v‖ ≤ c * ‖f‖} := by
         intro hmem
         have hp : ‖v‖ - ‖v‖/(n+1) ≥ sInf {c | 0 ≤ c ∧ ∀ (f : StrongDual 𝕜 E), ‖f v‖ ≤ c * ‖f‖} :=
           csInf_le ⟨0, fun c hc => by simp_all⟩ (by simp_all)
         simp [←h] at hp
-        have : 0 < ‖v‖ / (↑n + 1) := by
-          refine (div_pos_iff_of_pos_left ?_).mpr ?_
-          . simp [hv]
-          . linarith
+        have : 0 < ‖v‖ / (↑n + 1) := (div_pos_iff_of_pos_left (by simp [hv])).mpr (by linarith)
         linarith
-      simp at this
-      replace this := this (by
+      simp only [Set.mem_setOf_eq, sub_nonneg, not_and, not_forall, not_le] at hn
+      replace hn := hn (by
         refine (div_le_comm₀ ?_ ?_).mpr ?_
         . linarith
         . simp [hv]
         . field_simp
           linarith
         )
-      choose g hg using this
-      let q := 1 / ‖g‖
-      let s := (2 : ℝ) • g
+      choose g hg using hn
+      
 
+
+#check ContinuousLinearMap.sSup_sphere_eq_norm
 #check ContinuousLinearMap.bounds_bddBelow
 #check csInf_le
   -- by_cases hv : v = 0
@@ -72,7 +63,14 @@ theorem norm_seq (v : E) (h : ‖v‖ ≤ ‖inclusionInDoubleDual 𝕜 E v‖) 
   --       simp_all
   --       linarith
   --     simp at this
-
+-- have h₂ : ‖inclusionInDoubleDual 𝕜 E‖ = 1 := by
+--       apply eq_of_le_of_ge (inclusionInDoubleDual_norm_le 𝕜 E)
+--       by_cases hzero : ‖inclusionInDoubleDual 𝕜 E v‖ = 0
+--       · simp_all
+--       · have h_pos : 0 < ‖(inclusionInDoubleDual 𝕜 E) v‖ := norm_pos_iff.mpr (by simp_all)
+--         have := div_le_div_of_nonneg_right
+--           (h ▸ (inclusionInDoubleDual 𝕜 E).le_opNorm v) (le_of_lt h_pos)
+--         aesop
 #check Filter.eventually_atTop
 #check Filter.tendsto_atTop'
 #check Filter.tendsto_iff_eventually
