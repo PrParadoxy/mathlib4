@@ -8,14 +8,14 @@ import Mathlib.Analysis.Normed.Module.PiTensorProduct.test.ProjectiveSeminorm
 
 section norm
 
-variable (𝕜 : Type*) (E : Type*)
+variable {𝕜 : Type*} {E : Type*}
 variable [NontriviallyNormedField 𝕜]
 variable [NormedAddCommGroup E] [NormedSpace 𝕜 E]
 
 open Filter NormedSpace PiTensorProduct
 
-theorem norm_seq (v : E) (h : ‖v‖ ≤ ‖inclusionInDoubleDual 𝕜 E v‖) :
-  ∃ g : ℕ → StrongDual 𝕜 E, Tendsto (fun i => ‖g i v‖ / ‖g i‖) atTop (nhds ‖v‖) := by
+theorem norm_seq {v : E} (h : ‖v‖ ≤ ‖inclusionInDoubleDual 𝕜 E v‖) :
+    ∃ g : ℕ → StrongDual 𝕜 E, Tendsto (fun i => ‖g i v‖ / ‖g i‖) atTop (nhds ‖v‖) := by
   by_cases hv : v = 0
   any_goals aesop
   replace h : ‖v‖ = sInf {c | 0 ≤ c ∧ ∀ (x : StrongDual 𝕜 E), ‖x v‖ ≤ c * ‖x‖} := by
@@ -61,6 +61,14 @@ theorem projectiveSeminorm_tprod_eq_of_normed_space (m : Π i, E i)
     (h_le_bidual : ∀ i, ‖m i‖ ≤ ‖inclusionInDoubleDual 𝕜 _ (m i)‖ ) :
     ‖⨂ₜ[𝕜] i, m i‖ = ∏ i, ‖m i‖ := by
   apply eq_of_le_of_ge (projectiveSeminorm_tprod_le m)
+  choose g hg using fun i => norm_seq (h_le_bidual i)
+  
+
+  -- haveI := nonempty_subtype.mpr (nonempty_lifts (⨂ₜ[𝕜] i, m i))
+  -- apply le_ciInf (fun x ↦ ?_)
+  -- have := ((mem_lifts_iff _ _).mp x.prop)
+
+
 
 
 
