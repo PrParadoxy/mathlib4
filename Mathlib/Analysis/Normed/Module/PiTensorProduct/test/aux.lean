@@ -31,8 +31,32 @@ theorem norm_seq (v : E) (h : ‖v‖ ≤ ‖inclusionInDoubleDual 𝕜 E v‖) 
         aesop
     rw [ContinuousLinearMap.norm_def] at h
     conv_rhs at h => arg 1; arg 1; ext c; arg 2; ext x; rw [dual_def]
-    
+    have : ∀ n : ℕ, ∃ f : StrongDual 𝕜 E, ‖f‖ ≤ 1 ∧ ‖v‖ - ‖v‖/(n+1) < ‖f v‖ := by
+      intro n
+      have : ‖v‖ - ‖v‖/(n+1) ∉ {c | 0 ≤ c ∧ ∀ (f : StrongDual 𝕜 E), ‖f v‖ ≤ c * ‖f‖} := by
+        intro hmem
+        have hp : ‖v‖ - ‖v‖/(n+1) ≥ sInf {c | 0 ≤ c ∧ ∀ (f : StrongDual 𝕜 E), ‖f v‖ ≤ c * ‖f‖} :=
+          csInf_le ⟨0, fun c hc => by simp_all⟩ (by simp_all)
+        simp [←h] at hp
+        have : 0 < ‖v‖ / (↑n + 1) := by
+          refine (div_pos_iff_of_pos_left ?_).mpr ?_
+          . simp [hv]
+          . linarith
+        linarith
+      simp at this
+      replace this := this (by
+        refine (div_le_comm₀ ?_ ?_).mpr ?_
+        . linarith
+        . simp [hv]
+        . field_simp
+          linarith
+        )
+      choose g hg using this
+      let q := 1 / ‖g‖
+      let s := (2 : ℝ) • g
+
 #check ContinuousLinearMap.bounds_bddBelow
+#check csInf_le
   -- by_cases hv : v = 0
   -- · use 0
   --   simp [hv]
