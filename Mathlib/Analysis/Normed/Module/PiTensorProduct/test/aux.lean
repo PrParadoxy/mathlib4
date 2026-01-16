@@ -4,7 +4,7 @@ import Mathlib.LinearAlgebra.Dual.Lemmas
 import Mathlib.Analysis.Normed.Module.Multilinear.Basic
 import Mathlib.Analysis.Normed.Module.Dual
 import Mathlib.Analysis.Normed.Module.HahnBanach
-
+import Mathlib.Analysis.Normed.Module.PiTensorProduct.test.ProjectiveSeminorm
 
 section norm
 
@@ -12,7 +12,7 @@ variable (𝕜 : Type*) (E : Type*)
 variable [NontriviallyNormedField 𝕜]
 variable [NormedAddCommGroup E] [NormedSpace 𝕜 E]
 
-open Filter NormedSpace
+open Filter NormedSpace PiTensorProduct
 
 theorem norm_seq (v : E) (h : ‖v‖ ≤ ‖inclusionInDoubleDual 𝕜 E v‖) :
   ∃ g : ℕ → StrongDual 𝕜 E, Tendsto (fun i => ‖g i v‖ / ‖g i‖) atTop (nhds ‖v‖) := by
@@ -49,6 +49,19 @@ theorem norm_seq (v : E) (h : ‖v‖ ≤ ‖inclusionInDoubleDual 𝕜 E v‖) 
     _ ≤ ‖v‖ / (↑N + 1) := by gcongr
     _ < ‖v‖ / ↑N := by gcongr; simp
     _ < ε := (div_lt_comm₀ hε hN').mp hN
+
+
+
+
+variable {ι : Type*} [Fintype ι]
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
+variable {E : ι → Type*} [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace 𝕜 (E i)]
+
+theorem projectiveSeminorm_tprod_eq_of_normed_space (m : Π i, E i)
+    (h_le_bidual : ∀ i, ‖m i‖ ≤ ‖inclusionInDoubleDual 𝕜 _ (m i)‖ ) :
+    ‖⨂ₜ[𝕜] i, m i‖ = ∏ i, ‖m i‖ := by
+  apply eq_of_le_of_ge (projectiveSeminorm_tprod_le m)
+
 
 
 
