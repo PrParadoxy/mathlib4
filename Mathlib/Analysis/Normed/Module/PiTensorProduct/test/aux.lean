@@ -45,7 +45,7 @@ theorem norm_seq (v : E) (h : ‖v‖ ≤ ‖inclusionInDoubleDual 𝕜 E v‖) 
   simp only [Real.norm_eq_abs, abs_sub_comm, gt_iff_lt]
   rw [abs_of_nonneg (by linarith [hg n])]
   calc
-    ‖v‖ - ‖(g n) v‖ / ‖g n‖ < ‖v‖ / (↑n + 1) := by linarith [hg n]
+    _ < ‖v‖ / (↑n + 1) := by linarith [hg n]
     _ ≤ ‖v‖ / (↑N + 1) := by gcongr
     _ < ‖v‖ / ↑N := by gcongr; simp
     _ < ε := (div_lt_comm₀ hε hN').mp hN
