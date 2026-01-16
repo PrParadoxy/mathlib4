@@ -24,7 +24,7 @@ theorem norm_seq (v : E) (h : ‖v‖ ≤ ‖inclusionInDoubleDual 𝕜 E v‖) 
   ·
     rw [ContinuousLinearMap.norm_def] at h
     conv_rhs at h => arg 1; arg 1; ext c; arg 2; ext x; rw [dual_def]
-    have hl : ∀ n : ℕ, ∃ f : StrongDual 𝕜 E, ‖f‖ ≤ 1 ∧ ‖v‖ - ‖v‖/(n+1) < ‖f v‖ := by
+    have hl : ∀ n : ℕ, ∃ f : StrongDual 𝕜 E, ‖f‖ = 1 ∧ ‖v‖ - ‖v‖/(n+1) < ‖f v‖ := by
       intro n
       have hn : ‖v‖ - ‖v‖/(n+1) ∉ {c | 0 ≤ c ∧ ∀ (f : StrongDual 𝕜 E), ‖f v‖ ≤ c * ‖f‖} := by
         intro hmem
@@ -42,7 +42,7 @@ theorem norm_seq (v : E) (h : ‖v‖ ≤ ‖inclusionInDoubleDual 𝕜 E v‖) 
           linarith
         )
       choose g hg using hn
-      
+
 
 
 #check ContinuousLinearMap.sSup_sphere_eq_norm
