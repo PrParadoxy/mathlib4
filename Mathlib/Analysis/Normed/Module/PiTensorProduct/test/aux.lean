@@ -41,9 +41,9 @@ theorem dual_seq_tendsto_norm {v : E} (h : ‖v‖ ≤ ‖inclusionInDoubleDual 
   simp only [Real.norm_eq_abs, abs_sub_comm, gt_iff_lt]
   rw [abs_of_nonneg (by linarith [hg n])]
   calc
-    _ < ‖v‖ / (↑n + 1) := by linarith [hg n]
-    _ ≤ ‖v‖ / (↑N + 1) := by gcongr
-    _ < ‖v‖ / ↑N := by gcongr; simp
+    _ < ‖v‖ / (n + 1) := by linarith [hg n]
+    _ ≤ ‖v‖ / (N + 1) := by gcongr
+    _ < ‖v‖ / N := by gcongr; simp
     _ < ε := (div_lt_comm₀ hε hN').mp hN
 
 lemma dual_seq_tendsto_norm_pos {v : E} {g : ℕ → StrongDual 𝕜 E}
@@ -55,8 +55,6 @@ lemma dual_seq_tendsto_norm_pos {v : E} {g : ℕ → StrongDual 𝕜 E}
   by_contra! hc
   simp only [show g n = 0 by simp_all, ContinuousLinearMap.zero_apply, norm_zero, div_zero] at hv
   linarith
-
-
 
 variable {ι : Type*} [Fintype ι]
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
@@ -80,23 +78,16 @@ theorem projectiveSeminorm_tprod_eq_of_normed_space (m : Π i, E i)
     grw [Finset.prod_div_distrib, ← hx, List.le_sum_of_subadditive norm norm_zero.le norm_add_le,
       List.map_map, div_le_iff₀' hgp, projectiveSeminormAux, ← List.sum_map_mul_left]
     apply List.sum_le_sum (fun _ _ ↦ ?_)
-    simp only [Function.comp_apply, map_smul, dualDistrib_apply, ContinuousLinearMap.coe_coe,
-      smul_eq_mul, norm_mul, norm_prod]
-    rw [mul_rotate']
+    simp only [Function.comp_apply, map_smul, dualDistrib_apply,
+      ContinuousLinearMap.coe_coe, smul_eq_mul, norm_mul, norm_prod,
+      ← div_le_iff₀' hgp, ← mul_div_assoc', ← Finset.prod_div_distrib]
     gcongr
-    rw [mul_comm, ← div_le_iff₀' hgp, ←Finset.prod_div_distrib]
-    gcongr
-    grw [ContinuousLinearMap.le_opNorm, ←mul_div_assoc',
-      mul_div_left_comm, div_self (by simp_all), mul_one]
+    grw [ContinuousLinearMap.le_opNorm, ← mul_div_assoc', mul_div_left_comm,
+      div_self (by simp_all), mul_one]
   · simp only [ne_eq, not_forall, not_not] at hm
     obtain ⟨i, hi⟩ := hm
     conv_rhs => rw [Finset.prod_eq_zero (Finset.mem_univ i) (by simp [hi])]
     rw [tprod_eq_tprodCoeff_one, zero_tprodCoeff' 1 m i hi, norm_zero]
-
-
-
-
-
 
 
 -- theorem projectiveSeminorm_tprod_eq_of_dual_vectors {f : Π i, StrongDual 𝕜 (E i)}
