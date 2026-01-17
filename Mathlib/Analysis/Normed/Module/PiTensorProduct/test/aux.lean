@@ -107,7 +107,43 @@ theorem projectiveSeminorm_tprod_eq_of_normed_space (m : Π i, E i)
 
 end norm
 
+section gg
 
+variable {𝕜 𝕜₂ 𝕜₃ E F Fₗ G 𝓕 : Type*}
+
+variable [SeminormedAddCommGroup E] [SeminormedAddCommGroup F] [SeminormedAddCommGroup Fₗ]
+  [SeminormedAddCommGroup G]
+
+variable [NontriviallyNormedField 𝕜] [NontriviallyNormedField 𝕜₂] [NontriviallyNormedField 𝕜₃]
+  [NormedSpace 𝕜 E] [NormedSpace 𝕜₂ F] [NormedSpace 𝕜 Fₗ] [NormedSpace 𝕜₃ G]
+  {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃} [RingHomCompTriple σ₁₂ σ₂₃ σ₁₃]
+  [RingHomIsometric σ₁₂]
+
+open Set
+theorem opNorm_IsLUB (f : E →SL[σ₁₂] F) : IsLUB (Set.range (fun x : E ↦ ‖f x‖ / ‖x‖)) ‖f‖ := by
+  constructor
+  · intro M hM
+    simp only [mem_range] at hM
+    obtain ⟨y, hy⟩ := hM
+    grw [← ContinuousLinearMap.ratio_le_opNorm f y, <-hy]
+  · simp only [mem_lowerBounds, mem_upperBounds, mem_range]
+    intro M hM
+    simp? at hM
+    have hMp := hM 0
+    simp? at hMp
+    have hM : ∀ x, ‖f x‖ ≤ M * ‖x‖ := fun x ↦ by
+      by_cases hnz : ‖x‖ = 0
+      . have := norm_image_of_norm_eq_zero f f.continuous hnz
+        simp_all
+      . have := norm_nonneg f
+        have := hM x
+        grw [← this]
+        aesop
+    apply ContinuousLinearMap.opNorm_le_bound f hMp hM
+
+
+
+end gg
 
 
 open scoped TensorProduct
