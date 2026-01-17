@@ -125,7 +125,7 @@ theorem opNorm_IsLUB (f : E →SL[σ₁₂] F) : IsLUB (Set.range (fun x : E ↦
   refine ⟨fun _ ↦ ?_, fun _ hb ↦ ?_⟩
   · aesop (add safe forward ratio_le_opNorm)
   · simp only [mem_upperBounds, mem_range, forall_exists_index, forall_apply_eq_imp_iff] at hb
-    refine opNorm_le_bound' f (by simpa [mem_upperBounds] using hb 0) (fun e _ => ?_)
+    refine opNorm_le_bound' f (by simpa using hb 0) (fun e _ => ?_)
     grw [←div_le_iff₀ (by positivity), hb e]
 
 
