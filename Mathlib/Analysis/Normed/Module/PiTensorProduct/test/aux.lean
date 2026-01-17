@@ -6,6 +6,7 @@ import Mathlib.Analysis.Normed.Module.Dual
 import Mathlib.Analysis.Normed.Module.HahnBanach
 import Mathlib.Analysis.Normed.Module.PiTensorProduct.test.ProjectiveSeminorm
 import Mathlib.Topology.Separation.Hausdorff
+import Mathlib.LinearAlgebra.PiTensorProduct.Dual
 
 section norm
 
@@ -52,31 +53,70 @@ theorem norm_seq {v : E} (h : ‖v‖ ≤ ‖inclusionInDoubleDual 𝕜 E v‖) 
     _ < ε := (div_lt_comm₀ hε hN').mp hN
 
 
-
-#check tendsto_nhds_unique
-#check tendsto_finset_prod
 variable {ι : Type*} [Fintype ι]
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
 variable {E : ι → Type*} [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace 𝕜 (E i)]
 
-#check Finset.univ (α := ι)
-theorem projectiveSeminorm_tprod_eq_of_normed_space (m : Π i, E i)
-    (h_le_bidual : ∀ i, ‖m i‖ ≤ ‖inclusionInDoubleDual 𝕜 _ (m i)‖ ) :
+
+theorem projectiveSeminorm_tprod_eq_of_dual_vectors {f : Π i, StrongDual 𝕜 (E i)}
+    (m : Π i, E i) (hf₁ : ∀ i, ‖f i‖ ≤ 1) (hf₂ : ∀ i, ‖f i (m i)‖ = ‖m i‖) :
     ‖⨂ₜ[𝕜] i, m i‖ = ∏ i, ‖m i‖ := by
   apply eq_of_le_of_ge (projectiveSeminorm_tprod_le m)
+  haveI := nonempty_subtype.mpr (nonempty_lifts (⨂ₜ[𝕜] i, m i))
+  apply le_ciInf (fun x ↦ ?_)
+  have hx := congr_arg (norm ∘ dualDistrib (⨂ₜ[𝕜] i, f i)) ((mem_lifts_iff _ _).mp x.prop)
+  simp only [Function.comp_apply, dualDistrib_apply, ContinuousLinearMap.coe_coe, hf₂, norm_prod,
+     map_list_sum, List.map_map] at hx
+  grw [← hx, List.le_sum_of_subadditive norm norm_zero.le norm_add_le, List.map_map]
+  apply List.sum_le_sum (fun _ _ ↦ ?_)
+  simp only [Function.comp_apply, map_smul, dualDistrib_apply, ContinuousLinearMap.coe_coe,
+    smul_eq_mul, norm_mul, norm_prod]
+  gcongr
+  grw [ContinuousLinearMap.le_opNorm, hf₁, one_mul]
+
+theorem projectiveSeminorm_tprod_eq_of_normed_space (m : Π i, E i)
+    (h_le_bidual : ∀ i, ‖m i‖ ≤ ‖inclusionInDoubleDual 𝕜 _ (m i)‖) :
+    ‖⨂ₜ[𝕜] i, m i‖ = ∏ i, ‖m i‖ := by
+
+  by_cases hm : ∀ i, m i ≠ 0
+  · have hm' : ∀ i, 0 < ‖m i‖ := by simp [hm]
+    apply eq_of_le_of_ge (projectiveSeminorm_tprod_le m)
+    choose g hg using fun i => norm_seq (h_le_bidual i)
+    have hg₂ := tendsto_finset_prod (Finset.univ (α := ι)) (fun i hi => hg i)
+    have hg₃ : ∀ᶠ n : ℕ in atTop, ∀ i, 0 < ‖g i n‖ := by
+      apply eventually_all.mpr (fun i => ?_)
+      have hp : ∀ᶠ n in atTop, ‖m i‖ / 2 < ‖(g i n) (m i)‖ / ‖g i n‖ :=
+        (hg i).eventually (lt_mem_nhds (by linarith [hm' i]))
+      filter_upwards [hp] with n hm
+      by_contra! hc
+      simp [show g i n = 0 by simp_all] at hm
+      linarith [hm' i]
+    haveI := nonempty_subtype.mpr (nonempty_lifts (⨂ₜ[𝕜] i, m i))
+    apply le_ciInf (fun x ↦ ?_)
+
+    apply le_of_tendsto_of_tendsto hg₂ tendsto_const_nhds
+    filter_upwards [hg₃] with n hg₃
+    have hg₄ : 0 < ∏ i, ‖g i n‖ := Finset.prod_pos fun i a ↦ hg₃ i
+    have hx := congr_arg (norm ∘ dualDistrib (⨂ₜ[𝕜] i, g i n)) ((mem_lifts_iff _ _).mp x.prop)
+    simp only [Function.comp_apply, dualDistrib_apply, ContinuousLinearMap.coe_coe, norm_prod,
+      map_list_sum, List.map_map] at hx
+
+    grw [Finset.prod_div_distrib, ← hx, List.le_sum_of_subadditive norm norm_zero.le norm_add_le, List.map_map]
+    field_simp
+    simp [projectiveSeminormAux, ←List.sum_map_mul_left]
+    apply List.sum_le_sum (fun _ _ ↦ ?_)
+    simp
+    rw [mul_rotate']
+    gcongr
 
 
-  choose g hg using fun i => norm_seq (h_le_bidual i)
-  have hg₂ := tendsto_finset_prod (Finset.univ (α := ι)) (fun i hi => hg i)
-  
-
-
-  -- haveI := nonempty_subtype.mpr (nonempty_lifts (⨂ₜ[𝕜] i, m i))
-  -- apply le_ciInf (fun x ↦ ?_)
-  -- have hx := ((mem_lifts_iff _ _).mp x.prop)
 
 
 
+  · simp only [ne_eq, not_forall, not_not] at hm
+    obtain ⟨i, hi⟩ := hm
+    conv_rhs => rw [Finset.prod_eq_zero (Finset.mem_univ i) (by simp [hi])]
+    rw [tprod_eq_tprodCoeff_one, zero_tprodCoeff' 1 m i hi, norm_zero]
 
 
 
