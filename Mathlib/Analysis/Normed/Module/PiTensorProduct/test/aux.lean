@@ -1,11 +1,5 @@
-import Mathlib.LinearAlgebra.TensorProduct.Basis
-import Mathlib.LinearAlgebra.Basis.VectorSpace
-import Mathlib.LinearAlgebra.Dual.Lemmas
-import Mathlib.Analysis.Normed.Module.Multilinear.Basic
 import Mathlib.Analysis.Normed.Module.Dual
-import Mathlib.Analysis.Normed.Module.HahnBanach
 import Mathlib.Analysis.Normed.Module.PiTensorProduct.test.ProjectiveSeminorm
-import Mathlib.Topology.Separation.Hausdorff
 import Mathlib.LinearAlgebra.PiTensorProduct.Dual
 
 section norm
@@ -62,6 +56,8 @@ lemma dual_seq_tendsto_norm_pos {v : E} {g : ℕ → StrongDual 𝕜 E}
   simp only [show g n = 0 by simp_all, ContinuousLinearMap.zero_apply, norm_zero, div_zero] at hv
   linarith
 
+
+
 variable {ι : Type*} [Fintype ι]
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
 variable {E : ι → Type*} [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace 𝕜 (E i)]
@@ -76,21 +72,19 @@ theorem projectiveSeminorm_tprod_eq_of_normed_space (m : Π i, E i)
     apply le_ciInf (fun x ↦ le_of_tendsto_of_tendsto
       (tendsto_finset_prod (Finset.univ (α := ι)) (fun i hi => hg i)) tendsto_const_nhds ?_)
     filter_upwards [eventually_all.mpr (fun i => dual_seq_tendsto_norm_pos (by simp [hm]) (hg i))]
-    intro n hg₃
-    have hg₄ : 0 < ∏ i, ‖g i n‖ := Finset.prod_pos fun i a ↦ hg₃ i
+    intro n hg
+    have hgp : 0 < ∏ i, ‖g i n‖ := Finset.prod_pos fun i a ↦ hg i
     have hx := congr_arg (norm ∘ dualDistrib (⨂ₜ[𝕜] i, g i n)) ((mem_lifts_iff _ _).mp x.prop)
     simp only [Function.comp_apply, dualDistrib_apply, ContinuousLinearMap.coe_coe, norm_prod,
       map_list_sum, List.map_map] at hx
-    grw [Finset.prod_div_distrib, ← hx,
-      List.le_sum_of_subadditive norm norm_zero.le norm_add_le, List.map_map]
-    field_simp
-    simp only [projectiveSeminormAux, ← List.sum_map_mul_left]
+    grw [Finset.prod_div_distrib, ← hx, List.le_sum_of_subadditive norm norm_zero.le norm_add_le,
+      List.map_map, div_le_iff₀' hgp, projectiveSeminormAux, ← List.sum_map_mul_left]
     apply List.sum_le_sum (fun _ _ ↦ ?_)
     simp only [Function.comp_apply, map_smul, dualDistrib_apply, ContinuousLinearMap.coe_coe,
       smul_eq_mul, norm_mul, norm_prod]
     rw [mul_rotate']
     gcongr
-    rw [mul_comm, ← div_le_iff₀' hg₄, ←Finset.prod_div_distrib]
+    rw [mul_comm, ← div_le_iff₀' hgp, ←Finset.prod_div_distrib]
     gcongr
     grw [ContinuousLinearMap.le_opNorm, ←mul_div_assoc',
       mul_div_left_comm, div_self (by simp_all), mul_one]
