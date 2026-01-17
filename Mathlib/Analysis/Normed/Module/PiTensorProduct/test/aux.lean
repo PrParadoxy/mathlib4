@@ -16,7 +16,7 @@ variable [NormedAddCommGroup E] [NormedSpace 𝕜 E]
 
 open Filter NormedSpace PiTensorProduct
 
-theorem norm_seq {v : E} (h : ‖v‖ ≤ ‖inclusionInDoubleDual 𝕜 E v‖) :
+theorem dual_seq_tendsto_norm {v : E} (h : ‖v‖ ≤ ‖inclusionInDoubleDual 𝕜 E v‖) :
     ∃ g : ℕ → StrongDual 𝕜 E, Tendsto (fun i => ‖g i v‖ / ‖g i‖) atTop (nhds ‖v‖) := by
   by_cases hv : v = 0
   any_goals aesop
@@ -52,6 +52,15 @@ theorem norm_seq {v : E} (h : ‖v‖ ≤ ‖inclusionInDoubleDual 𝕜 E v‖) 
     _ < ‖v‖ / ↑N := by gcongr; simp
     _ < ε := (div_lt_comm₀ hε hN').mp hN
 
+lemma dual_seq_tendsto_norm_pos {v : E} {g : ℕ → StrongDual 𝕜 E}
+    (h₁ : 0 < ‖v‖) (h₂ : Tendsto (fun i => ‖g i v‖ / ‖g i‖) atTop (nhds ‖v‖))
+    : ∀ᶠ n : ℕ in atTop, 0 < ‖g n‖ := by
+  have hp : ∀ᶠ n in atTop, ‖v‖ / 2 < ‖(g n) v‖ / ‖g n‖ :=
+    (h₂).eventually (lt_mem_nhds (by linarith))
+  filter_upwards [hp] with n hv
+  by_contra! hc
+  simp only [show g n = 0 by simp_all, ContinuousLinearMap.zero_apply, norm_zero, div_zero] at hv
+  linarith
 
 variable {ι : Type*} [Fintype ι]
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
@@ -61,22 +70,13 @@ theorem projectiveSeminorm_tprod_eq_of_normed_space (m : Π i, E i)
     (h_le_bidual : ∀ i, ‖m i‖ ≤ ‖inclusionInDoubleDual 𝕜 _ (m i)‖) :
     ‖⨂ₜ[𝕜] i, m i‖ = ∏ i, ‖m i‖ := by
   by_cases hm : ∀ i, m i ≠ 0
-  · have hm' : ∀ i, 0 < ‖m i‖ := by simp [hm]
-    apply eq_of_le_of_ge (projectiveSeminorm_tprod_le m)
-    choose g hg using fun i => norm_seq (h_le_bidual i)
-    have hg₂ := tendsto_finset_prod (Finset.univ (α := ι)) (fun i hi => hg i)
-    have hg₃ : ∀ᶠ n : ℕ in atTop, ∀ i, 0 < ‖g i n‖ := by
-      apply eventually_all.mpr (fun i => ?_)
-      have hp : ∀ᶠ n in atTop, ‖m i‖ / 2 < ‖(g i n) (m i)‖ / ‖g i n‖ :=
-        (hg i).eventually (lt_mem_nhds (by linarith [hm' i]))
-      filter_upwards [hp] with n hm
-      by_contra! hc
-      simp [show g i n = 0 by simp_all] at hm
-      linarith [hm' i]
+  · apply eq_of_le_of_ge (projectiveSeminorm_tprod_le m)
+    choose g hg using fun i => dual_seq_tendsto_norm (h_le_bidual i)
     haveI := nonempty_subtype.mpr (nonempty_lifts (⨂ₜ[𝕜] i, m i))
-    apply le_ciInf (fun x ↦ ?_)
-    apply le_of_tendsto_of_tendsto hg₂ tendsto_const_nhds
-    filter_upwards [hg₃] with n hg₃
+    apply le_ciInf (fun x ↦ le_of_tendsto_of_tendsto
+      (tendsto_finset_prod (Finset.univ (α := ι)) (fun i hi => hg i)) tendsto_const_nhds ?_)
+    filter_upwards [eventually_all.mpr (fun i => dual_seq_tendsto_norm_pos (by simp [hm]) (hg i))]
+    intro n hg₃
     have hg₄ : 0 < ∏ i, ‖g i n‖ := Finset.prod_pos fun i a ↦ hg₃ i
     have hx := congr_arg (norm ∘ dualDistrib (⨂ₜ[𝕜] i, g i n)) ((mem_lifts_iff _ _).mp x.prop)
     simp only [Function.comp_apply, dualDistrib_apply, ContinuousLinearMap.coe_coe, norm_prod,
@@ -91,11 +91,9 @@ theorem projectiveSeminorm_tprod_eq_of_normed_space (m : Π i, E i)
     rw [mul_rotate']
     gcongr
     rw [mul_comm, ← div_le_iff₀' hg₄, ←Finset.prod_div_distrib]
-    gcongr with i
-    grw [ContinuousLinearMap.le_opNorm]
-    field_simp
-    rw [←mul_div_assoc', mul_div_left_comm, div_self (by simp_all)]
-    simp
+    gcongr
+    grw [ContinuousLinearMap.le_opNorm, ←mul_div_assoc',
+      mul_div_left_comm, div_self (by simp_all), mul_one]
   · simp only [ne_eq, not_forall, not_not] at hm
     obtain ⟨i, hi⟩ := hm
     conv_rhs => rw [Finset.prod_eq_zero (Finset.mem_univ i) (by simp [hi])]
