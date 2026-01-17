@@ -5,6 +5,7 @@ import Mathlib.Analysis.Normed.Module.Multilinear.Basic
 import Mathlib.Analysis.Normed.Module.Dual
 import Mathlib.Analysis.Normed.Module.HahnBanach
 import Mathlib.Analysis.Normed.Module.PiTensorProduct.test.ProjectiveSeminorm
+import Mathlib.Topology.Separation.Hausdorff
 
 section norm
 
@@ -52,21 +53,30 @@ theorem norm_seq {v : E} (h : ‖v‖ ≤ ‖inclusionInDoubleDual 𝕜 E v‖) 
 
 
 
-
+#check tendsto_nhds_unique
+#check tendsto_finset_prod
 variable {ι : Type*} [Fintype ι]
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
 variable {E : ι → Type*} [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace 𝕜 (E i)]
 
+#check Finset.univ (α := ι)
 theorem projectiveSeminorm_tprod_eq_of_normed_space (m : Π i, E i)
     (h_le_bidual : ∀ i, ‖m i‖ ≤ ‖inclusionInDoubleDual 𝕜 _ (m i)‖ ) :
     ‖⨂ₜ[𝕜] i, m i‖ = ∏ i, ‖m i‖ := by
   apply eq_of_le_of_ge (projectiveSeminorm_tprod_le m)
+
+
   choose g hg using fun i => norm_seq (h_le_bidual i)
+  have hg₂ := tendsto_finset_prod (Finset.univ (α := ι)) (fun i hi => hg i)
   
+
 
   -- haveI := nonempty_subtype.mpr (nonempty_lifts (⨂ₜ[𝕜] i, m i))
   -- apply le_ciInf (fun x ↦ ?_)
-  -- have := ((mem_lifts_iff _ _).mp x.prop)
+  -- have hx := ((mem_lifts_iff _ _).mp x.prop)
+
+
+
 
 
 
