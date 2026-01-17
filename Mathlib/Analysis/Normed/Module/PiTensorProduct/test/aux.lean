@@ -42,8 +42,7 @@ theorem dual_seq_tendsto_norm {v : E} (h : ‖v‖ ≤ ‖inclusionInDoubleDual 
   rw [abs_of_nonneg (by linarith [hg n])]
   calc
     _ < ‖v‖ / (n + 1) := by linarith [hg n]
-    _ ≤ ‖v‖ / (N + 1) := by gcongr
-    _ < ‖v‖ / N := by gcongr; simp
+    _ ≤ ‖v‖ / N := by gcongr; grw [hn]; simp
     _ < ε := (div_lt_comm₀ hε hN').mp hN
 
 lemma dual_seq_tendsto_norm_pos {v : E} {g : ℕ → StrongDual 𝕜 E}
