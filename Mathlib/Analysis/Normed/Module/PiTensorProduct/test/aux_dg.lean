@@ -6,14 +6,35 @@ import Mathlib.Topology.Order.IsLUB
 section norm
 
 open PiTensorProduct
+open scoped TensorProduct
 
-open Filter NormedSpace
+
+open Filter NormedSpace ContinuousLinearMap Set
 
 section seq
+
+variable {𝕜 𝕜₂ 𝕜₃ E F Fₗ G 𝓕 : Type*}
+
+variable [SeminormedAddCommGroup E] [SeminormedAddCommGroup F] [SeminormedAddCommGroup Fₗ]
+  [SeminormedAddCommGroup G]
+
+variable [NontriviallyNormedField 𝕜] [NontriviallyNormedField 𝕜₂] [NontriviallyNormedField 𝕜₃]
+  [NormedSpace 𝕜 E] [NormedSpace 𝕜₂ F] [NormedSpace 𝕜 Fₗ] [NormedSpace 𝕜₃ G]
+  {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃} [RingHomCompTriple σ₁₂ σ₂₃ σ₁₃]
+  [RingHomIsometric σ₁₂]
+
+theorem opNorm_IsLUB (f : E →SL[σ₁₂] F) : IsLUB (Set.range (fun x : E ↦ ‖f x‖ / ‖x‖)) ‖f‖ := by
+  refine ⟨fun _ ↦ ?_, fun _ hb ↦ ?_⟩
+  · aesop (add safe forward ratio_le_opNorm)
+  · simp only [mem_upperBounds, mem_range, forall_exists_index, forall_apply_eq_imp_iff] at hb
+    refine opNorm_le_bound' f (by simpa using hb 0) (fun e _ => ?_)
+    grw [←div_le_iff₀ (by positivity), hb e]
+
 
 variable {𝕜 : Type*} {E : Type*}
 variable [NontriviallyNormedField 𝕜]
 variable [SeminormedAddCommGroup E] [NormedSpace 𝕜 E]
+
 
 open ContinuousLinearMap Set in
 theorem exists_seq_of_bidual_iso {v : E} (h_bidual : ‖v‖ = ‖inclusionInDoubleDual 𝕜 E v‖) :
@@ -29,6 +50,8 @@ end seq
 variable {ι : Type*} [Fintype ι]
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
 variable {E : ι → Type*} [∀ i, SeminormedAddCommGroup (E i)] [∀ i, NormedSpace 𝕜 (E i)]
+instance (x : ⨂[𝕜] i, E i) : Nonempty ↑x.lifts := nonempty_subtype.mpr (nonempty_lifts x)
+
 
 open ContinuousLinearMap Set in
 theorem projectiveSeminorm_tprod_eq_of_dual_vectors
