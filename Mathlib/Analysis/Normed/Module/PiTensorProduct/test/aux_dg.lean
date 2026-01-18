@@ -75,4 +75,18 @@ theorem projectiveSeminorm_tprod_eq_of_dual_vectors
   gcongr
   grw [ContinuousLinearMap.le_opNorm, mul_comm]
 
+
+variable {ι : Type*} [Fintype ι]
+variable {𝕜 : Type*} [RCLike 𝕜]
+variable {E : ι → Type*} [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace 𝕜 (E i)]
+
+theorem projectiveSeminorm_tprod_eq_of_dual_vectors'
+    (m : Π i, E i) : ‖⨂ₜ[𝕜] i, m i‖ = ∏ i, ‖m i‖ :=
+  projectiveSeminorm_tprod_eq_of_dual_vectors _
+    (fun i => show ‖m i‖ = ‖inclusionInDoubleDualLi 𝕜 (m i)‖ by simp)
+
+
+
+
+
 end norm
