@@ -54,7 +54,7 @@ instance (x : ⨂[𝕜] i, E i) : Nonempty ↑x.lifts := nonempty_subtype.mpr (n
 
 
 open ContinuousLinearMap Set in
-theorem projectiveSeminorm_tprod_eq_of_dual_vectors
+theorem projectiveSeminorm_tprod_eq_of_bidual_iso
     (m : Π i, E i) (h_bidual : ∀ i, ‖m i‖ = ‖inclusionInDoubleDual 𝕜 _ (m i)‖) :
     ‖⨂ₜ[𝕜] i, m i‖ = ∏ i, ‖m i‖ := by
   choose g hg using fun i ↦ exists_seq_of_bidual_iso (h_bidual i)
@@ -64,16 +64,16 @@ theorem projectiveSeminorm_tprod_eq_of_dual_vectors
   filter_upwards with n
   have hp := congr_arg (fun x ↦ ‖dualDistrib (⨂ₜ[𝕜] i, g i n) x‖ / (∏ i, ‖g i n‖))
     ((mem_lifts_iff _ _).mp p.prop)
-  simp only [dualDistrib_apply, ContinuousLinearMap.coe_coe, norm_prod] at hp
+  simp only [dualDistrib_apply, coe_coe, norm_prod] at hp
   rw [Finset.prod_div_distrib, ← hp, map_list_sum, List.map_map]
   refine if hz : ∏ i, ‖g i n‖ = 0 then (by simp_all [projectiveSeminormAux_nonneg]) else ?_
   grw [div_le_iff₀' (by positivity), List.le_sum_of_subadditive norm norm_zero.le norm_add_le,
     List.map_map, projectiveSeminormAux, ← List.sum_map_mul_left]
   apply List.sum_le_sum (fun q hq ↦ ?_)
-  simp only [Function.comp_apply, map_smul, dualDistrib_apply, ContinuousLinearMap.coe_coe,
-    smul_eq_mul, norm_mul, norm_prod, mul_left_comm, ← Finset.prod_mul_distrib]
+  simp only [Function.comp_apply, map_smul, dualDistrib_apply, coe_coe, smul_eq_mul, norm_mul,
+    norm_prod, mul_left_comm, ← Finset.prod_mul_distrib]
   gcongr
-  grw [ContinuousLinearMap.le_opNorm, mul_comm]
+  grw [le_opNorm]
 
 
 variable {ι : Type*} [Fintype ι]
@@ -90,3 +90,16 @@ theorem projectiveSeminorm_tprod_eq_of_dual_vectors'
 
 
 end norm
+
+section RCLike
+
+variable {ι : Type*} [Fintype ι]
+variable {𝕜 : Type*} [RCLike 𝕜]
+variable {E : ι → Type*} [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace 𝕜 (E i)]
+
+@[simp]
+theorem projectiveSeminorm_tprod(m : Π i, E i) : ‖⨂ₜ[𝕜] i, m i‖ = ∏ i, ‖m i‖ :=
+  projectiveSeminorm_tprod_eq_of_bidual_iso m
+    (fun i ↦ show ‖m i‖ = ‖NormedSpace.inclusionInDoubleDualLi 𝕜 (m i)‖ by simp)
+
+end RCLike
