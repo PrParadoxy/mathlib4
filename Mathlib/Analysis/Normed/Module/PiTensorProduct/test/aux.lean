@@ -1,30 +1,17 @@
 import Mathlib.Analysis.Normed.Module.Dual
 import Mathlib.Analysis.Normed.Module.PiTensorProduct.test.ProjectiveSeminorm
 import Mathlib.LinearAlgebra.PiTensorProduct.Dual
-
+import Mathlib.LinearAlgebra.Basis.VectorSpace
 
 
 open scoped TensorProduct
 open Module Submodule Free
 
 
-theorem exists_dual_vec_ne_zero (R : Type*) {M : Type*}
-    [DivisionRing R] [AddCommGroup M] [Module R M] :
-    ∀ v, v ≠ 0 → ∃ dv : Dual R M, dv v ≠ 0 := fun v hv => by
-  obtain ⟨g, hg⟩ := LinearMap.exists_extend
-    (LinearPMap.mkSpanSingleton (K := R) v (1 : R) (hv)).toFun
-  use g, fun hc => ?_
-  have hp := LinearMap.congr_fun hg ⟨v, mem_span_singleton_self v⟩
-  rw [LinearPMap.toFun_eq_coe] at hp
-  simp [hc] at hp
-
-
 variable {R : Type*} {S : Type*} {M : Type*} {N : Type*} {ι : Type*} {κ : Type*}
   [CommSemiring R] [Semiring S] [Algebra R S] [AddCommMonoid M] [Module R M]
   [Module S M] [IsScalarTower R S M]
   [AddCommMonoid N] [Module R N]
-
-
 
 lemma as_sum_on_basis (bm : Basis ι S M) (bn : Basis κ R N) (x : M ⊗[R] N) :
     x = ∑ i ∈ ((bm.tensorProduct bn).repr x).support, ((bm.tensorProduct bn).repr x)
@@ -37,31 +24,36 @@ lemma as_sum_on_basis (bm : Basis ι S M) (bn : Basis κ R N) (x : M ⊗[R] N) :
 
 
 variable {R : Type*} {S : Type*} {M : Type*} {N : Type*} {ι : Type*} {κ : Type*}
-  [Field R] [Semiring S] [Algebra R S] [AddCommMonoid M] [Module R M]
+  [Nonempty ι] [Nonempty κ] [Field R] [Semiring S] [Algebra R S] [AddCommMonoid M] [Module R M]
   [Module S M] [IsScalarTower R S M]
   [AddCommGroup N] [Module R N]
+
 
 lemma eq_zero_of_dual_apply_sum_eq_zero (bm : Basis ι S M) (bn : Basis κ R N) (x : M ⊗[R] N) :
     (∀ ψ : Dual R N, ∑ i ∈ ((bm.tensorProduct bn).repr x).support, ψ (bn i.2) • bm i.1 = 0)
     → x = 0 := by
-  by_cases hi : ∃ i : ι × κ, bn i.2 ≠ 0
-  · contrapose!
-    intro hx
-    obtain ⟨i, hi⟩ := hi
-    obtain ⟨ψ, hψ⟩ := exists_dual_vec_ne_zero R (bn i.2) hi
-    use ψ
-    sorry
+  contrapose!
+  intro hx
+  let i := Classical.arbitrary κ
+  use bn.coord i
+  simp [Finsupp.single, Pi.single, Function.update]
+  open Classical in
+  erw [Finset.sum_ite]
+  simp only [Finset.sum_const_zero, add_zero]
+  erw [Finset.sum_const]
 
-  · intros
-    rw [as_sum_on_basis bm bn x]
-    apply Finset.sum_eq_zero (fun x hx => ?_)
-    simp only [not_exists, not_not] at hi
-    rw [hi x, TensorProduct.tmul_zero, smul_zero]
+  -- by_cases hi : ∃ i : ι × κ, bn i.2 ≠ 0
+  -- · contrapose!
+  --   intro hx
+  --   obtain ⟨i, hi⟩ := hi
 
 
+  -- · intros
+  --   rw [as_sum_on_basis bm bn x]
+  --   apply Finset.sum_eq_zero (fun x hx => ?_)
+  --   simp only [not_exists, not_not] at hi
+  --   rw [hi x, TensorProduct.tmul_zero, smul_zero]
 
-variable (bn : Basis κ R N) [DecidableEq κ] [Finite κ]
-#check bn.dualBasis
 
 
 
