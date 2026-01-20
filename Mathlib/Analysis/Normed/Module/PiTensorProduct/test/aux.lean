@@ -20,11 +20,10 @@ variable {R : Type*} {S : Type*} {M : Type*} {N : Type*} {ι : Type*} {κ : Type
 
 open Basis
 
-lemma eq_zero_of_forall_dual_eq_zero (bm : Basis ι S M) (bn : Basis κ R N) (x : M ⊗[R] N) :
-    (∀ ψ : Dual R N, ∑ i ∈ ((bm.tensorProduct bn).repr x).support, ψ (bn i.2) • bm i.1 = 0)
-    → x = 0 := by
-  contrapose!
-  intro hx
+lemma eq_zero_of_forall_dual_eq_zero (bm : Basis ι S M) (bn : Basis κ R N) (x : M ⊗[R] N)
+    (hx : ∀ ψ : Dual R N, ∑ i ∈ ((bm.tensorProduct bn).repr x).support, ψ (bn i.2) • bm i.1 = 0)
+    : x = 0 := by
+  contrapose! hx
   obtain ⟨i, hi⟩ := support_basis_nonempty x (bm.tensorProduct bn) hx
   use bn.coord i.2
   apply_fun bm.coord i.1
@@ -44,5 +43,14 @@ theorem eq_zero_of_forall_dual_eq_zero_free [Module.Free R N] [Module.Free S M] 
 
 
 
+-- example for vector space
+variable {R : Type*} {S : Type*} {M : Type*} {N : Type*} [Field R] [Field S]
+  [Algebra R S] [AddCommGroup M] [Module R M]
+  [Module S M] [IsScalarTower R S M] [AddCommGroup N] [Module R N]
 
-
+example (x : M ⊗[R] N) :
+    let bm := chooseBasis S M
+    let bn := chooseBasis R N
+    let b := bm.tensorProduct bn
+    (∀ ψ : Dual R N, ∑ i ∈ (b.repr x).support, ψ (bn i.2) • bm i.1 = 0) → x = 0 :=
+  eq_zero_of_forall_dual_eq_zero_free _
