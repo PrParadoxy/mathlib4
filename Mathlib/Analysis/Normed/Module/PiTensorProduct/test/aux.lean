@@ -8,79 +8,36 @@ open scoped TensorProduct
 open Module Submodule Free
 
 
-lemma basis_support_nonempty {R M ι : Type*} [Semiring R] [AddCommMonoid M] [Module R M] (x : M)
+lemma support_basis_nonempty {R M ι : Type*} [Semiring R] [AddCommMonoid M] [Module R M] (x : M)
     (b : Basis ι R M) (hx : x ≠ 0) : ((b.repr x).support).Nonempty := by
   contrapose! hx
   simp_all [←Finset.not_nonempty_iff_eq_empty]
 
 
 variable {R : Type*} {S : Type*} {M : Type*} {N : Type*} {ι : Type*} {κ : Type*}
-  [CommSemiring R] [Semiring S] [Nontrivial S] [Algebra R S] [AddCommMonoid M] [Module R M]
+  [CommSemiring R] [Semiring S] [Algebra R S] [AddCommMonoid M] [Module R M]
   [Module S M] [IsScalarTower R S M] [AddCommMonoid N] [Module R N]
+
+open Basis
 
 lemma eq_zero_of_dual_apply_sum_eq_zero (bm : Basis ι S M) (bn : Basis κ R N) (x : M ⊗[R] N) :
     (∀ ψ : Dual R N, ∑ i ∈ ((bm.tensorProduct bn).repr x).support, ψ (bn i.2) • bm i.1 = 0)
     → x = 0 := by
   contrapose!
   intro hx
-  obtain ⟨i, hi⟩ := basis_support_nonempty x (bm.tensorProduct bn) hx
+  obtain ⟨i, hi⟩ := support_basis_nonempty x (bm.tensorProduct bn) hx
   use bn.coord i.2
-  classical
-  conv_lhs => arg 2; ext x; rw [Basis.coord_apply, Basis.repr_self,
-    Finsupp.single_eq_indicator,  Finsupp.indicator_apply]
-  simp only [Finset.mem_singleton, dite_eq_ite, ite_smul, one_smul, zero_smul]
-  intro h
-  apply_fun bm.coord i.1 at h
-  have : (bm.coord i.1) (∑ x ∈ ((bm.tensorProduct bn).repr x).support,
-          if i.2 = x.2 then bm x.1 else 0) =
-        ∑ x ∈ ((bm.tensorProduct bn).repr x).support,
-          if i.2 = x.2 then (bm.coord i.1) (bm x.1) else 0 := by
-    simp
-    congr with u
-    aesop
-  rw [this] at h
-  clear this
-  simp at h
-  conv_lhs at h => arg 2; ext x; arg 2; rw [Finsupp.single_apply]
-  rw [Finset.sum_eq_single i] at h
-  simp at h
-  aesop
-  aesop
+  apply_fun bm.coord i.1
+  simp only [coord_apply, repr_self, map_sum, LinearMap.map_smul_of_tower, map_zero]
+  rw [Finset.sum_eq_single i]
+  · simp
+  · classical
+    aesop (add safe forward Finsupp.single_apply)
+  · simp_all
 
 
 
 
-
-
-
-
-
-
-  -- contrapose!
-  -- intro hx
-  -- obtain ⟨i, hi⟩ := basis_support_nonempty x (bm.tensorProduct bn) hx
-  -- use bn.coord i.2
-  -- classical
-  -- conv_lhs => arg 2; ext x; rw [Basis.coord_apply, Basis.repr_self,
-  --   Finsupp.single_eq_indicator,  Finsupp.indicator_apply]
-  -- simp only [Finset.mem_singleton, dite_eq_ite, ite_smul, one_smul, zero_smul]
-  -- intro h
-  -- apply_fun bm.coord i.1 at h
-  -- have : (bm.coord i.1) (∑ x ∈ ((bm.tensorProduct bn).repr x).support,
-  --         if i.2 = x.2 then bm x.1 else 0) =
-  --       ∑ x ∈ ((bm.tensorProduct bn).repr x).support,
-  --         if i.2 = x.2 then (bm.coord i.1) (bm x.1) else 0 := by
-  --   simp
-  --   congr with u
-  --   aesop
-  -- rw [this] at h
-  -- clear this
-  -- simp at h
-  -- conv_lhs at h => arg 2; ext x; arg 2; rw [Finsupp.single_apply]
-  -- rw [Finset.sum_eq_single i] at h
-  -- simp at h
-  -- aesop
-  -- aesop
 
 
 
