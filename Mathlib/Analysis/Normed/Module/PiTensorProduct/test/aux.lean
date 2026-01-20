@@ -40,7 +40,7 @@ variable {R : Type*} {S : Type*} {M : Type*} {N : Type*} {ι : Type*} {κ : Type
   [Field R] [Semiring S] [Algebra R S] [AddCommMonoid M] [Module R M]
   [Module S M] [IsScalarTower R S M]
   [AddCommGroup N] [Module R N]
-set_option maxHeartbeats 0
+
 lemma eq_zero_of_dual_apply_sum_eq_zero (bm : Basis ι S M) (bn : Basis κ R N) (x : M ⊗[R] N) :
     (∀ ψ : Dual R N, ∑ i ∈ ((bm.tensorProduct bn).repr x).support, ψ (bn i.2) • bm i.1 = 0)
     → x = 0 := by
@@ -50,7 +50,7 @@ lemma eq_zero_of_dual_apply_sum_eq_zero (bm : Basis ι S M) (bn : Basis κ R N) 
     obtain ⟨i, hi⟩ := hi
     obtain ⟨ψ, hψ⟩ := exists_dual_vec_ne_zero R (bn i.2) hi
     use ψ
-    apply?
+    sorry
 
   · intros
     rw [as_sum_on_basis bm bn x]
