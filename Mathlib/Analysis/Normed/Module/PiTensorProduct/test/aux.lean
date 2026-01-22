@@ -74,7 +74,40 @@ lemma eq_zero_of_forall_dual_eq_zero_free' {α} [Fintype α] [Module.Free R N] [
 variable {R : Type*} {S : Type*} {M : Type*} {N : Type*} [Field R] [Field S]
   [Algebra R S] [AddCommGroup M] [Module R M]
   [Module S M] [IsScalarTower R S M] [AddCommGroup N] [Module R N] in
-  
+
 example {α} [Fintype α] {x : α → M} {y : α → N} {z : M ⊗[R] N} (hxy : z = ∑ i, (x i) ⊗ₜ[R] (y i))
     (hz : ∀ ψ : Dual R N, ∑ i, ψ (y i) • (x i) = 0) : z = 0 :=
   eq_zero_of_forall_dual_eq_zero_free' R S hxy hz
+
+
+
+section cleaned
+
+
+variable {R : Type*} {S : Type*} {M : Type*} {N : Type*} {ι : Type*} {κ : Type*}
+  [CommSemiring R] [Semiring S] [Algebra R S] [AddCommMonoid M] [Module R M]
+  [Module S M] [IsScalarTower R S M] [AddCommMonoid N] [Module R N]
+
+lemma as_sum_on_basis' (bm : Basis ι S M) (bn : Basis κ R N) (x : M ⊗[R] N) :
+    x = ∑ i ∈ ((bm.tensorProduct bn).repr x).support,
+      ((bm.tensorProduct bn).repr x) i • (bm i.1 ⊗ₜ[R] bn i.2) := by
+  let b := bm.tensorProduct bn
+  nth_rw 1 [← b.linearCombination_repr x, Finsupp.linearCombination_apply S (b.repr x),
+    Finsupp.sum_of_support_subset (b.repr x) (fun _ a ↦ a) _ (by simp)]
+  congr with _
+  simp [b, Module.Basis.tensorProduct_apply']
+
+lemma eq_zero_of_forall_dual_eq_zero'' (bm : Basis ι S M) (bn : Basis κ R N) (x : M ⊗[R] N)
+    (hx : ∀ ψ : Dual R N, TensorProduct.rid R M (LinearMap.lTensor M ψ x) = 0) : x = 0 := by
+  contrapose! hx
+  rw [as_sum_on_basis' bm bn x]
+  have ⟨i, hi⟩ : (((bm.tensorProduct bn).repr x).support).Nonempty := by simp_all
+  use bn.coord i.2
+  apply_fun bm.coord i.1
+  simp only [map_sum, coord_apply, map_zero]
+  rw [Finset.sum_eq_single i]
+  classical
+  all_goals
+    intros
+    rw [TensorProduct.smul_tmul']
+    aesop (add safe forward Finsupp.single_apply)
