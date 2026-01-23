@@ -1,8 +1,5 @@
-import Mathlib.Analysis.Normed.Module.Dual
-import Mathlib.Analysis.Normed.Module.PiTensorProduct.test.ProjectiveSeminorm
-import Mathlib.LinearAlgebra.PiTensorProduct.Dual
-import Mathlib.LinearAlgebra.Basis.VectorSpace
-
+import Mathlib.LinearAlgebra.Dual.Defs
+import Mathlib.LinearAlgebra.TensorProduct.Basis
 
 open scoped TensorProduct
 open Module Basis
@@ -35,8 +32,6 @@ lemma eq_zero_of_forall_dual_eq_zero (bm : Basis ι S M) (bn : Basis κ R N) {x 
 lemma eq_zero_of_forall_dual_eq_zero_free [Free R N] [Free S M] (x : M ⊗[R] N)
     (hx : ∀ ψ : Dual R N, TensorProduct.rid R M (LinearMap.lTensor M ψ x) = 0) : x = 0 :=
   eq_zero_of_forall_dual_eq_zero (Free.chooseBasis S M) (Free.chooseBasis R N) hx
-
-
 
 
 
