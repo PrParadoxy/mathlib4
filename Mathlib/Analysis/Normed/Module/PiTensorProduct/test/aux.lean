@@ -5,7 +5,7 @@ import Mathlib.LinearAlgebra.Basis.VectorSpace
 
 
 open scoped TensorProduct
-open Module Submodule Free Basis
+open Module Basis
 
 variable {R : Type*} {S : Type*} {M : Type*} {N : Type*} {ι : Type*} {κ : Type*}
   [CommSemiring R] [Semiring S] [Algebra R S] [AddCommMonoid M] [Module R M]
@@ -32,9 +32,9 @@ lemma eq_zero_of_forall_dual_eq_zero (bm : Basis ι S M) (bn : Basis κ R N) {x 
   classical
   all_goals aesop (add safe forward Finsupp.single_apply)
 
-lemma eq_zero_of_forall_dual_eq_zero_free [Module.Free R N] [Module.Free S M] (x : M ⊗[R] N)
+lemma eq_zero_of_forall_dual_eq_zero_free [Free R N] [Free S M] (x : M ⊗[R] N)
     (hx : ∀ ψ : Dual R N, TensorProduct.rid R M (LinearMap.lTensor M ψ x) = 0) : x = 0 :=
-  eq_zero_of_forall_dual_eq_zero (chooseBasis S M) (chooseBasis R N) hx
+  eq_zero_of_forall_dual_eq_zero (Free.chooseBasis S M) (Free.chooseBasis R N) hx
 
 
 
