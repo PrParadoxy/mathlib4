@@ -18,7 +18,7 @@ clusters at `x` along `F : Filter α` if `MapClusterPt x F f : ClusterPt x (map 
 In particular the notion of cluster point of a sequence `u` is `MapClusterPt x atTop u`.
 -/
 
-@[expose] public section
+public section
 
 open Set Filter Topology
 
@@ -26,6 +26,9 @@ universe u v w
 
 variable {X : Type u} [TopologicalSpace X] {Y : Type v} {ι : Sort w} {α β : Type*}
   {x : X} {s s₁ s₂ t : Set X}
+
+@[simp]
+protected lemma ClusterPt.top : ClusterPt x ⊤ := by simp [ClusterPt]
 
 theorem clusterPt_sup {F G : Filter X} : ClusterPt x (F ⊔ G) ↔ ClusterPt x F ∨ ClusterPt x G := by
   simp only [ClusterPt, inf_sup_left, sup_neBot]
@@ -137,9 +140,18 @@ theorem MapClusterPt.tendsto_comp [TopologicalSpace Y] {f : X → Y} {y : Y}
     (hf : Tendsto f (𝓝 x) (𝓝 y)) (hu : MapClusterPt x F u) : MapClusterPt y F (f ∘ u) :=
   hu.tendsto_comp' (hf.mono_left inf_le_left)
 
+theorem mapClusterPt_id_iff [TopologicalSpace α] {a : α} : MapClusterPt a F id ↔ ClusterPt a F := by
+  rw [MapClusterPt, map_id]
+
+alias ⟨_, ClusterPt.mapClusterPt_id⟩ := mapClusterPt_id_iff
+
 theorem MapClusterPt.continuousAt_comp [TopologicalSpace Y] {f : X → Y} (hf : ContinuousAt f x)
     (hu : MapClusterPt x F u) : MapClusterPt (f x) F (f ∘ u) :=
   hu.tendsto_comp hf
+
+theorem ContinuousAt.mapClusterPt [TopologicalSpace α] {a : α} (hf : ContinuousAt u a)
+    (hu : ClusterPt a F) : MapClusterPt (u a) F u :=
+  hu.mapClusterPt_id.continuousAt_comp hf
 
 theorem Filter.HasBasis.mapClusterPt_iff_frequently {ι : Sort*} {p : ι → Prop} {s : ι → Set X}
     (hx : (𝓝 x).HasBasis p s) : MapClusterPt x F u ↔ ∀ i, p i → ∃ᶠ a in F, u a ∈ s i := by
