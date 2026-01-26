@@ -66,10 +66,10 @@ theorem lift_unique (l : Restricted R E₀ →ₗ[R] M₂) :
       (fun i j hij x ↦ by simp [of]) := by
   ext; simp [of]
 
-noncomputable def lift_map : MultilinearMap R E M₂ →ₗ[R] Restricted R E₀ →ₗ[R] M₂ where
+noncomputable def lift : MultilinearMap R E M₂ →ₗ[R] Restricted R E₀ →ₗ[R] M₂ where
   toFun M := DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i)
     (fun _ _ hsub ↦ extendTensor hsub E₀)
-    (fun S => lift (M.domDomRestrictₗ (fun i => i ∈ S.val) (fun i => E₀ i.val)))
+    (fun S => PiTensorProduct.lift (M.domDomRestrictₗ (fun i => i ∈ S.val) (fun i => E₀ i.val)))
     (fun s1 s2 hsub x ↦ by
       induction x using PiTensorProduct.induction_on with
       | smul_tprod r f =>
@@ -80,5 +80,20 @@ noncomputable def lift_map : MultilinearMap R E M₂ →ₗ[R] Restricted R E₀
         all_goals aesop
       | add a b ha hb => simp_all
     )
+  map_add' := by aesop
+  map_smul' := by aesop
+
+open Classical in
+noncomputable def lift.symm : (Restricted R E₀ →ₗ[R] M₂) →ₗ[R] MultilinearMap R E M₂ where
+  toFun l := {
+    toFun v :=
+      if h : ∃ vr : Πʳ i, [E i, {E₀ i}], v = vr then
+        let S : FiniteSet ι := ⟨_, Filter.eventually_cofinite.mp h.choose.prop⟩
+        l.comp (of E₀ (S := S)) (PiTensorProduct.tprod R (fun i => v i))
+      else
+        0
+    map_update_add' := sorry
+    map_update_smul' := sorry
+  }
   map_add' := by aesop
   map_smul' := by aesop
