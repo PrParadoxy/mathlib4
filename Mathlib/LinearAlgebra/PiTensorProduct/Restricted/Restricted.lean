@@ -84,7 +84,7 @@ noncomputable def lift : MultilinearMap R E M₂ →ₗ[R] Restricted R E₀ →
   map_smul' := by aesop
 
 open Classical in
-noncomputable def lift.symm : (Restricted R E₀ →ₗ[R] M₂) →ₗ[R] MultilinearMap R E M₂ where
+noncomputable def unlift : (Restricted R E₀ →ₗ[R] M₂) →ₗ[R] MultilinearMap R E M₂ where
   toFun l := {
     toFun v :=
       if h : ∃ vr : Πʳ i, [E i, {E₀ i}], v = vr then
