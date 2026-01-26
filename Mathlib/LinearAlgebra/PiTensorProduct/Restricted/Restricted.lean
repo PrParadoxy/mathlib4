@@ -66,7 +66,6 @@ theorem lift_unique (l : Restricted R E₀ →ₗ[R] M₂) :
       (fun i j hij x ↦ by simp [of]) := by
   ext; simp [of]
 
-variable (R) in
 noncomputable def lift_map : MultilinearMap R E M₂ →ₗ[R] Restricted R E₀ →ₗ[R] M₂ where
   toFun M := DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i)
     (fun _ _ hsub ↦ extendTensor hsub E₀)
@@ -83,3 +82,40 @@ noncomputable def lift_map : MultilinearMap R E M₂ →ₗ[R] Restricted R E₀
     )
   map_add' := by aesop
   map_smul' := by aesop
+
+
+
+variable (R) in
+structure RestrictedMultilinearMap extends MultilinearMap R E M₂ where
+  restr : ∀ v : (i : ι) → E i, ∃ vr : Πʳ i, [E i, {E₀ i}], v = vr
+
+namespace RestrictedMultilinearMap
+
+open Function
+
+instance : FunLike (RestrictedMultilinearMap R E₀ M₂) (∀ i, E i) M₂ where
+  coe f := f.toMultilinearMap.toFun
+  coe_injective' f g h := by cases f; cases g; simp_all
+
+theorem coe_injective :
+  Injective ((↑) : RestrictedMultilinearMap R E₀ M₂ → (∀ i, E i) → M₂) :=
+  DFunLike.coe_injective
+
+instance : Zero (RestrictedMultilinearMap R E₀ M₂) where
+  zero := ⟨0, fun v => ⟨⟨v, sorry⟩, rfl⟩⟩
+
+instance : Add (RestrictedMultilinearMap R E₀ M₂) where
+  add f g := ⟨f.toMultilinearMap + g.toMultilinearMap, sorry⟩
+
+instance : Neg (RestrictedMultilinearMap R E₀ M₂) where
+  neg f := sorry
+variable (S : Type*) [DistribSMul S M₂] [SMulCommClass R S M₂]
+
+instance : SMul S (RestrictedMultilinearMap R E₀ M₂) := sorry
+
+instance addCommMonoid : AddCommMonoid (RestrictedMultilinearMap R E₀ M₂) :=
+  Function.Injective.addCommMonoid (fun f => f.toFun) (coe_injective E₀ M₂) rfl
+  (fun _ _ => rfl) (fun _ _ => sorry)
+
+
+-- and more to come!
