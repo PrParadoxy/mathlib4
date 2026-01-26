@@ -66,10 +66,20 @@ theorem lift_unique (l : Restricted R E₀ →ₗ[R] M₂) :
       (fun i j hij x ↦ by simp [of]) := by
   ext; simp [of]
 
-
-
--- To state Guichardet universal property, one needs the following that does not work.
--- This requires defining Multilinearmaps for restricted products.
-#check MultilinearMap R (Πʳ i, [E i, {E₀ i}]) M₂
-
--- def universal : MultilinearMap R (Πʳ i, [E i, {E₀ i}]) M₂ ≃ₗ[R] Restricted R E₀ →ₗ[R] M₂ := sorry
+variable (R) in
+noncomputable def lift_map : MultilinearMap R E M₂ →ₗ[R] (Restricted R E₀ →ₗ[R] M₂) where
+  toFun M := DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i)
+    (fun _ _ hsub ↦ extendTensor hsub E₀)
+    (fun S => lift (M.domDomRestrictₗ (fun i => i ∈ S.val) (fun i => E₀ i.val)))
+    (fun s1 s2 hsub x ↦ by
+      induction x using PiTensorProduct.induction_on with
+      | smul_tprod r f =>
+        simp only [MultilinearMap.domDomRestrictₗ, MultilinearMap.coe_mk, map_smul,
+          extendTensor_tprod, lift.tprod, MultilinearMap.domDomRestrict_apply]
+        congr with i
+        have (i : ι) (hi : i ∈ s1.val) : i ∈ s2.val := by aesop
+        all_goals aesop
+      | add a b ha hb => simp_all
+    )
+  map_add' := by aesop
+  map_smul' := by aesop
