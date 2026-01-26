@@ -67,7 +67,7 @@ theorem lift_unique (l : Restricted R E₀ →ₗ[R] M₂) :
   ext; simp [of]
 
 variable (R) in
-noncomputable def lift_map : MultilinearMap R E M₂ →ₗ[R] (Restricted R E₀ →ₗ[R] M₂) where
+noncomputable def lift_map : MultilinearMap R E M₂ →ₗ[R] Restricted R E₀ →ₗ[R] M₂ where
   toFun M := DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i)
     (fun _ _ hsub ↦ extendTensor hsub E₀)
     (fun S => lift (M.domDomRestrictₗ (fun i => i ∈ S.val) (fun i => E₀ i.val)))
