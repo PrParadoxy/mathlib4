@@ -55,11 +55,10 @@ theorem exists_dual_vector'''' (x : E) : ∃ g : StrongDual 𝕜 E, ‖g‖ ≤ 
       (LinearEquiv.toSpanNonzeroSingleton_homothety 𝕜 x (by aesop))).symm.toContinuousLinearMap
     obtain ⟨g, hg⟩ := exists_extension_norm_eq (𝕜 ∙ x) ((‖x‖ : 𝕜) • coord)
     refine ⟨g, ?_, ?_⟩
-    · have h_inv (z : 𝕜 ∙ x) : ‖(coord : (𝕜 ∙ x) →L[𝕜] 𝕜) z‖ = ‖x‖⁻¹ * ‖z.val‖ := by
-        apply ContinuousLinearEquiv.homothety_inverse _ hx _ (fun _ =>
-          LinearEquiv.toSpanNonzeroSingleton_homothety _ x (fun h => by simp [h] at hx) _)
-      simpa [hg.2, norm_smul, ←le_div_iff₀' hx, one_div] using
-        ContinuousLinearMap.opNorm_le_bound _ (by simp) (fun q => (h_inv q).le)
+    · simpa [hg.2, norm_smul, ←le_div_iff₀' hx, one_div] using
+        ContinuousLinearMap.opNorm_le_bound _ (by simp) (fun q =>
+          ((ContinuousLinearEquiv.homothety_inverse _ hx _ (fun _ =>
+            LinearEquiv.toSpanNonzeroSingleton_homothety _ x (fun h => by simp [h] at hx) _)) q).le)
     · calc
         g x = g (⟨x, mem_span_singleton_self x⟩ : 𝕜 ∙ x) := by rw [Submodule.coe_mk]
         _ = ((‖x‖ : 𝕜) • coord) (⟨x, mem_span_singleton_self x⟩ : 𝕜 ∙ x) := by rw [← hg.1]
