@@ -64,8 +64,7 @@ theorem exists_dual_vector'''' (x : E) : ∃ g : StrongDual 𝕜 E, ‖g‖ ≤ 
         g x = g (⟨x, mem_span_singleton_self x⟩ : 𝕜 ∙ x) := by rw [Submodule.coe_mk]
         _ = ((‖x‖ : 𝕜) • coord) (⟨x, mem_span_singleton_self x⟩ : 𝕜 ∙ x) := by rw [← hg.1]
         _ = ‖x‖ := by
-          simp only [ContinuousLinearMap.coe_smul', coe_coe, Pi.smul_apply, smul_eq_mul, coord]
-          conv_lhs => arg 2; apply LinearEquiv.coord_self 𝕜 E x (fun hq => by simp [hq] at hx)
-          simp
+          simpa [-algebraMap_smul,
+            mul_eq_left₀ (by simp [(ne_of_lt hx).symm] : ↑‖x‖ ≠ (0 : 𝕜))] using
+            LinearEquiv.coord_self 𝕜 E x (fun hq => by simp [hq] at hx)
   · exact ⟨0, by simp, by simp [le_antisymm (not_lt.mp hx) (norm_nonneg x)]⟩
-
