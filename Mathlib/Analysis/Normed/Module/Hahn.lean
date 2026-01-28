@@ -68,18 +68,18 @@ theorem exists_dual_vector'''' (x : E) : ∃ g : StrongDual 𝕜 E, ‖g‖ ≤ 
             LinearEquiv.coord_self 𝕜 E x (fun hq => by simp [hq] at hx)
   · exact ⟨0, by simp, by simp [le_antisymm (not_lt.mp hx) (norm_nonneg x)]⟩
 
+
+
 theorem exists_dual_vector_5 (x : E) : ∃ g : StrongDual 𝕜 E, ‖g‖ ≤ 1 ∧ g x = ‖x‖ := by
   by_cases hx : 0 < ‖x‖
-  · have hnz : x ≠ 0 := fun _ ↦ by simp_all
-    have hforward := LinearEquiv.toSpanNonzeroSingleton_homothety 𝕜 x hnz
-    have hinv := homothety_inverse _ hx _ hforward
-    let coord := (ofHomothety _ _ hx hforward).symm.toContinuousLinearMap
+  · have hhom := LinearEquiv.toSpanNonzeroSingleton_homothety 𝕜 x (by aesop)
+    let coord := (ofHomothety _ _ hx hhom).symm.toContinuousLinearMap
     obtain ⟨g, hg⟩ := exists_extension_norm_eq (𝕜 ∙ x) ((‖x‖ : 𝕜) • coord)
     refine ⟨g, ?_, ?_⟩
-    · simp only [hg.2, algebraMap_smul, norm_smul, norm_norm]
-      grw [coord.opNorm_le_bound (by positivity) (fun x ↦ (hinv x).le)]
+    · grw [hg.2, algebraMap_smul, norm_smul, norm_norm,
+        coord.opNorm_le_bound (by positivity) (fun x ↦ (homothety_inverse _ hx _ hhom x).le)]
       simp [hx.ne']
     · have hgx : g x = g (⟨x, by simp⟩ : 𝕜 ∙ x) := by rw [Submodule.coe_mk]
-      have hc : coord ⟨x, by simp⟩ = 1 := LinearEquiv.coord_self 𝕜 E x hnz
+      have hc : coord ⟨x, by simp⟩ = 1 := LinearEquiv.coord_self 𝕜 E x (by grind)
       simp [-algebraMap_smul, hgx, ↓hg.1, hc]
   · exact ⟨0, by simp, by simp [le_antisymm (not_lt.mp hx) (norm_nonneg x)]⟩
