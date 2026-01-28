@@ -76,9 +76,8 @@ theorem exists_dual_vector_5 (x : E) : ∃ g : StrongDual 𝕜 E, ‖g‖ ≤ 1 
     let coord := (ofHomothety _ _ hx hhom).symm.toContinuousLinearMap
     obtain ⟨g, hg⟩ := exists_extension_norm_eq (𝕜 ∙ x) ((‖x‖ : 𝕜) • coord)
     refine ⟨g, ?_, ?_⟩
-    · grw [hg.2, algebraMap_smul, norm_smul, norm_norm,
-        coord.opNorm_le_bound (by positivity) (fun x ↦ (homothety_inverse _ hx _ hhom x).le)]
-      simp [hx.ne']
+    · grw [hg.2, algebraMap_smul, norm_smul, norm_norm, coord.opNorm_le_bound (by positivity)
+        (fun x ↦ (homothety_inverse _ hx _ hhom x).le), mul_inv_cancel₀ hx.ne']
     · have hgx : g x = g (⟨x, by simp⟩ : 𝕜 ∙ x) := by rw [Submodule.coe_mk]
       have hc : coord ⟨x, by simp⟩ = 1 := LinearEquiv.coord_self 𝕜 E x (by grind)
       simp [-algebraMap_smul, hgx, ↓hg.1, hc]
