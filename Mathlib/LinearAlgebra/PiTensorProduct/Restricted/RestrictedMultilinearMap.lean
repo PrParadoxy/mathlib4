@@ -1,12 +1,13 @@
 import Mathlib.Topology.Algebra.RestrictedProduct.Basic
 import Mathlib.LinearAlgebra.Multilinear.Basic
 
-variable {ι : Type*} [DecidableEq ι]
-variable {E : ι → Type*} {R : Type*} {E₀ : (i : ι) → E i}
 
 open RestrictedProduct Filter
 
 namespace RestrictedProduct
+
+variable {ι : Type*} [DecidableEq ι]
+variable {E : ι → Type*} {R : Type*} {E₀ : (i : ι) → E i}
 
 lemma update_restricted (f : Πʳ i, [E i, {E₀ i}]) (i : ι) (v : E i) :
     ∀ᶠ (j : ι) in cofinite, Function.update f i v j ∈ (fun i ↦ ({E₀ i} : Set (E i))) j := by
@@ -20,8 +21,11 @@ lemma update_restricted (f : Πʳ i, [E i, {E₀ i}]) (i : ι) (v : E i) :
 def update (f : Πʳ i, [E i, {E₀ i}]) (i : ι) (v : E i) : Πʳ i, [E i, {E₀ i}] :=
   ⟨Function.update f i v, update_restricted ..⟩
 
-variable (M : Type*) [AddCommMonoid M] [Semiring R] [Module R M]
-  [∀ i, AddCommMonoid (E i)] [∀ i, Module R (E i)]
+end RestrictedProduct
+
+
+variable {ι : Type*} {E : ι → Type*} (R : Type*) (E₀ : (i : ι) → E i) (M : Type*)
+  [AddCommMonoid M] [Semiring R] [Module R M] [∀ i, AddCommMonoid (E i)] [∀ i, Module R (E i)]
 
 structure RestrictedMultilinearMap where
   /-- The underlying multivariate function of a multilinear map. -/
@@ -34,7 +38,5 @@ structure RestrictedMultilinearMap where
   map_update_smul' :
     ∀ [DecidableEq ι] (m : Πʳ i, [E i, {E₀ i}]) (i : ι) (c : R) (x : E i),
       toFun (update m i (c • x)) = c • toFun (update m i x)
-
-
 
 
