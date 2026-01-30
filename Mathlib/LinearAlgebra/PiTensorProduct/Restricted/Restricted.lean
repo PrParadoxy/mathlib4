@@ -89,8 +89,8 @@ noncomputable def universal : RestrictedMultilinearMap R E₀ M ≃ₗ[R] Restri
       (fun _ _ hsub ↦ extendTensor hsub E₀)
       (fun S => PiTensorProduct.lift (rm.toMultilinearMap S))
       (sorry)
-    map_add' := sorry
-    map_smul' := sorry
+    map_add' := by aesop
+    map_smul' := by aesop
     }
     )
   ({
@@ -102,8 +102,8 @@ noncomputable def universal : RestrictedMultilinearMap R E₀ M ≃ₗ[R] Restri
       map_update_smul' := sorry
 
     }
-    map_add' := sorry
-    map_smul' := sorry
+    map_add' := by aesop
+    map_smul' := by aesop
   })
   (sorry)
   (sorry)
