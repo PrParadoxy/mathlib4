@@ -24,7 +24,7 @@ def update (f : Πʳ i, [E i, {E₀ i}]) (i : ι) (v : E i) : Πʳ i, [E i, {E�
 end RestrictedProduct
 
 
-variable {ι : Type*} {E : ι → Type*} (R : Type*) (E₀ : (i : ι) → E i) (M : Type*)
+variable {ι : Type*} {E : ι → Type*} (R : Type*) {S : Type*} (E₀ : (i : ι) → E i) (M : Type*)
   [AddCommMonoid M] [Semiring R] [Module R M] [∀ i, AddCommMonoid (E i)] [∀ i, Module R (E i)]
 
 structure RestrictedMultilinearMap where
@@ -44,6 +44,11 @@ namespace RestrictedMultilinearMap
 instance : FunLike (RestrictedMultilinearMap R E₀ M) (Πʳ (i : ι), [E i, {E₀ i}]) M where
   coe f := f.toFun
   coe_injective' f g h := by cases f; cases g; cases h; rfl
+
+variable {R} {E₀} {M} in
+theorem coe_injective :
+    Function.Injective ((↑) : RestrictedMultilinearMap R E₀ M → (Πʳ (i : ι), [E i, {E₀ i}]) → M) :=
+  DFunLike.coe_injective
 
 variable (f : RestrictedMultilinearMap R E₀ M)
 
@@ -70,12 +75,47 @@ instance : Zero (RestrictedMultilinearMap R E₀ M) :=
 instance : Inhabited (RestrictedMultilinearMap R E₀ M) :=
   ⟨0⟩
 
-variable {S : Type*} [DistribSMul S M] [SMulCommClass R S M]
-
-instance : SMul S (RestrictedMultilinearMap R E₀ M) :=
+instance [DistribSMul S M] [SMulCommClass R S M] : SMul S (RestrictedMultilinearMap R E₀ M) :=
   ⟨fun c f =>
     ⟨fun m => c • f m, fun m i x y => by simp [smul_add], fun l i x d => by
       simp [← smul_comm x c (_ : M)]⟩⟩
 
+variable {R} {E₀} {M} in
+theorem coe_smul [DistribSMul S M] [SMulCommClass R S M]
+  (c : S) (f : RestrictedMultilinearMap R E₀ M) : ⇑(c • f) = c • (⇑f) := rfl
+
 instance addCommMonoid : AddCommMonoid (RestrictedMultilinearMap R E₀ M) := fast_instance%
-  DFunLike.coe_injective.addCommMonoid _ rfl (fun _ _ => rfl) fun _ _ => rfl
+  coe_injective.addCommMonoid _ rfl (fun _ _ => rfl) fun _ _ => rfl
+
+variable {R} {E₀} {M} in
+@[simps] def coeAddMonoidHom : RestrictedMultilinearMap R E₀ M →+
+    ((Πʳ (i : ι), [E i, {E₀ i}]) → M) where
+  toFun := DFunLike.coe; map_zero' := rfl; map_add' _ _ := rfl
+
+instance [Monoid S] [DistribMulAction S M] [Module R M] [SMulCommClass R S M] :
+    DistribMulAction S (RestrictedMultilinearMap R E₀ M) := fast_instance%
+  coe_injective.distribMulAction coeAddMonoidHom fun _ _ ↦ rfl
+
+variable [Semiring S] [Module S M] [SMulCommClass R S M]
+
+instance : Module S (RestrictedMultilinearMap R E₀ M) := fast_instance%
+  coe_injective.module _ coeAddMonoidHom fun _ _ ↦ rfl
+
+instance [Module.IsTorsionFree S M] : Module.IsTorsionFree S (RestrictedMultilinearMap R E₀ M) :=
+  coe_injective.moduleIsTorsionFree _ coe_smul
+
+variable {M : Type*} [AddCommGroup M] [∀ i, Module R (E i)] [Module R M]
+
+instance : Neg (RestrictedMultilinearMap R E₀ M) :=
+  ⟨fun f => ⟨fun m => -f m, fun m i x y => by simp [add_comm], fun m i c x => by simp⟩⟩
+
+instance : Sub (RestrictedMultilinearMap R E₀ M) :=
+  ⟨fun f g =>
+    ⟨fun m => f m - g m, fun m i x y => by
+      simp only [RestrictedMultilinearMap.map_update_add, sub_eq_add_neg, neg_add]
+      abel,
+      fun m i c x => by simp only [RestrictedMultilinearMap.map_update_smul, smul_sub]⟩⟩
+
+instance : AddCommGroup (RestrictedMultilinearMap R E₀ M) := fast_instance%
+  coe_injective.addCommGroup _ rfl (fun _ _ => rfl) (fun _ => rfl) (fun _ _ => rfl)
+    (fun _ _ => rfl) (fun _ _ => rfl)
