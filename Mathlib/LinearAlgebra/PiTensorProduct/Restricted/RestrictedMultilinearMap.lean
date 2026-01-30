@@ -119,5 +119,42 @@ instance : Sub (RestrictedMultilinearMap R E₀ M) :=
 instance : AddCommGroup (RestrictedMultilinearMap R E₀ M) := fast_instance%
   coe_injective.addCommGroup _ rfl (fun _ _ => rfl) (fun _ => rfl) (fun _ _ => rfl)
     (fun _ _ => rfl) (fun _ _ => rfl)
-    
+
 end RestrictedMultilinearMap
+
+
+section FiniteSet
+
+abbrev FiniteSet (ι : Type*) := { S : Set ι // Finite ↑S }
+
+instance : IsDirectedOrder (FiniteSet ι) where
+  directed a b := by
+    use ⟨a.val ∪ b.val, by aesop (add safe apply Set.Finite.to_subtype)⟩
+    aesop
+
+instance : Nonempty (FiniteSet ι) := ⟨∅, Finite.of_subsingleton⟩
+
+noncomputable instance decidable [DecidableEq ι] :
+    ∀ s : FiniteSet ι, ∀ m : ι, Decidable (m ∈ s.val) := fun s m =>
+  haveI : Fintype s.val := @Fintype.ofFinite s.val s.prop
+  Set.decidableMemOfFintype s.val m
+
+end FiniteSet
+
+-- variable {ι : Type*}
+-- variable {E : ι → Type*} {R : Type*}
+-- variable [CommSemiring R] [∀ i, AddCommMonoid (E i)] [∀ i, Module R (E i)]
+-- variable (E₀ : (i : ι) → E i) [Module R M]
+
+-- def RestrictedMultilinearMapEquiv (S : FiniteSet ι) :
+--     RestrictedMultilinearMap R E₀ M ≃ₗ[R] MultilinearMap R (fun i : S.val => E i) M :=
+--   LinearEquiv.ofLinear (M := RestrictedMultilinearMap R E₀ M) (M₂ := MultilinearMap R (fun i : S.val => E i) M)
+--   ({
+--     toFun rm := { toFun v := rm.toFun ⟨by simp [v], by simp⟩
+--                   map_update_add' := _
+--                   map_update_smul' := _ }
+
+--   })
+--   ()
+--   ()
+--   ()

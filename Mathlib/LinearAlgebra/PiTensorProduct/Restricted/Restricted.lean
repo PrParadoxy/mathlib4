@@ -12,24 +12,6 @@ variable {E : ι → Type*} {R : Type*}
 variable [CommSemiring R] [∀ i, AddCommMonoid (E i)] [∀ i, Module R (E i)]
 variable (E₀ : (i : ι) → E i)
 
-section FiniteSet
-
-abbrev FiniteSet (ι : Type*) := { S : Set ι // Finite ↑S }
-
-instance : IsDirectedOrder (FiniteSet ι) where
-  directed a b := by
-    use ⟨a.val ∪ b.val, by aesop (add safe apply Set.Finite.to_subtype)⟩
-    aesop
-
-instance : Nonempty (FiniteSet ι) := ⟨∅, Finite.of_subsingleton⟩
-
-noncomputable instance decidable : ∀ s : FiniteSet ι, ∀ m : ι, Decidable (m ∈ s.val) :=
-  fun s m =>
-    haveI : Fintype s.val := @Fintype.ofFinite s.val s.prop
-    Set.decidableMemOfFintype s.val m
-
-end FiniteSet
-
 instance directedSystem : DirectedSystem
     (fun S : FiniteSet ι ↦ ⨂[R] (i : S.val), E i)
     (fun _ _ hsub ↦ extendTensor hsub E₀) where
@@ -99,4 +81,15 @@ noncomputable def unlift : (Restricted R E₀ →ₗ[R] M) →ₗ[R] Multilinear
   map_smul' := by aesop
 
 
-noncomputable def universal : RestrictedMultilinearMap R E₀ M ≃ₗ[R] Restricted R E₀ →ₗ[R] M := sorry
+-- noncomputable def universal : RestrictedMultilinearMap R E₀ M ≃ₗ[R] Restricted R E₀ →ₗ[R] M :=
+--   LinearEquiv.ofLinear (M := RestrictedMultilinearMap R E₀ M)
+--   ({
+--     toFun r := DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i)
+--       (fun _ _ hsub ↦ extendTensor hsub E₀) (fun S => PiTensorProduct.lift ()) ()
+--     map_add' := _
+--     map_smul' := _
+--     }
+--     )
+--   ()
+--   ()
+--   ()
