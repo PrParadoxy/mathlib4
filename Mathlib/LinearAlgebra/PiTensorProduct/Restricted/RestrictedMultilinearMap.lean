@@ -159,8 +159,9 @@ instance [Module.IsTorsionFree S M] : Module.IsTorsionFree S (RestrictedMultilin
 
 variable {E : ι → Type*} {R : Type*}
 variable [CommSemiring R] [∀ i, AddCommMonoid (E i)] [∀ i, Module R (E i)]
-variable (E₀ : (i : ι) → E i) [Module R M]
+variable {E₀ : (i : ι) → E i} [Module R M]
 
+variable {M} in
 @[simps]
 noncomputable def toMultilinearMap (S : FiniteSet ι) :
     RestrictedMultilinearMap R E₀ M →ₗ[R] MultilinearMap R (fun i : S.val => E i) M :=
@@ -177,6 +178,7 @@ noncomputable def toMultilinearMap (S : FiniteSet ι) :
 open scoped TensorProduct
 open PiTensorProduct
 
+variable (E₀) in
 @[simps]
 def tprodr : RestrictedMultilinearMap R E₀ (⨂[R] i, E i) where
   toFun v := tprod R v.val

@@ -7,7 +7,7 @@ import Mathlib.LinearAlgebra.PiTensorProduct.Restricted.RestrictedMultilinearMap
 open PiTensorProduct RestrictedProduct
 open scoped TensorProduct
 
-variable {ι : Type*} 
+variable {ι : Type*}
 variable {E : ι → Type*} {R : Type*}
 variable [CommSemiring R] [∀ i, AddCommMonoid (E i)] [∀ i, Module R (E i)]
 variable (E₀ : (i : ι) → E i)
@@ -87,7 +87,7 @@ noncomputable def universal : RestrictedMultilinearMap R E₀ M ≃ₗ[R] Restri
   ({
     toFun rm := DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i)
       (fun _ _ hsub ↦ extendTensor hsub E₀)
-      (fun S => PiTensorProduct.lift (rm.toMultilinearMap M E₀ S))
+      (fun S => PiTensorProduct.lift (rm.toMultilinearMap E₀ S))
       (sorry)
     map_add' := sorry
     map_smul' := sorry
