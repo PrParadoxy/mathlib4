@@ -178,7 +178,7 @@ noncomputable def toMultilinearMap (S : FiniteSet ι) :
 open scoped TensorProduct
 open PiTensorProduct
 
-variable (E₀) in
+variable (R E₀) in
 @[simps]
 def tprodr : RestrictedMultilinearMap R E₀ (⨂[R] i, E i) where
   toFun v := tprod R v.val
