@@ -2,6 +2,27 @@ import Mathlib.Topology.Algebra.RestrictedProduct.Basic
 import Mathlib.LinearAlgebra.Multilinear.Basic
 
 
+section FiniteSet
+
+abbrev FiniteSet (ι : Type*) := { S : Set ι // Finite ↑S }
+
+variable {ι : Type*}
+
+instance : IsDirectedOrder (FiniteSet ι) where
+  directed a b := by
+    use ⟨a.val ∪ b.val, by aesop (add safe apply Set.Finite.to_subtype)⟩
+    aesop
+
+instance : Nonempty (FiniteSet ι) := ⟨∅, Finite.of_subsingleton⟩
+
+noncomputable instance decidable [DecidableEq ι] :
+    ∀ s : FiniteSet ι, ∀ m : ι, Decidable (m ∈ s.val) := fun s m =>
+  haveI : Fintype s.val := @Fintype.ofFinite s.val s.prop
+  Set.decidableMemOfFintype s.val m
+
+end FiniteSet
+
+
 open RestrictedProduct Filter
 
 namespace RestrictedProduct
@@ -20,6 +41,13 @@ lemma update_restricted (f : Πʳ i, [E i, {E₀ i}]) (i : ι) (v : E i) :
 @[simps]
 def update (f : Πʳ i, [E i, {E₀ i}]) (i : ι) (v : E i) : Πʳ i, [E i, {E₀ i}] :=
   ⟨Function.update f i v, update_restricted ..⟩
+
+@[simps]
+noncomputable def finiteSetMap {S : FiniteSet ι} (f : Π i : S.val, E i) : Πʳ i, [E i, {E₀ i}] :=
+  ⟨fun i ↦ if h : i ∈ S.val then f ⟨i, h⟩ else E₀ i, by
+    simp only [Set.mem_singleton_iff, dite_eq_right_iff, eventually_cofinite, not_forall]
+    exact Set.Finite.subset S.prop (fun _ hi => hi.choose)
+  ⟩
 
 end RestrictedProduct
 
@@ -123,23 +151,7 @@ instance : AddCommGroup (RestrictedMultilinearMap R E₀ M) := fast_instance%
 end RestrictedMultilinearMap
 
 
-section FiniteSet
 
-abbrev FiniteSet (ι : Type*) := { S : Set ι // Finite ↑S }
-
-instance : IsDirectedOrder (FiniteSet ι) where
-  directed a b := by
-    use ⟨a.val ∪ b.val, by aesop (add safe apply Set.Finite.to_subtype)⟩
-    aesop
-
-instance : Nonempty (FiniteSet ι) := ⟨∅, Finite.of_subsingleton⟩
-
-noncomputable instance decidable [DecidableEq ι] :
-    ∀ s : FiniteSet ι, ∀ m : ι, Decidable (m ∈ s.val) := fun s m =>
-  haveI : Fintype s.val := @Fintype.ofFinite s.val s.prop
-  Set.decidableMemOfFintype s.val m
-
-end FiniteSet
 
 variable {ι : Type*}
 variable {E : ι → Type*} {R : Type*}
