@@ -87,7 +87,7 @@ noncomputable def universal : RestrictedMultilinearMap R E₀ M ≃ₗ[R] Restri
   ({
     toFun rm := DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i)
       (fun _ _ hsub ↦ extendTensor hsub E₀)
-      (fun S => PiTensorProduct.lift (rm.toMultilinearMap E₀ S))
+      (fun S => PiTensorProduct.lift (rm.toMultilinearMap S))
       (sorry)
     map_add' := sorry
     map_smul' := sorry
