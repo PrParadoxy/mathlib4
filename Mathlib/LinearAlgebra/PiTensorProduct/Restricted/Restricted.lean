@@ -81,15 +81,21 @@ noncomputable def unlift : (Restricted R E₀ →ₗ[R] M) →ₗ[R] Multilinear
   map_smul' := by aesop
 
 
--- noncomputable def universal : RestrictedMultilinearMap R E₀ M ≃ₗ[R] Restricted R E₀ →ₗ[R] M :=
---   LinearEquiv.ofLinear (M := RestrictedMultilinearMap R E₀ M)
---   ({
---     toFun r := DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i)
---       (fun _ _ hsub ↦ extendTensor hsub E₀) (fun S => PiTensorProduct.lift ()) ()
---     map_add' := _
---     map_smul' := _
---     }
---     )
---   ()
---   ()
---   ()
+noncomputable def universal : RestrictedMultilinearMap R E₀ M ≃ₗ[R] Restricted R E₀ →ₗ[R] M :=
+  LinearEquiv.ofLinear (M := RestrictedMultilinearMap R E₀ M)
+  ({
+    toFun rm := DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i)
+      (fun _ _ hsub ↦ extendTensor hsub E₀)
+      (fun S => PiTensorProduct.lift (rm.toMultilinearMap M E₀ S))
+      (sorry)
+    map_add' := sorry
+    map_smul' := sorry
+    }
+    )
+  ({
+    toFun l := sorry
+    map_add' := sorry
+    map_smul' := sorry
+  })
+  (sorry)
+  (sorry)
