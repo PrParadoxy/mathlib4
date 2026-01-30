@@ -1,6 +1,6 @@
 import Mathlib.Topology.Algebra.RestrictedProduct.Basic
 import Mathlib.LinearAlgebra.Multilinear.Basic
-
+import Mathlib.LinearAlgebra.PiTensorProduct
 
 section FiniteSet
 
@@ -37,9 +37,12 @@ lemma update_restricted (f : Πʳ i, [E i, {E₀ i}]) (i : ι) (v : E i) :
   · intro j _
     by_cases j = i <;> simp_all
 
-@[simps]
 def update (f : Πʳ i, [E i, {E₀ i}]) (i : ι) (v : E i) : Πʳ i, [E i, {E₀ i}] :=
   ⟨Function.update f i v, update_restricted ..⟩
+
+@[simp]
+lemma update_eq_function_update (f : Πʳ i, [E i, {E₀ i}]) (i : ι) (v : E i) :
+  (update f i v).val = Function.update f i v := rfl
 
 variable (E₀)
 @[simps]
@@ -129,6 +132,13 @@ variable [Semiring S] [Module S M] [SMulCommClass R S M]
 instance : Module S (RestrictedMultilinearMap R E₀ M) := fast_instance%
   coe_injective.module _ coeAddMonoidHom fun _ _ ↦ rfl
 
+variable {M₂ : Type*} [AddCommMonoid M₂] [Module R M₂]
+def compRestrictedMultilinearMap (g : M →ₗ[R] M₂) (f : RestrictedMultilinearMap R E₀ M)
+    : RestrictedMultilinearMap R E₀ M₂ where
+  toFun := g ∘ f
+  map_update_add' m i x y := by simp
+  map_update_smul' m i c x := by simp
+
 instance [Module.IsTorsionFree S M] : Module.IsTorsionFree S (RestrictedMultilinearMap R E₀ M) :=
   coe_injective.moduleIsTorsionFree _ coe_smul
 
@@ -167,3 +177,12 @@ noncomputable def RestrictedMultilinearMap.toMultilinearMap (S : FiniteSet ι) :
     map_add' := sorry
     map_smul' := sorry
   }
+
+
+open scoped TensorProduct
+open PiTensorProduct
+
+def tprodr : RestrictedMultilinearMap R E₀ (⨂[R] i, E i) where
+  toFun v := tprodCoeff R 1 v.val
+  map_update_add' {_ f} i x y := (add_tprodCoeff (1 : R) f i x y).symm
+  map_update_smul' {_ f} i r x := by simp
