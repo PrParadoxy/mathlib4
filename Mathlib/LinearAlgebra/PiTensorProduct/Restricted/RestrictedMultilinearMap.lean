@@ -44,19 +44,27 @@ def update (f : Πʳ i, [E i, {E₀ i}]) (i : ι) (v : E i) : Πʳ i, [E i, {E�
 lemma update_eq_function_update (f : Πʳ i, [E i, {E₀ i}]) (i : ι) (v : E i) :
   (update f i v).val = Function.update f i v := rfl
 
+@[simp]
+lemma update_apply (f : Πʳ i, [E i, {E₀ i}]) (i : ι) (v : E i) (j : ι) :
+  (update f i v) j = Function.update f i v j := rfl
+
 variable (E₀)
-@[simps]
 noncomputable def finiteSetMap {S : FiniteSet ι} (f : Π i : S.val, E i) : Πʳ i, [E i, {E₀ i}] :=
   ⟨fun i ↦ if h : i ∈ S.val then f ⟨i, h⟩ else E₀ i, by
     simp only [Set.mem_singleton_iff, dite_eq_right_iff, eventually_cofinite, not_forall]
     exact Set.Finite.subset S.prop (fun _ hi => hi.choose)
   ⟩
 
+omit [DecidableEq ι] in
+@[simp]
+lemma finiteSetMap_apply {S : FiniteSet ι} (f : Π i : S.val, E i) (i) :
+  finiteSetMap E₀ f i = if h : i ∈ S.val then f ⟨i, h⟩ else E₀ i := rfl
+
 @[simp]
 lemma finiteSetMap_update {S : FiniteSet ι} [DecidableEq ↑↑S] (f : Π i : S.val, E i) (i v) :
     finiteSetMap E₀ (Function.update f i v) = update (finiteSetMap E₀ f) i v := by
   ext j
-  sorry
+  by_cases h : j = i <;> aesop
 
 end RestrictedProduct
 
@@ -67,11 +75,11 @@ variable {ι : Type*} {E : ι → Type*} (R : Type*) {S : Type*} (E₀ : (i : ι
 structure RestrictedMultilinearMap where
   /-- The underlying multivariate function of a multilinear map. -/
   toFun : Πʳ i, [E i, {E₀ i}] → M
-  /-- A multilinear map is additive in every argument. -/
+  /-- A restricted multilinear map is additive in every argument. -/
   map_update_add' :
     ∀ [DecidableEq ι] (m : Πʳ i, [E i, {E₀ i}]) (i : ι) (x y : E i),
       toFun (update m i (x + y)) = toFun (update m i x) + toFun (update m i y)
-  /-- A multilinear map is compatible with scalar multiplication in every argument. -/
+  /-- A restricted multilinear map is compatible with scalar multiplication in every argument. -/
   map_update_smul' :
     ∀ [DecidableEq ι] (m : Πʳ i, [E i, {E₀ i}]) (i : ι) (c : R) (x : E i),
       toFun (update m i (c • x)) = c • toFun (update m i x)
@@ -181,13 +189,6 @@ noncomputable def toMultilinearMap (S : FiniteSet ι) :
     map_add' := by aesop
     map_smul' := by aesop
   }
-
-end RestrictedMultilinearMap
-
-
-variable {E : ι → Type*} {R : Type*}
-variable [CommSemiring R] [∀ i, AddCommMonoid (E i)] [∀ i, Module R (E i)]
-variable (E₀ : (i : ι) → E i) [Module R M]
 
 open scoped TensorProduct
 open PiTensorProduct
