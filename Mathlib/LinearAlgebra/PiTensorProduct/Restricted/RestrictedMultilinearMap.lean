@@ -52,6 +52,12 @@ noncomputable def finiteSetMap {S : FiniteSet ι} (f : Π i : S.val, E i) : Πʳ
     exact Set.Finite.subset S.prop (fun _ hi => hi.choose)
   ⟩
 
+@[simp]
+lemma finiteSetMap_update {S : FiniteSet ι} [DecidableEq ↑↑S] (f : Π i : S.val, E i) (i v) :
+    finiteSetMap E₀ (Function.update f i v) = update (finiteSetMap E₀ f) i v := by
+  ext j
+  sorry
+
 end RestrictedProduct
 
 
@@ -158,30 +164,35 @@ instance : AddCommGroup (RestrictedMultilinearMap R E₀ M) := fast_instance%
   coe_injective.addCommGroup _ rfl (fun _ _ => rfl) (fun _ => rfl) (fun _ _ => rfl)
     (fun _ _ => rfl) (fun _ _ => rfl)
 
-end RestrictedMultilinearMap
 
-
-
-
-variable {ι : Type*}
 variable {E : ι → Type*} {R : Type*}
 variable [CommSemiring R] [∀ i, AddCommMonoid (E i)] [∀ i, Module R (E i)]
 variable (E₀ : (i : ι) → E i) [Module R M]
 
-noncomputable def RestrictedMultilinearMap.toMultilinearMap (S : FiniteSet ι) :
+@[simps]
+noncomputable def toMultilinearMap (S : FiniteSet ι) :
     RestrictedMultilinearMap R E₀ M →ₗ[R] MultilinearMap R (fun i : S.val => E i) M :=
   {
-    toFun ml := { toFun v := ml (finiteSetMap E₀ v)
-                  map_update_add' := sorry
-                  map_update_smul' := sorry }
-    map_add' := sorry
-    map_smul' := sorry
+    toFun ml := {
+      toFun v := ml (finiteSetMap E₀ v)
+      map_update_add'  := by classical simp
+      map_update_smul' := by classical simp
+    }
+    map_add' := by aesop
+    map_smul' := by aesop
   }
 
+end RestrictedMultilinearMap
+
+
+variable {E : ι → Type*} {R : Type*}
+variable [CommSemiring R] [∀ i, AddCommMonoid (E i)] [∀ i, Module R (E i)]
+variable (E₀ : (i : ι) → E i) [Module R M]
 
 open scoped TensorProduct
 open PiTensorProduct
 
+@[simps]
 def tprodr : RestrictedMultilinearMap R E₀ (⨂[R] i, E i) where
   toFun v := tprod R v.val
   map_update_add' {_ f} i x y := by simp
