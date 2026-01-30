@@ -119,3 +119,5 @@ instance : Sub (RestrictedMultilinearMap R E₀ M) :=
 instance : AddCommGroup (RestrictedMultilinearMap R E₀ M) := fast_instance%
   coe_injective.addCommGroup _ rfl (fun _ _ => rfl) (fun _ => rfl) (fun _ _ => rfl)
     (fun _ _ => rfl) (fun _ _ => rfl)
+    
+end RestrictedMultilinearMap

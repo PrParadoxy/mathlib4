@@ -2,7 +2,7 @@ import Mathlib.LinearAlgebra.PiTensorProduct.Set
 import Mathlib.Algebra.Colimit.Module
 import Mathlib.Analysis.Normed.Module.PiTensorProduct.ProjectiveSeminorm
 import Mathlib.Topology.Algebra.RestrictedProduct.Basic
-
+import Mathlib.LinearAlgebra.PiTensorProduct.Restricted.RestrictedMultilinearMap
 
 open PiTensorProduct RestrictedProduct
 open scoped TensorProduct
@@ -50,7 +50,7 @@ noncomputable def of {S : FiniteSet ι} :
     (⨂[R] i : ↑S, E i) →ₗ[R] Restricted R E₀ :=
   DirectLimit.Module.of R _ (fun S : FiniteSet ι ↦ ⨂[R] i : ↑S, E i) ..
 
-variable (M₂ : Type*) [AddCommMonoid M₂] [Module R M₂]
+variable (M : Type*) [AddCommMonoid M] [Module R M]
 
 -- This is phrased in the same manner as `Module.DirectLimit.lift_unique`
 -- also similar to `PiTensorProduct.lift.unique'`
@@ -60,13 +60,13 @@ variable (M₂ : Type*) [AddCommMonoid M₂] [Module R M₂]
   of `PiTensorProduct`s, i.e `PiTensorProduct.lift.symm`. So a Multilinearmap
   `ML := lift.symm ( l.comp (of E₀))` uniquely determines `l`.
 -/
-theorem lift_unique (l : Restricted R E₀ →ₗ[R] M₂) :
+theorem lift_unique (l : Restricted R E₀ →ₗ[R] M) :
     l = DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i)
       (fun _ _ hsub ↦ extendTensor hsub E₀) (fun S => l.comp (of E₀))
       (fun i j hij x ↦ by simp [of]) := by
   ext; simp [of]
 
-noncomputable def lift : MultilinearMap R E M₂ →ₗ[R] Restricted R E₀ →ₗ[R] M₂ where
+noncomputable def lift : MultilinearMap R E M →ₗ[R] Restricted R E₀ →ₗ[R] M where
   toFun M := DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i)
     (fun _ _ hsub ↦ extendTensor hsub E₀)
     (fun S => PiTensorProduct.lift (M.domDomRestrictₗ (fun i => i ∈ S.val) (fun i => E₀ i.val)))
@@ -84,7 +84,7 @@ noncomputable def lift : MultilinearMap R E M₂ →ₗ[R] Restricted R E₀ →
   map_smul' := by aesop
 
 open Classical in
-noncomputable def unlift : (Restricted R E₀ →ₗ[R] M₂) →ₗ[R] MultilinearMap R E M₂ where
+noncomputable def unlift : (Restricted R E₀ →ₗ[R] M) →ₗ[R] MultilinearMap R E M where
   toFun l := {
     toFun v :=
       if h : ∃ vr : Πʳ i, [E i, {E₀ i}], v = vr then
@@ -97,3 +97,6 @@ noncomputable def unlift : (Restricted R E₀ →ₗ[R] M₂) →ₗ[R] Multilin
   }
   map_add' := by aesop
   map_smul' := by aesop
+
+
+noncomputable def universal : RestrictedMultilinearMap R E₀ M ≃ₗ[R] Restricted R E₀ →ₗ[R] M := sorry
