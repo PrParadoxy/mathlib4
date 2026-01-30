@@ -15,10 +15,9 @@ instance : IsDirectedOrder (FiniteSet ι) where
 
 instance : Nonempty (FiniteSet ι) := ⟨∅, Finite.of_subsingleton⟩
 
-noncomputable instance decidable [DecidableEq ι] :
+noncomputable instance decidable :
     ∀ s : FiniteSet ι, ∀ m : ι, Decidable (m ∈ s.val) := fun s m =>
-  haveI : Fintype s.val := @Fintype.ofFinite s.val s.prop
-  Set.decidableMemOfFintype s.val m
+  Classical.propDecidable (m ∈ s.val)
 
 end FiniteSet
 
@@ -154,7 +153,7 @@ end RestrictedMultilinearMap
 
 
 
-variable {ι : Type*} [DecidableEq ι]
+variable {ι : Type*}
 variable {E : ι → Type*} {R : Type*}
 variable [CommSemiring R] [∀ i, AddCommMonoid (E i)] [∀ i, Module R (E i)]
 variable (E₀ : (i : ι) → E i) [Module R M]
