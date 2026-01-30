@@ -42,6 +42,7 @@ lemma update_restricted (f : Πʳ i, [E i, {E₀ i}]) (i : ι) (v : E i) :
 def update (f : Πʳ i, [E i, {E₀ i}]) (i : ι) (v : E i) : Πʳ i, [E i, {E₀ i}] :=
   ⟨Function.update f i v, update_restricted ..⟩
 
+variable (E₀)
 @[simps]
 noncomputable def finiteSetMap {S : FiniteSet ι} (f : Π i : S.val, E i) : Πʳ i, [E i, {E₀ i}] :=
   ⟨fun i ↦ if h : i ∈ S.val then f ⟨i, h⟩ else E₀ i, by
@@ -153,10 +154,17 @@ end RestrictedMultilinearMap
 
 
 
-variable {ι : Type*}
+variable {ι : Type*} [DecidableEq ι]
 variable {E : ι → Type*} {R : Type*}
 variable [CommSemiring R] [∀ i, AddCommMonoid (E i)] [∀ i, Module R (E i)]
 variable (E₀ : (i : ι) → E i) [Module R M]
 
-def RestrictedMultilinearMap.toMultilinearMap (S : FiniteSet ι) :
-    RestrictedMultilinearMap R E₀ M →ₗ[R] MultilinearMap R (fun i : S.val => E i) M := sorry
+noncomputable def RestrictedMultilinearMap.toMultilinearMap (S : FiniteSet ι) :
+    RestrictedMultilinearMap R E₀ M →ₗ[R] MultilinearMap R (fun i : S.val => E i) M :=
+  {
+    toFun ml := { toFun v := ml (finiteSetMap E₀ v)
+                  map_update_add' := sorry
+                  map_update_smul' := sorry }
+    map_add' := sorry
+    map_smul' := sorry
+  }
