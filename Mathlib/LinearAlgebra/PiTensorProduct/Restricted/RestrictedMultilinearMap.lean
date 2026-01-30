@@ -147,6 +147,7 @@ instance : Module S (RestrictedMultilinearMap R E₀ M) := fast_instance%
   coe_injective.module _ coeAddMonoidHom fun _ _ ↦ rfl
 
 variable {M₂ : Type*} [AddCommMonoid M₂] [Module R M₂]
+variable {R E₀ M} in
 def compRestrictedMultilinearMap (g : M →ₗ[R] M₂) (f : RestrictedMultilinearMap R E₀ M)
     : RestrictedMultilinearMap R E₀ M₂ where
   toFun := g ∘ f
