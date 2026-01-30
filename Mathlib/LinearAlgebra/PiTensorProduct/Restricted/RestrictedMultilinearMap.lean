@@ -141,20 +141,10 @@ noncomputable instance decidable [DecidableEq ι] :
 
 end FiniteSet
 
--- variable {ι : Type*}
--- variable {E : ι → Type*} {R : Type*}
--- variable [CommSemiring R] [∀ i, AddCommMonoid (E i)] [∀ i, Module R (E i)]
--- variable (E₀ : (i : ι) → E i) [Module R M]
+variable {ι : Type*}
+variable {E : ι → Type*} {R : Type*}
+variable [CommSemiring R] [∀ i, AddCommMonoid (E i)] [∀ i, Module R (E i)]
+variable (E₀ : (i : ι) → E i) [Module R M]
 
--- def RestrictedMultilinearMapEquiv (S : FiniteSet ι) :
---     RestrictedMultilinearMap R E₀ M ≃ₗ[R] MultilinearMap R (fun i : S.val => E i) M :=
---   LinearEquiv.ofLinear (M := RestrictedMultilinearMap R E₀ M) (M₂ := MultilinearMap R (fun i : S.val => E i) M)
---   ({
---     toFun rm := { toFun v := rm.toFun ⟨by simp [v], by simp⟩
---                   map_update_add' := _
---                   map_update_smul' := _ }
-
---   })
---   ()
---   ()
---   ()
+def RestrictedMultilinearMap.toMultilinearMap (S : FiniteSet ι) :
+    RestrictedMultilinearMap R E₀ M →ₗ[R] MultilinearMap R (fun i : S.val => E i) M := sorry
