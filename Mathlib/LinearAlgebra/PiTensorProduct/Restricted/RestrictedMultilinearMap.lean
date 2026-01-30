@@ -183,6 +183,6 @@ open scoped TensorProduct
 open PiTensorProduct
 
 def tprodr : RestrictedMultilinearMap R E₀ (⨂[R] i, E i) where
-  toFun v := tprodCoeff R 1 v.val
-  map_update_add' {_ f} i x y := (add_tprodCoeff (1 : R) f i x y).symm
+  toFun v := tprod R v.val
+  map_update_add' {_ f} i x y := by simp
   map_update_smul' {_ f} i r x := by simp
