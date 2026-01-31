@@ -100,16 +100,17 @@ noncomputable def lift : RestrictedMultilinearMap R E₀ M →ₗ[R] RestrictedT
     map_add' := by aesop
     map_smul' := by aesop
   }
+
 variable (R) {E₀} in
 theorem lift.symm_welldefined (v : Πʳ (i : ι), [E i, {E₀ i}]) :
-    let S : FiniteSet ι := ⟨_, Filter.eventually_cofinite.mp v.prop⟩
+    let S : FiniteSet ι := ⟨_, v.prop⟩
     ∀ J, S ≤ J → (of E₀ S) (⨂ₜ[R] i, v i) = (of E₀ J) (⨂ₜ[R] i, v i) := by
   intro S J HSJ
   simp only [of, ← DirectLimit.Module.of_f (hij := HSJ), extendTensor_tprod, dite_eq_ite]
   congr with j
   split_ifs with hj
   · rfl
-  · simp only [Set.mem_singleton_iff, Set.mem_setOf_eq, not_not, S] at hj
+  · simp only [Set.mem_singleton_iff, Set.mem_compl_iff, Set.mem_setOf_eq, not_not, S] at hj
     exact hj.symm
 
 noncomputable def lift.symm :
@@ -117,11 +118,11 @@ noncomputable def lift.symm :
   {
     toFun l := {
       toFun v :=
-        let S : FiniteSet ι := ⟨_, Filter.eventually_cofinite.mp v.prop⟩
+        let S : FiniteSet ι := ⟨_, v.prop⟩
         l.comp (of E₀ S) (PiTensorProduct.tprod R (fun i => v i))
       map_update_add' := by
         intro _ v i x y
-        have := lift.symm_welldefined R v
+        have := lift.symm_welldefined R (v.update i x)
         simp only [LinearMap.coe_comp, Function.comp_apply]
         sorry
         -- set S : FiniteSet ι := ⟨_, Filter.eventually_cofinite.mp v.prop⟩ with hs
