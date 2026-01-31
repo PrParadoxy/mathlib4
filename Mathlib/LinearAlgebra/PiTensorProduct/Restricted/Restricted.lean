@@ -54,6 +54,7 @@ variable (M : Type*) [AddCommMonoid M] [Module R M]
 open RestrictedMultilinearMap
 open scoped TensorProduct
 
+@[simps]
 noncomputable def lift : RestrictedMultilinearMap R E₀ M →ₗ[R] RestrictedTensor R E₀ →ₗ[R] M :=
   {
     toFun rm := DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i)
@@ -73,11 +74,12 @@ noncomputable def lift : RestrictedMultilinearMap R E₀ M →ₗ[R] RestrictedT
   }
 
 open Set in
+@[simps]
 noncomputable def lift.symm :
     (RestrictedTensor R E₀ →ₗ[R] M) →ₗ[R] RestrictedMultilinearMap R E₀ M :=
   {
     toFun l := {
-      toFun f := l.comp (of E₀ ⟨_, f.prop⟩) (PiTensorProduct.tprod R (fun i => f i))
+      toFun f := l.comp (of E₀ ⟨_, f.prop⟩) (⨂ₜ[R] i, f i)
       map_update_add' f i x y := by
         let sx : FiniteSet ι := ⟨_, (f.update i x).prop⟩
         let sy : FiniteSet ι := ⟨_, (f.update i y).prop⟩
@@ -97,8 +99,8 @@ noncomputable def lift.symm :
         let sx : FiniteSet ι := ⟨_, (f.update i x).prop⟩
         let sc : FiniteSet ι := ⟨_, (f.update i (c • x)).prop⟩
         let s : FiniteSet ι := ⟨sx.val ∪ sc.val ∪ {i}, by
-            rw [Set.union_singleton]
-            exact Finite.insert _ (Finite.union sx.prop sc.prop)⟩
+          rw [Set.union_singleton]
+          exact Finite.insert _ (Finite.union sx.prop sc.prop)⟩
         simp only [LinearMap.coe_comp, Function.comp_apply]
         conv_lhs => rw [of_f' R (f.update i (c • x)) s (by intro _; grind)]
         conv_rhs => rw [of_f' R (f.update i x) s (by intro _; grind)]
@@ -112,32 +114,27 @@ noncomputable def lift.symm :
 
 
 
--- noncomputable def universal : RestrictedMultilinearMap R E₀ M ≃ₗ[R]
--- RestrictedTensor R E₀ →ₗ[R] M :=
---   LinearEquiv.ofLinear (M := RestrictedMultilinearMap R E₀ M)
---   ({
---     toFun rm := DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i)
---       (fun _ _ hsub ↦ extendTensor hsub E₀)
---       (fun S => PiTensorProduct.lift (rm.toMultilinearMap S))
---       (sorry)
---     map_add' := by aesop
---     map_smul' := by aesop
---     }
---     )
---   ({
---     toFun l := {
---       toFun v :=
---         let S : FiniteSet ι := ⟨_, Filter.eventually_cofinite.mp v.prop⟩
---         l.comp (of E₀ (S := S)) (PiTensorProduct.tprod R (fun i => v i))
---       map_update_add' := sorry
---       map_update_smul' := sorry
-
---     }
---     map_add' := by aesop
---     map_smul' := by aesop
---   })
---   (by ext j; simp)
---   (by ext j; simp)
+noncomputable def universal : RestrictedMultilinearMap R E₀ M ≃ₗ[R] RestrictedTensor R E₀ →ₗ[R] M :=
+  LinearEquiv.ofLinear (M := RestrictedMultilinearMap R E₀ M)
+  (lift E₀ M)
+  (lift.symm E₀ M)
+  (by
+    ext rm S f
+    simp only [LinearMap.coe_comp, Function.comp_apply, lift_apply,
+      LinearMap.compMultilinearMap_apply, DirectLimit.Module.lift_of, lift.tprod,
+      toMultilinearMap_apply_apply, lift.symm_apply_toFun]
+    rw [of_f' R (finiteSetMap E₀ f) S (by intro i; simp_all [finiteSetMap])]
+    simp [of]
+    )
+  (by
+    ext _ _
+    simp only [LinearMap.coe_comp, Function.comp_apply, lift_apply, lift.symm_apply_toFun, of,
+      DirectLimit.Module.lift_of, lift.tprod, LinearMap.id_coe, id_eq, toMultilinearMap,
+      finiteSetMap, Set.mem_singleton_iff, Set.mem_compl_iff, Set.mem_setOf_eq, LinearMap.coe_mk,
+      AddHom.coe_mk, MultilinearMap.coe_mk, dite_eq_ite]
+    congr with _
+    aesop
+  )
 
 
 
