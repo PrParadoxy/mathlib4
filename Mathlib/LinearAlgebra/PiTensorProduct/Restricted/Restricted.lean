@@ -34,7 +34,7 @@ noncomputable def of (S : FiniteSet ι) :
 variable (R) in
 theorem of_of (S : FiniteSet ι) (v : Π i, E i) :
     ∀ J, (hSJ : S ≤ J) →
-    (of E₀ S) (⨂ₜ[R] i, v i) = (of E₀ J) ((extendTensor hSJ E₀) (⨂ₜ[R] i : S.val, v i)) := by
+    (of E₀ S) (⨂ₜ[R] i, v i) = (of E₀ J) ((extendTensor hSJ E₀) (⨂ₜ[R] i, v i)) := by
   intro J hSJ
   simp [of, ← DirectLimit.Module.of_f (hij := hSJ)]
 
