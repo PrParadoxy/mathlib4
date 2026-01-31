@@ -32,15 +32,15 @@ noncomputable def of (S : FiniteSet ι) :
   DirectLimit.Module.of R _ (fun S : FiniteSet ι ↦ ⨂[R] i : ↑S, E i) ..
 
 variable (R) in
-theorem of_f (S : FiniteSet ι) (v : Π i, E i) :
+theorem of_f (S : FiniteSet ι) (f : Π i, E i) :
     ∀ J, (hSJ : S ≤ J) →
-    (of E₀ S) (⨂ₜ[R] i, v i) = (of E₀ J) ((extendTensor hSJ E₀) (⨂ₜ[R] i, v i)) := by
+    (of E₀ S) (⨂ₜ[R] i, f i) = (of E₀ J) ((extendTensor hSJ E₀) (⨂ₜ[R] i, f i)) := by
   intro J hSJ
   simp [of, ← DirectLimit.Module.of_f (hij := hSJ)]
 
 variable (R) {E₀} in
-theorem of_f' (v : Πʳ (i : ι), [E i, {E₀ i}]) :
-    ∀ J, ⟨_, v.prop⟩ ≤ J → (of E₀ ⟨_, v.prop⟩) (⨂ₜ[R] i, v i) = (of E₀ J) (⨂ₜ[R] i, v i) := by
+theorem of_f' (f : Πʳ (i : ι), [E i, {E₀ i}]) :
+    ∀ J, ⟨_, f.prop⟩ ≤ J → (of E₀ ⟨_, f.prop⟩) (⨂ₜ[R] i, f i) = (of E₀ J) (⨂ₜ[R] i, f i) := by
   intro J hSJ
   simp only [of, ← DirectLimit.Module.of_f (hij := hSJ), extendTensor_tprod, dite_eq_ite]
   congr with j
