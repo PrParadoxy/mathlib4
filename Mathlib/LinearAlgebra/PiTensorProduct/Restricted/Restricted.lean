@@ -67,7 +67,7 @@ noncomputable def lift : RestrictedMultilinearMap R E₀ M →ₗ[R] RestrictedT
           congr 2 with _
           have (i : ι) (hi : i ∈ s1.val) : i ∈ s2.val := Set.mem_of_subset_of_mem hsub hi
           aesop
-        | add a b ha hb => aesop
+        | add => grind
       )
     map_add' := by aesop
     map_smul' := by aesop
@@ -115,7 +115,7 @@ noncomputable def universal : RestrictedMultilinearMap R E₀ M ≃ₗ[R] Restri
   (lift E₀ M)
   (lift.symm E₀ M)
   (by
-    ext rm S f
+    ext _ S f
     simp only [LinearMap.coe_comp, Function.comp_apply, lift_apply,
       LinearMap.compMultilinearMap_apply, DirectLimit.Module.lift_of, lift.tprod,
       toMultilinearMap_apply_apply, lift.symm_apply_toFun]
@@ -123,7 +123,7 @@ noncomputable def universal : RestrictedMultilinearMap R E₀ M ≃ₗ[R] Restri
     simp [of]
     )
   (by
-    ext _ _
+    ext 
     simp only [LinearMap.coe_comp, Function.comp_apply, lift_apply, lift.symm_apply_toFun, of,
       DirectLimit.Module.lift_of, lift.tprod, LinearMap.id_coe, id_eq, toMultilinearMap,
       finiteSetMap, Set.mem_singleton_iff, Set.mem_compl_iff, Set.mem_setOf_eq, LinearMap.coe_mk,
