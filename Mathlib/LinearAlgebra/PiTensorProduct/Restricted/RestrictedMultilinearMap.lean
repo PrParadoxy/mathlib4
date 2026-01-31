@@ -157,6 +157,10 @@ def compRestrictedMultilinearMap (g : M →ₗ[R] M₂) (f : RestrictedMultiline
 instance [Module.IsTorsionFree S M] : Module.IsTorsionFree S (RestrictedMultilinearMap R E₀ M) :=
   coe_injective.moduleIsTorsionFree _ coe_smul
 
+@[ext]
+theorem ext {f f' : RestrictedMultilinearMap R E₀ M} (H : ∀ x, f x = f' x) : f = f' :=
+  DFunLike.ext _ _ H
+
 variable {E : ι → Type*} {R : Type*}
 variable [CommSemiring R] [∀ i, AddCommMonoid (E i)] [∀ i, Module R (E i)]
 variable {E₀ : (i : ι) → E i} [Module R M]

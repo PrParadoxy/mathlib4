@@ -101,7 +101,6 @@ noncomputable def lift : RestrictedMultilinearMap R E₀ M →ₗ[R] RestrictedT
     map_smul' := by aesop
   }
 
-
 noncomputable def lift.symm :
     (RestrictedTensor R E₀ →ₗ[R] M) →ₗ[R] RestrictedMultilinearMap R E₀ M :=
   {
@@ -109,12 +108,24 @@ noncomputable def lift.symm :
       toFun v :=
         let S : FiniteSet ι := ⟨_, Filter.eventually_cofinite.mp v.prop⟩
         l.comp (of E₀ (S := S)) (PiTensorProduct.tprod R (fun i => v i))
-      map_update_add' m i x y := sorry
+      map_update_add' := by
+        intro _ v i x y
+
+        simp only [LinearMap.coe_comp, Function.comp_apply]
+        set S : FiniteSet ι := ⟨_, Filter.eventually_cofinite.mp v.prop⟩ with hs
+        simp at hs
+
+
+
+
+
       map_update_smul' := sorry
     }
     map_add' := by aesop
     map_smul' := by aesop
   }
+
+
 
 -- noncomputable def universal : RestrictedMultilinearMap R E₀ M ≃ₗ[R] RestrictedTensor R E₀ →ₗ[R] M :=
 --   LinearEquiv.ofLinear (M := RestrictedMultilinearMap R E₀ M)
@@ -139,5 +150,5 @@ noncomputable def lift.symm :
 --     map_add' := by aesop
 --     map_smul' := by aesop
 --   })
---   (sorry)
---   (sorry)
+--   (by ext j; simp)
+--   (by ext j; simp)
