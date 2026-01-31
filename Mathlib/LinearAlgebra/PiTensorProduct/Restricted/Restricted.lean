@@ -32,7 +32,7 @@ noncomputable def of (S : FiniteSet ι) :
   DirectLimit.Module.of R _ (fun S : FiniteSet ι ↦ ⨂[R] i : ↑S, E i) ..
 
 variable (R) in
-theorem of_of (S : FiniteSet ι) (v : Π i, E i) :
+theorem of_f (S : FiniteSet ι) (v : Π i, E i) :
     ∀ J, (hSJ : S ≤ J) →
     (of E₀ S) (⨂ₜ[R] i, v i) = (of E₀ J) ((extendTensor hSJ E₀) (⨂ₜ[R] i, v i)) := by
   intro J hSJ
