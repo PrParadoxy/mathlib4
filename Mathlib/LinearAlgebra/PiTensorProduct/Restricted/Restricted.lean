@@ -28,7 +28,7 @@ abbrev RestrictedTensor :=
 
 namespace RestrictedTensor
 
-noncomputable def of {S : FiniteSet ι} :
+noncomputable def of (S : FiniteSet ι) :
     (⨂[R] i : ↑S, E i) →ₗ[R] RestrictedTensor R E₀ :=
   DirectLimit.Module.of R _ (fun S : FiniteSet ι ↦ ⨂[R] i : ↑S, E i) ..
 
@@ -44,7 +44,7 @@ variable (M : Type*) [AddCommMonoid M] [Module R M]
 -/
 theorem lift_unique (l : RestrictedTensor R E₀ →ₗ[R] M) :
     l = DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i)
-      (fun _ _ hsub ↦ extendTensor hsub E₀) (fun S => l.comp (of E₀))
+      (fun _ _ hsub ↦ extendTensor hsub E₀) (fun S => l.comp (of E₀ S))
       (fun i j hij x ↦ by simp [of]) := by
   ext; simp [of]
 
@@ -81,7 +81,7 @@ theorem lift_unique (l : RestrictedTensor R E₀ →ₗ[R] M) :
 --   map_smul' := by aesop
 
 open RestrictedMultilinearMap
-
+open scoped TensorProduct
 
 noncomputable def lift : RestrictedMultilinearMap R E₀ M →ₗ[R] RestrictedTensor R E₀ →ₗ[R] M :=
   {
@@ -100,6 +100,17 @@ noncomputable def lift : RestrictedMultilinearMap R E₀ M →ₗ[R] RestrictedT
     map_add' := by aesop
     map_smul' := by aesop
   }
+variable (R) {E₀} in
+theorem lift.symm_welldefined (v : Πʳ (i : ι), [E i, {E₀ i}]) :
+    let S : FiniteSet ι := ⟨_, Filter.eventually_cofinite.mp v.prop⟩
+    ∀ J, S ≤ J → (of E₀ S) (⨂ₜ[R] i, v i) = (of E₀ J) (⨂ₜ[R] i, v i) := by
+  intro S J HSJ
+  simp only [of, ← DirectLimit.Module.of_f (hij := HSJ), extendTensor_tprod, dite_eq_ite]
+  congr with j
+  split_ifs with hj
+  · rfl
+  · simp only [Set.mem_singleton_iff, Set.mem_setOf_eq, not_not, S] at hj
+    exact hj.symm
 
 noncomputable def lift.symm :
     (RestrictedTensor R E₀ →ₗ[R] M) →ₗ[R] RestrictedMultilinearMap R E₀ M :=
@@ -107,17 +118,15 @@ noncomputable def lift.symm :
     toFun l := {
       toFun v :=
         let S : FiniteSet ι := ⟨_, Filter.eventually_cofinite.mp v.prop⟩
-        l.comp (of E₀ (S := S)) (PiTensorProduct.tprod R (fun i => v i))
+        l.comp (of E₀ S) (PiTensorProduct.tprod R (fun i => v i))
       map_update_add' := by
         intro _ v i x y
-
+        have := lift.symm_welldefined R v
         simp only [LinearMap.coe_comp, Function.comp_apply]
-        set S : FiniteSet ι := ⟨_, Filter.eventually_cofinite.mp v.prop⟩ with hs
-        simp at hs
-
-
-
-
+        sorry
+        -- set S : FiniteSet ι := ⟨_, Filter.eventually_cofinite.mp v.prop⟩ with hs
+        -- simp at hs
+        -- sorry
 
       map_update_smul' := sorry
     }
