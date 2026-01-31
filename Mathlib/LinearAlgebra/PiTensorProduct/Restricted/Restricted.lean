@@ -92,9 +92,8 @@ noncomputable def lift.symm :
         conv_lhs => rw [of_f' R (f.update i (x + y)) s (by intro _; grind)]
         conv_rhs => rw [of_f' R (f.update i x) s (by intro _; grind),
           of_f' R (f.update i y) s (by intro _; grind)]
-        have h (x) : (fun j : s.val ↦ Function.update (⇑f) i x j) =
-          Function.update (fun i : s.val ↦ f i) ⟨i, by grind⟩ x := by grind
-        simp [h]
+        simp [show ∀ x, (fun j : s.val ↦ Function.update (⇑f) i x j) =
+          Function.update (fun i : s.val ↦ f i) ⟨i, by grind⟩ x by grind]
       map_update_smul' f i c x := by
         let sx : FiniteSet ι := ⟨_, (f.update i x).prop⟩
         let sc : FiniteSet ι := ⟨_, (f.update i (c • x)).prop⟩
@@ -104,9 +103,8 @@ noncomputable def lift.symm :
         simp only [LinearMap.coe_comp, Function.comp_apply]
         conv_lhs => rw [of_f' R (f.update i (c • x)) s (by intro _; grind)]
         conv_rhs => rw [of_f' R (f.update i x) s (by intro _; grind)]
-        have h (x) : (fun j : s.val ↦ Function.update (⇑f) i x j) =
-          Function.update (fun i : s.val ↦ f i) ⟨i, by grind⟩ x := by grind
-        simp [h]
+        simp [show ∀ x, (fun j : s.val ↦ Function.update (⇑f) i x j) =
+          Function.update (fun i : s.val ↦ f i) ⟨i, by grind⟩ x by grind]
     }
     map_add' := by aesop
     map_smul' := by aesop
