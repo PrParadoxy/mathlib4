@@ -179,17 +179,6 @@ noncomputable def toMultilinearMap (S : FiniteSet ι) :
     map_smul' := by aesop
   }
 
-open scoped TensorProduct
-open PiTensorProduct
-
-variable (R E₀) in
-@[simps]
-def tprodr : RestrictedMultilinearMap R E₀ (⨂[R] i, E i) where
-  toFun v := tprod R v.val
-  map_update_add' {_ f} i x y := by simp
-  map_update_smul' {_ f} i r x := by simp
-
-
 variable {M : Type*} [AddCommGroup M] [∀ i, Module R (E i)] [Module R M]
 
 instance : Neg (RestrictedMultilinearMap R E₀ M) :=
