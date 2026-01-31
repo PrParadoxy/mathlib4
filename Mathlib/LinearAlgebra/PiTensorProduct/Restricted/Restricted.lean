@@ -72,21 +72,39 @@ noncomputable def lift : RestrictedMultilinearMap R E₀ M →ₗ[R] RestrictedT
     map_smul' := by aesop
   }
 
+open Set in
 noncomputable def lift.symm :
     (RestrictedTensor R E₀ →ₗ[R] M) →ₗ[R] RestrictedMultilinearMap R E₀ M :=
   {
     toFun l := {
       toFun f := l.comp (of E₀ ⟨_, f.prop⟩) (PiTensorProduct.tprod R (fun i => f i))
-      map_update_add' := by
-        intro _ f i x y
-        have := of_f' R (f.update i x)
+      map_update_add' f i x y := by
+        let sx : FiniteSet ι := ⟨_, (f.update i x).prop⟩
+        let sy : FiniteSet ι := ⟨_, (f.update i y).prop⟩
+        let sxy : FiniteSet ι := ⟨_, (f.update i (x + y)).prop⟩
+        let s : FiniteSet ι := ⟨sx.val ∪ sy.val ∪ sxy.val ∪ {i}, by
+          rw [Set.union_singleton]
+          exact Finite.insert _ (Finite.union (Finite.union sx.prop sy.prop) sxy.prop)
+        ⟩
         simp only [LinearMap.coe_comp, Function.comp_apply]
-        sorry
-        -- set S : FiniteSet ι := ⟨_, Filter.eventually_cofinite.mp v.prop⟩ with hs
-        -- simp at hs
-        -- sorry
-
-      map_update_smul' := sorry
+        conv_lhs => rw [of_f' R (f.update i (x + y)) s (by intro _; grind)]
+        conv_rhs => rw [of_f' R (f.update i x) s (by intro _; grind),
+          of_f' R (f.update i y) s (by intro _; grind)]
+        have h (x) : (fun j : s.val ↦ Function.update (⇑f) i x j) =
+          Function.update (fun i : s.val ↦ f i) ⟨i, by grind⟩ x := by grind
+        simp [h]
+      map_update_smul' f i c x := by
+        let sx : FiniteSet ι := ⟨_, (f.update i x).prop⟩
+        let sc : FiniteSet ι := ⟨_, (f.update i (c • x)).prop⟩
+        let s : FiniteSet ι := ⟨sx.val ∪ sc.val ∪ {i}, by
+            rw [Set.union_singleton]
+            exact Finite.insert _ (Finite.union sx.prop sc.prop)⟩
+        simp only [LinearMap.coe_comp, Function.comp_apply]
+        conv_lhs => rw [of_f' R (f.update i (c • x)) s (by intro _; grind)]
+        conv_rhs => rw [of_f' R (f.update i x) s (by intro _; grind)]
+        have h (x) : (fun j : s.val ↦ Function.update (⇑f) i x j) =
+          Function.update (fun i : s.val ↦ f i) ⟨i, by grind⟩ x := by grind
+        simp [h]
     }
     map_add' := by aesop
     map_smul' := by aesop
