@@ -1,7 +1,6 @@
 import Mathlib.LinearAlgebra.PiTensorProduct.Set
 import Mathlib.Algebra.Colimit.Module
 import Mathlib.Analysis.Normed.Module.PiTensorProduct.ProjectiveSeminorm
-import Mathlib.Topology.Algebra.RestrictedProduct.Basic
 import Mathlib.LinearAlgebra.PiTensorProduct.Restricted.RestrictedMultilinearMap
 
 open PiTensorProduct RestrictedProduct
@@ -32,7 +31,100 @@ noncomputable def of (S : FiniteSet ι) :
     (⨂[R] i : ↑S, E i) →ₗ[R] RestrictedTensor R E₀ :=
   DirectLimit.Module.of R _ (fun S : FiniteSet ι ↦ ⨂[R] i : ↑S, E i) ..
 
+variable (R) in
+theorem of_of (S : FiniteSet ι) (v : Π i, E i) :
+    ∀ J, (hSJ : S ≤ J) →
+    (of E₀ S) (⨂ₜ[R] i, v i) = (of E₀ J) ((extendTensor hSJ E₀) (⨂ₜ[R] i : S.val, v i)) := by
+  intro J hSJ
+  simp [of, ← DirectLimit.Module.of_f (hij := hSJ)]
+
+variable (R) {E₀} in
+theorem of_f' (v : Πʳ (i : ι), [E i, {E₀ i}]) :
+    ∀ J, ⟨_, v.prop⟩ ≤ J → (of E₀ ⟨_, v.prop⟩) (⨂ₜ[R] i, v i) = (of E₀ J) (⨂ₜ[R] i, v i) := by
+  intro J hSJ
+  simp only [of, ← DirectLimit.Module.of_f (hij := hSJ), extendTensor_tprod, dite_eq_ite]
+  congr with j
+  split_ifs with hj
+  · rfl
+  · simp only [Set.mem_singleton_iff, Set.mem_compl_iff, Set.mem_setOf_eq, not_not] at hj
+    exact hj.symm
+
 variable (M : Type*) [AddCommMonoid M] [Module R M]
+
+open RestrictedMultilinearMap
+open scoped TensorProduct
+
+noncomputable def lift : RestrictedMultilinearMap R E₀ M →ₗ[R] RestrictedTensor R E₀ →ₗ[R] M :=
+  {
+    toFun rm := DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i)
+      (fun _ _ hsub ↦ extendTensor hsub E₀)
+      (fun S => PiTensorProduct.lift (rm.toMultilinearMap S))
+      (fun s1 s2 hsub x ↦ by
+        induction x using PiTensorProduct.induction_on with
+        | smul_tprod r f =>
+          simp only [map_smul, extendTensor_tprod, lift.tprod, toMultilinearMap_apply_apply]
+          congr 2 with _
+          have (i : ι) (hi : i ∈ s1.val) : i ∈ s2.val := Set.mem_of_subset_of_mem hsub hi
+          aesop
+        | add a b ha hb => aesop
+      )
+    map_add' := by aesop
+    map_smul' := by aesop
+  }
+
+noncomputable def lift.symm :
+    (RestrictedTensor R E₀ →ₗ[R] M) →ₗ[R] RestrictedMultilinearMap R E₀ M :=
+  {
+    toFun l := {
+      toFun v :=
+        let S : FiniteSet ι := ⟨_, v.prop⟩
+        l.comp (of E₀ S) (PiTensorProduct.tprod R (fun i => v i))
+      map_update_add' := by
+        intro _ v i x y
+        have := of_f' R (v.update i x)
+        simp only [LinearMap.coe_comp, Function.comp_apply]
+        sorry
+        -- set S : FiniteSet ι := ⟨_, Filter.eventually_cofinite.mp v.prop⟩ with hs
+        -- simp at hs
+        -- sorry
+
+      map_update_smul' := sorry
+    }
+    map_add' := by aesop
+    map_smul' := by aesop
+  }
+
+
+
+-- noncomputable def universal : RestrictedMultilinearMap R E₀ M ≃ₗ[R]
+-- RestrictedTensor R E₀ →ₗ[R] M :=
+--   LinearEquiv.ofLinear (M := RestrictedMultilinearMap R E₀ M)
+--   ({
+--     toFun rm := DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i)
+--       (fun _ _ hsub ↦ extendTensor hsub E₀)
+--       (fun S => PiTensorProduct.lift (rm.toMultilinearMap S))
+--       (sorry)
+--     map_add' := by aesop
+--     map_smul' := by aesop
+--     }
+--     )
+--   ({
+--     toFun l := {
+--       toFun v :=
+--         let S : FiniteSet ι := ⟨_, Filter.eventually_cofinite.mp v.prop⟩
+--         l.comp (of E₀ (S := S)) (PiTensorProduct.tprod R (fun i => v i))
+--       map_update_add' := sorry
+--       map_update_smul' := sorry
+
+--     }
+--     map_add' := by aesop
+--     map_smul' := by aesop
+--   })
+--   (by ext j; simp)
+--   (by ext j; simp)
+
+
+
 
 -- This is phrased in the same manner as `Module.DirectLimit.lift_unique`
 -- also similar to `PiTensorProduct.lift.unique'`
@@ -42,12 +134,11 @@ variable (M : Type*) [AddCommMonoid M] [Module R M]
   of `PiTensorProduct`s, i.e `PiTensorProduct.lift.symm`. So a Multilinearmap
   `ML := lift.symm ( l.comp (of E₀))` uniquely determines `l`.
 -/
-theorem lift_unique (l : RestrictedTensor R E₀ →ₗ[R] M) :
-    l = DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i)
-      (fun _ _ hsub ↦ extendTensor hsub E₀) (fun S => l.comp (of E₀ S))
-      (fun i j hij x ↦ by simp [of]) := by
-  ext; simp [of]
-
+-- theorem lift_unique (l : RestrictedTensor R E₀ →ₗ[R] M) :
+--     l = DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i)
+--       (fun _ _ hsub ↦ extendTensor hsub E₀) (fun S => l.comp (of E₀ S))
+--       (fun i j hij x ↦ by simp [of]) := by
+--   ext; simp [of]
 -- noncomputable def lift : MultilinearMap R E M →ₗ[R] Restricted R E₀ →ₗ[R] M where
 --   toFun M := DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i)
 --     (fun _ _ hsub ↦ extendTensor hsub E₀)
@@ -79,86 +170,3 @@ theorem lift_unique (l : RestrictedTensor R E₀ →ₗ[R] M) :
 --   }
 --   map_add' := by aesop
 --   map_smul' := by aesop
-
-open RestrictedMultilinearMap
-open scoped TensorProduct
-
-noncomputable def lift : RestrictedMultilinearMap R E₀ M →ₗ[R] RestrictedTensor R E₀ →ₗ[R] M :=
-  {
-    toFun rm := DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i)
-      (fun _ _ hsub ↦ extendTensor hsub E₀)
-      (fun S => PiTensorProduct.lift (rm.toMultilinearMap S))
-      (fun s1 s2 hsub x ↦ by
-        induction x using PiTensorProduct.induction_on with
-        | smul_tprod r f =>
-          simp only [map_smul, extendTensor_tprod, lift.tprod, toMultilinearMap_apply_apply]
-          congr 2 with _
-          have (i : ι) (hi : i ∈ s1.val) : i ∈ s2.val := Set.mem_of_subset_of_mem hsub hi
-          aesop
-        | add a b ha hb => aesop
-      )
-    map_add' := by aesop
-    map_smul' := by aesop
-  }
-
-variable (R) {E₀} in
-theorem lift.symm_welldefined (v : Πʳ (i : ι), [E i, {E₀ i}]) :
-    let S : FiniteSet ι := ⟨_, v.prop⟩
-    ∀ J, S ≤ J → (of E₀ S) (⨂ₜ[R] i, v i) = (of E₀ J) (⨂ₜ[R] i, v i) := by
-  intro S J HSJ
-  simp only [of, ← DirectLimit.Module.of_f (hij := HSJ), extendTensor_tprod, dite_eq_ite]
-  congr with j
-  split_ifs with hj
-  · rfl
-  · simp only [Set.mem_singleton_iff, Set.mem_compl_iff, Set.mem_setOf_eq, not_not, S] at hj
-    exact hj.symm
-
-noncomputable def lift.symm :
-    (RestrictedTensor R E₀ →ₗ[R] M) →ₗ[R] RestrictedMultilinearMap R E₀ M :=
-  {
-    toFun l := {
-      toFun v :=
-        let S : FiniteSet ι := ⟨_, v.prop⟩
-        l.comp (of E₀ S) (PiTensorProduct.tprod R (fun i => v i))
-      map_update_add' := by
-        intro _ v i x y
-        have := lift.symm_welldefined R (v.update i x)
-        simp only [LinearMap.coe_comp, Function.comp_apply]
-        sorry
-        -- set S : FiniteSet ι := ⟨_, Filter.eventually_cofinite.mp v.prop⟩ with hs
-        -- simp at hs
-        -- sorry
-
-      map_update_smul' := sorry
-    }
-    map_add' := by aesop
-    map_smul' := by aesop
-  }
-
-
-
--- noncomputable def universal : RestrictedMultilinearMap R E₀ M ≃ₗ[R] RestrictedTensor R E₀ →ₗ[R] M :=
---   LinearEquiv.ofLinear (M := RestrictedMultilinearMap R E₀ M)
---   ({
---     toFun rm := DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i)
---       (fun _ _ hsub ↦ extendTensor hsub E₀)
---       (fun S => PiTensorProduct.lift (rm.toMultilinearMap S))
---       (sorry)
---     map_add' := by aesop
---     map_smul' := by aesop
---     }
---     )
---   ({
---     toFun l := {
---       toFun v :=
---         let S : FiniteSet ι := ⟨_, Filter.eventually_cofinite.mp v.prop⟩
---         l.comp (of E₀ (S := S)) (PiTensorProduct.tprod R (fun i => v i))
---       map_update_add' := sorry
---       map_update_smul' := sorry
-
---     }
---     map_add' := by aesop
---     map_smul' := by aesop
---   })
---   (by ext j; simp)
---   (by ext j; simp)
