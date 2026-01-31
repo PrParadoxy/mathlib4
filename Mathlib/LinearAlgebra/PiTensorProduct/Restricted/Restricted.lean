@@ -76,12 +76,10 @@ noncomputable def lift.symm :
     (RestrictedTensor R E₀ →ₗ[R] M) →ₗ[R] RestrictedMultilinearMap R E₀ M :=
   {
     toFun l := {
-      toFun v :=
-        let S : FiniteSet ι := ⟨_, v.prop⟩
-        l.comp (of E₀ S) (PiTensorProduct.tprod R (fun i => v i))
+      toFun f := l.comp (of E₀ ⟨_, f.prop⟩) (PiTensorProduct.tprod R (fun i => f i))
       map_update_add' := by
-        intro _ v i x y
-        have := of_f' R (v.update i x)
+        intro _ f i x y
+        have := of_f' R (f.update i x)
         simp only [LinearMap.coe_comp, Function.comp_apply]
         sorry
         -- set S : FiniteSet ι := ⟨_, Filter.eventually_cofinite.mp v.prop⟩ with hs
