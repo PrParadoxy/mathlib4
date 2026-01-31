@@ -115,7 +115,7 @@ noncomputable def lift.symm :
 
 
 noncomputable def universal : RestrictedMultilinearMap R E₀ M ≃ₗ[R] RestrictedTensor R E₀ →ₗ[R] M :=
-  LinearEquiv.ofLinear (M := RestrictedMultilinearMap R E₀ M)
+  LinearEquiv.ofLinear 
   (lift E₀ M)
   (lift.symm E₀ M)
   (by
