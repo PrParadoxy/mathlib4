@@ -69,8 +69,7 @@ noncomputable def lift_aux : RestrictedMultilinearMap R E₀ M →ₗ[R] Restric
         | smul_tprod r f =>
           simp only [map_smul, extendTensor_tprod, lift.tprod, toMultilinearMap_apply_apply]
           congr 2 with _
-          have (i : ι) (hi : i ∈ s1.val) : i ∈ s2.val := Set.mem_of_subset_of_mem hsub hi
-          aesop
+          aesop (add safe forward Set.mem_of_subset_of_mem)
         | add => grind
       )
     map_add' := by aesop
@@ -137,13 +136,14 @@ noncomputable def lift : RestrictedMultilinearMap R E₀ M ≃ₗ[R] RestrictedT
     aesop
   )
 
-
 variable {F : ι → Type*} (F₀ : (i : ι) → F i) [∀ i, AddCommMonoid (F i)] [∀ i, Module R (F i)]
 
 noncomputable def map {v : ∀ i, E i →ₗ[R] F i} (hv : ∀ i, (v i) (E₀ i) = F₀ i) :
     RestrictedTensor R E₀ →ₗ[R] RestrictedTensor R F₀ :=
   lift {
     toFun f := of F₀ ⟨_, f.prop⟩ (⨂ₜ[R] i, (v i) (f i))
-    map_update_add' f i x y := sorry
-    map_update_smul' := sorry
+    map_update_add' f i x y := sorry -- provable from of_f
+    map_update_smul' := sorry -- provable from of_f
   }
+
+
