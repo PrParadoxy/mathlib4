@@ -114,6 +114,7 @@ noncomputable def lift_aux.symm :
     map_smul' := by aesop
   }
 
+variable {E₀} {M} in
 noncomputable def lift : RestrictedMultilinearMap R E₀ M ≃ₗ[R] RestrictedTensor R E₀ →ₗ[R] M :=
   LinearEquiv.ofLinear
   (lift_aux E₀ M)
@@ -137,4 +138,12 @@ noncomputable def lift : RestrictedMultilinearMap R E₀ M ≃ₗ[R] RestrictedT
   )
 
 
+variable {F : ι → Type*} (F₀ : (i : ι) → F i) [∀ i, AddCommMonoid (F i)] [∀ i, Module R (F i)]
 
+noncomputable def map {v : ∀ i, E i →ₗ[R] F i} (hv : ∀ i, (v i) (E₀ i) = F₀ i) :
+    RestrictedTensor R E₀ →ₗ[R] RestrictedTensor R F₀ :=
+  lift {
+    toFun f := of F₀ ⟨_, f.prop⟩ (⨂ₜ[R] i, (v i) (f i))
+    map_update_add' f i x y := sorry
+    map_update_smul' := sorry
+  }
