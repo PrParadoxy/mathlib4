@@ -86,6 +86,8 @@ structure RestrictedMultilinearMap where
 
 namespace RestrictedMultilinearMap
 
+section instances
+
 instance : FunLike (RestrictedMultilinearMap R E₀ M) (Πʳ (i : ι), [E i, {E₀ i}]) M where
   coe f := f.toFun
   coe_injective' f g h := by cases f; cases g; cases h; rfl
@@ -146,6 +148,28 @@ variable [Semiring S] [Module S M] [SMulCommClass R S M]
 instance : Module S (RestrictedMultilinearMap R E₀ M) := fast_instance%
   coe_injective.module _ coeAddMonoidHom fun _ _ ↦ rfl
 
+instance [Module.IsTorsionFree S M] : Module.IsTorsionFree S (RestrictedMultilinearMap R E₀ M) :=
+  coe_injective.moduleIsTorsionFree _ coe_smul
+
+variable {M : Type*} [AddCommGroup M] [∀ i, Module R (E i)] [Module R M]
+
+instance : Neg (RestrictedMultilinearMap R E₀ M) :=
+  ⟨fun f => ⟨fun m => -f m, fun m i x y => by simp [add_comm], fun m i c x => by simp⟩⟩
+
+instance : Sub (RestrictedMultilinearMap R E₀ M) :=
+  ⟨fun f g =>
+    ⟨fun m => f m - g m, fun m i x y => by
+      simp only [RestrictedMultilinearMap.map_update_add, sub_eq_add_neg, neg_add]
+      abel,
+      fun m i c x => by simp only [RestrictedMultilinearMap.map_update_smul, smul_sub]⟩⟩
+
+instance : AddCommGroup (RestrictedMultilinearMap R E₀ M) := fast_instance%
+  coe_injective.addCommGroup _ rfl (fun _ _ => rfl) (fun _ => rfl) (fun _ _ => rfl)
+    (fun _ _ => rfl) (fun _ _ => rfl)
+
+end instances
+
+
 variable {M₂ : Type*} [AddCommMonoid M₂] [Module R M₂]
 variable {R E₀ M} in
 def compRestrictedMultilinearMap (g : M →ₗ[R] M₂) (f : RestrictedMultilinearMap R E₀ M)
@@ -153,9 +177,6 @@ def compRestrictedMultilinearMap (g : M →ₗ[R] M₂) (f : RestrictedMultiline
   toFun := g ∘ f
   map_update_add' m i x y := by simp
   map_update_smul' m i c x := by simp
-
-instance [Module.IsTorsionFree S M] : Module.IsTorsionFree S (RestrictedMultilinearMap R E₀ M) :=
-  coe_injective.moduleIsTorsionFree _ coe_smul
 
 @[ext]
 theorem ext {f f' : RestrictedMultilinearMap R E₀ M} (H : ∀ x, f x = f' x) : f = f' :=
@@ -178,21 +199,5 @@ noncomputable def toMultilinearMap (S : FiniteSet ι) :
     map_add' := by aesop
     map_smul' := by aesop
   }
-
-variable {M : Type*} [AddCommGroup M] [∀ i, Module R (E i)] [Module R M]
-
-instance : Neg (RestrictedMultilinearMap R E₀ M) :=
-  ⟨fun f => ⟨fun m => -f m, fun m i x y => by simp [add_comm], fun m i c x => by simp⟩⟩
-
-instance : Sub (RestrictedMultilinearMap R E₀ M) :=
-  ⟨fun f g =>
-    ⟨fun m => f m - g m, fun m i x y => by
-      simp only [RestrictedMultilinearMap.map_update_add, sub_eq_add_neg, neg_add]
-      abel,
-      fun m i c x => by simp only [RestrictedMultilinearMap.map_update_smul, smul_sub]⟩⟩
-
-instance : AddCommGroup (RestrictedMultilinearMap R E₀ M) := fast_instance%
-  coe_injective.addCommGroup _ rfl (fun _ _ => rfl) (fun _ => rfl) (fun _ _ => rfl)
-    (fun _ _ => rfl) (fun _ _ => rfl)
 
 end RestrictedMultilinearMap
