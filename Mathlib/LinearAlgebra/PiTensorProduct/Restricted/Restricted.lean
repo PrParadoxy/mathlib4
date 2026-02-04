@@ -141,3 +141,31 @@ noncomputable def map {f : Π i, E i →ₗ[R] F i} (hf : ∀ i, (f i) (E₀ i) 
     RestrictedTensor R E₀ →ₗ[R] RestrictedTensor R F₀ :=
   lift <| (tprodr R F₀).compLinearMap F₀ hf
 
+
+
+open Module
+
+variable {ι : Type*}
+variable {E : ι → Type*} {R : Type*}
+variable [CommRing R] [∀ i, AddCommMonoid (E i)] [∀ i, Module R (E i)]
+variable (E₀ : (i : ι) → E i)
+
+variable (ι' : ι → Type*) (b : ∀ i, Basis (ι' i) R (E i))
+variable (j₀ : ∀ i, ι' i)
+variable (hE₀ : ∀ i, E₀ i = b i (j₀ i))
+
+noncomputable def rEquiv : Πʳ (i : ι), [E i, {E₀ i}] ≃ (ι →₀ R) where
+  toFun f := Finsupp.onFinset
+    f.prop.toFinset
+    (fun i => ((b i).repr (f.val i)) (j₀ i) - 1)
+    (by aesop)
+  invFun g := ⟨
+    fun i => (b i).repr.symm (Finsupp.single (j₀ i) (g i + 1)),
+    by sorry
+    ⟩
+  left_inv f := by
+    ext i
+    sorry
+  right_inv g := by
+    ext i
+    simp [Basis.repr_self]
