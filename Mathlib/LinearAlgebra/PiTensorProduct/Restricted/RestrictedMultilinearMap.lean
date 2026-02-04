@@ -66,6 +66,16 @@ lemma finiteSetMap_update {S : FiniteSet ι} [DecidableEq ↑↑S] (f : Π i : S
   ext j
   by_cases h : j = i <;> aesop
 
+omit [DecidableEq ι] in
+@[simp]
+lemma finiteSetMap_restrictedProduct (f : Πʳ i, [E i, {E₀ i}]) :
+    finiteSetMap (S := ⟨_, f.prop⟩) E₀ (fun i => f i) = f := by
+  ext j
+  simp only [finiteSetMap_apply, Set.mem_singleton_iff, Set.mem_compl_iff, Set.mem_setOf_eq,
+    dite_eq_ite, ite_eq_left_iff, not_not]
+  intro h
+  convert h.symm
+
 end RestrictedProduct
 
 

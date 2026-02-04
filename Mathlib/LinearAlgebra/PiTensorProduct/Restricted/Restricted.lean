@@ -53,9 +53,8 @@ theorem of_f' (f : Πʳ (i : ι), [E i, {E₀ i}]) :
   · simp only [Set.mem_singleton_iff, Set.mem_compl_iff, Set.mem_setOf_eq, not_not] at hj
     exact hj.symm
 
-
-
 variable (M : Type*) [AddCommMonoid M] [Module R M]
+
 
 open RestrictedMultilinearMap
 open scoped TensorProduct
@@ -91,7 +90,8 @@ noncomputable def tprodr : RestrictedMultilinearMap R E₀ (RestrictedTensor R E
 theorem tprodr_eq_of_tprod_apply {f : Πʳ i, [E i, {E₀ i}]} :
   tprodr R E₀ f = of E₀ ⟨_, f.prop⟩ (⨂ₜ[R] i, f i) := rfl
 
-noncomputable def lift_aux : RestrictedMultilinearMap R E₀ M →ₗ[R] RestrictedTensor R E₀ →ₗ[R] M :=
+variable (R) in
+noncomputable def liftAux : RestrictedMultilinearMap R E₀ M →ₗ[R] RestrictedTensor R E₀ →ₗ[R] M :=
   {
     toFun rm := DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i)
       (fun _ _ hsub ↦ extendTensor hsub E₀)
@@ -108,31 +108,21 @@ noncomputable def lift_aux : RestrictedMultilinearMap R E₀ M →ₗ[R] Restric
     map_smul' := by aesop
   }
 
+@[simp]
+theorem liftAux_tprodr (f : Πʳ i, [E i, {E₀ i}]) (rm : RestrictedMultilinearMap R E₀ M) :
+    (liftAux R E₀ M) rm ((tprodr R E₀) f) = rm f := by
+  simp [liftAux, tprodr_eq_of_tprod_apply, of, toMultilinearMap]
+
+variable {E₀} {M} in
+noncomputable def lift : RestrictedMultilinearMap R E₀ M ≃ₗ[R] RestrictedTensor R E₀ →ₗ[R] M where
+  toFun := liftAux R E₀ M
+  invFun l := l.compRestrictedMultilinearMap (tprodr R E₀)
+  left_inv l := by ext _ ; simp
+  right_inv ml := by
+    ext _ _
+    simp
 
 
-
-
-
-
-
-
-
-
-
--- open Set in
--- @[simps]
--- noncomputable def lift_aux.symm :
---     (RestrictedTensor R E₀ →ₗ[R] M) →ₗ[R] RestrictedMultilinearMap R E₀ M :=
---   {
---     toFun l := l.compRestrictedMultilinearMap (tprodr E₀)
---     map_add' := by aesop
---     map_smul' := by aesop
---   }
-
--- variable {E₀} {M} in
--- noncomputable def lift : RestrictedMultilinearMap R E₀ M ≃ₗ[R] RestrictedTensor R E₀ →ₗ[R] M where
---   toFun := lift_aux E₀ M
---   invFun l := l.compRestrictedMultilinearMap (tprodr E₀)
 
   -- LinearEquiv.ofLinear
   -- (lift_aux E₀ M)
