@@ -207,7 +207,7 @@ variable {M} in
 def compLinearMap (g : RestrictedMultilinearMap R F₀ M) {f : Π i, E i →ₗ[R] F i}
     (hf : ∀ i, (f i) (E₀ i) = (F₀ i)) :
     RestrictedMultilinearMap R E₀ M where
-  toFun m := g (RestrictedProduct.map (fun i => f i) (by aesop) m)
+  toFun m := g (RestrictedProduct.map (fun i => f i) (by simp_all) m)
   map_update_add' m i _ _ := by
     generalize_proofs h
     have : ∀ z, RestrictedProduct.map (fun i ↦ ⇑(f i)) h (m.update i z) =
@@ -222,6 +222,12 @@ def compLinearMap (g : RestrictedMultilinearMap R F₀ M) {f : Π i, E i →ₗ[
       ext j
       by_cases h : j = i <;> aesop
     simp [this]
+
+@[simp]
+theorem compLinearMap_apply (g : RestrictedMultilinearMap R F₀ M) {f : Π i, E i →ₗ[R] F i}
+    (hf : ∀ i, (f i) (E₀ i) = (F₀ i)) (m : Πʳ (i : ι), [E i, {E₀ i}]) :
+    g.compLinearMap F₀ hf m = g (RestrictedProduct.map (fun i => f i) (by simp_all) m) :=
+  rfl
 
 end RestrictedMultilinearMap
 
