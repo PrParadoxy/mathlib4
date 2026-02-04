@@ -35,6 +35,9 @@ noncomputable def of (S : FiniteSet ι) :
     (⨂[R] i : ↑S, E i) →ₗ[R] RestrictedTensor R E₀ :=
   DirectLimit.Module.of R _ (fun S : FiniteSet ι ↦ ⨂[R] i : ↑S, E i) ..
 
+theorem of_eq (S : FiniteSet ι) :
+  of E₀ S = DirectLimit.Module.of R _ (fun S : FiniteSet ι ↦ ⨂[R] i : ↑S, E i) .. := rfl
+
 variable (R) in
 theorem of_f (S : FiniteSet ι) (f : Π i, E i) :
     ∀ J, (hSJ : S ≤ J) →
@@ -54,7 +57,6 @@ theorem of_f' (f : Πʳ (i : ι), [E i, {E₀ i}]) :
     exact hj.symm
 
 variable (M : Type*) [AddCommMonoid M] [Module R M]
-
 
 open RestrictedMultilinearMap
 open scoped TensorProduct
@@ -90,6 +92,17 @@ noncomputable def tprodr : RestrictedMultilinearMap R E₀ (RestrictedTensor R E
 theorem tprodr_eq_of_tprod_apply {f : Πʳ i, [E i, {E₀ i}]} :
   tprodr R E₀ f = of E₀ ⟨_, f.prop⟩ (⨂ₜ[R] i, f i) := rfl
 
+@[ext]
+theorem ext {φ₁ φ₂ : RestrictedTensor R E₀ →ₗ[R] M}
+    (H : ∀ f, φ₁ ((tprodr R E₀) f) = φ₂ ((tprodr R E₀) f)) : φ₁ = φ₂ := by
+  ext S f
+  simp only [LinearMap.compMultilinearMap_apply, LinearMap.coe_comp, Function.comp_apply]
+  convert H (finiteSetMap E₀ f)
+  all_goals conv_rhs =>
+    rw [tprodr_eq_of_tprod_apply,
+      of_f' R (finiteSetMap E₀ f) S (fun _ ↦ by simpa [finiteSetMap] using fun h _ => h)]
+    simp [of_eq]
+
 variable (R) in
 noncomputable def liftAux : RestrictedMultilinearMap R E₀ M →ₗ[R] RestrictedTensor R E₀ →ₗ[R] M :=
   {
@@ -118,32 +131,9 @@ noncomputable def lift : RestrictedMultilinearMap R E₀ M ≃ₗ[R] RestrictedT
   toFun := liftAux R E₀ M
   invFun l := l.compRestrictedMultilinearMap (tprodr R E₀)
   left_inv l := by ext _ ; simp
-  right_inv ml := by
-    ext _ _
-    simp
-
-
-
-  -- LinearEquiv.ofLinear
-  -- (lift_aux E₀ M)
-  -- (lift_aux.symm E₀ M)
-  -- (by
-  --   ext _ S f
-  --   simp only [LinearMap.coe_comp, Function.comp_apply, lift_aux_apply,
-  --     LinearMap.compMultilinearMap_apply, DirectLimit.Module.lift_of, lift.tprod,
-  --     toMultilinearMap_apply_apply, lift_aux.symm_apply_toFun]
-  --   rw [of_f' R (finiteSetMap E₀ f) S (by intro i; simp_all [finiteSetMap])]
-  --   simp [of]
-  --   )
-  -- (by
-  --   ext
-  --   simp only [LinearMap.coe_comp, Function.comp_apply, lift_aux_apply, lift_aux.symm_apply_toFun,
-  --     of, DirectLimit.Module.lift_of, lift.tprod, LinearMap.id_coe, id_eq, toMultilinearMap,
-  --     finiteSetMap, Set.mem_singleton_iff, Set.mem_compl_iff, Set.mem_setOf_eq, LinearMap.coe_mk,
-  --     AddHom.coe_mk, MultilinearMap.coe_mk, dite_eq_ite]
-  --   congr with _
-  --   aesop
-  -- )
+  right_inv ml := by ext _; simp
+  map_add' := by simp
+  map_smul' := by simp
 
 -- variable {F : ι → Type*} (F₀ : (i : ι) → F i) [∀ i, AddCommMonoid (F i)] [∀ i, Module R (F i)]
 
