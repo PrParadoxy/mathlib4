@@ -61,18 +61,26 @@ variable (M : Type*) [AddCommMonoid M] [Module R M]
 open RestrictedMultilinearMap
 open scoped TensorProduct
 
+instance : Union (FiniteSet ι) where
+  union a b := ⟨a.val ∪ b.val, Set.Finite.union a.prop b.prop⟩
+
+instance : Singleton ι (FiniteSet ι) where
+  singleton a := ⟨{a}, Finite.of_subsingleton⟩
+
 open Set in
 variable (R) in
 noncomputable def tprodr : RestrictedMultilinearMap R E₀ (RestrictedTensor R E₀) where
   toFun f := of E₀ ⟨_, f.prop⟩ (⨂ₜ[R] i, f i)
   map_update_add' f i x y := by
-    let sx : FiniteSet ι := ⟨_, (f.update i x).prop⟩
-    let sy : FiniteSet ι := ⟨_, (f.update i y).prop⟩
-    let sxy : FiniteSet ι := ⟨_, (f.update i (x + y)).prop⟩
-    let s : FiniteSet ι := ⟨sx.val ∪ sy.val ∪ sxy.val ∪ {i}, by
-      rw [Set.union_singleton]
-      exact Finite.insert _ (Finite.union (Finite.union sx.prop sy.prop) sxy.prop)
-    ⟩
+    -- let sx : FiniteSet ι := ⟨_, (f.update i x).prop⟩
+    -- let sy : FiniteSet ι := ⟨_, (f.update i y).prop⟩
+    -- let sxy : FiniteSet ι := ⟨_, (f.update i (x + y)).prop⟩
+    -- let s : FiniteSet ι := ⟨sx.val ∪ sy.val ∪ sxy.val ∪ {i}, by
+    --   rw [Set.union_singleton]
+    --   exact Finite.insert _ (Finite.union (Finite.union sx.prop sy.prop) sxy.prop)
+    -- ⟩
+    let s : FiniteSet ι :=   ⟨_, (f.update i x).prop⟩ ∪ ⟨_, (f.update i y).prop⟩
+      ∪ ⟨_, (f.update i (x + y)).prop⟩ ∪ {i}
     conv_lhs => rw [of_f' R (f.update i (x + y)) s (by intro _; grind)]
     conv_rhs => rw [of_f' R (f.update i x) s (by intro _; grind),
       of_f' R (f.update i y) s (by intro _; grind)]
