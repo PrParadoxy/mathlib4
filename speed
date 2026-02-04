@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# run from `mathlib` directory with target file as parameter.
+
+base="${1%.lean}"
+
+if [ ! -f ".lake/build/ir/$base.setup.json" ]; then
+  echo "No .json found, removing old artifacts and running lake build."
+  rm .lake/build/ir/$base.c
+  rm .lake/build/ir/$base.c.hash
+  lake build $1
+fi
+
+if [ ! -f ".lake/build/ir/$base.setup.json" ]; then
+  echo "Something went wrong; no .json"
+  exit 1
+fi
+
+# WARNING: Adapt to your machine! Don't mix perf and efficiency cores -> gives useless totals!
+
+# WARNING: The "pipe to awk" means that error messages aren't shown. Comment out for initial runs.
+lake env \
+  taskset -c 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 \
+  perf stat -e instructions \
+  lean $1 -o .lake/build/lib/lean/$base.olean -i .lake/build/lib/lean/$base.ilean -c .lake/build/lib/lean/$base.c --setup .lake/build/ir/$base.setup.json --json \
+  2>&1 | sed -E 's/(\\n|data":")/\'$'\n''/g'
+#  2>&1 | awk '/instructions/ {print $1/1000000000 ""}'  # output instruction count in giga instructions

@@ -169,15 +169,6 @@ instance : AddCommGroup (RestrictedMultilinearMap R E₀ M) := fast_instance%
 
 end instances
 
-
-variable {M₂ : Type*} [AddCommMonoid M₂] [Module R M₂]
-variable {R E₀ M} in
-def compRestrictedMultilinearMap (g : M →ₗ[R] M₂) (f : RestrictedMultilinearMap R E₀ M)
-    : RestrictedMultilinearMap R E₀ M₂ where
-  toFun := g ∘ f
-  map_update_add' m i x y := by simp
-  map_update_smul' m i c x := by simp
-
 @[ext]
 theorem ext {f f' : RestrictedMultilinearMap R E₀ M} (H : ∀ x, f x = f' x) : f = f' :=
   DFunLike.ext _ _ H
@@ -201,3 +192,20 @@ noncomputable def toMultilinearMap (S : FiniteSet ι) :
   }
 
 end RestrictedMultilinearMap
+
+namespace LinearMap
+
+variable {M₂ : Type*} [AddCommMonoid M₂] [Module R M₂]
+variable {R E₀ M} in
+def compRestrictedMultilinearMap (g : M →ₗ[R] M₂) (f : RestrictedMultilinearMap R E₀ M)
+    : RestrictedMultilinearMap R E₀ M₂ where
+  toFun := g ∘ f
+  map_update_add' m i x y := by simp
+  map_update_smul' m i c x := by simp
+
+@[simp]
+theorem compRestrictedMultilinearMap_apply
+    (g : M →ₗ[R] M₂) (f : RestrictedMultilinearMap R E₀ M) (v : Πʳ i, [E i, {E₀ i}]) :
+  g.compRestrictedMultilinearMap f v = g (f v) := rfl
+
+end LinearMap
