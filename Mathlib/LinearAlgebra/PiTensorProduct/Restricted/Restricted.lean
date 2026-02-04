@@ -135,12 +135,8 @@ noncomputable def lift : RestrictedMultilinearMap R E₀ M ≃ₗ[R] RestrictedT
   map_add' := by simp
   map_smul' := by simp
 
--- variable {F : ι → Type*} (F₀ : (i : ι) → F i) [∀ i, AddCommMonoid (F i)] [∀ i, Module R (F i)]
+variable {F : ι → Type*} (F₀ : (i : ι) → F i) [∀ i, AddCommMonoid (F i)] [∀ i, Module R (F i)]
 
--- noncomputable def map {v : ∀ i, E i →ₗ[R] F i} (hv : ∀ i, (v i) (E₀ i) = F₀ i) :
---     RestrictedTensor R E₀ →ₗ[R] RestrictedTensor R F₀ :=
---   lift {
---     toFun f := of F₀ ⟨_, f.prop⟩ (⨂ₜ[R] i, (v i) (f i))
---     map_update_add' f i x y := sorry -- provable from of_f
---     map_update_smul' := sorry -- provable from of_f
---   }
+noncomputable def map {f : Π i, E i →ₗ[R] F i} (hf : ∀ i, (f i) (E₀ i) = F₀ i) :
+    RestrictedTensor R E₀ →ₗ[R] RestrictedTensor R F₀ :=
+  lift <| (tprodr R F₀).compLinearMap E₀ hf

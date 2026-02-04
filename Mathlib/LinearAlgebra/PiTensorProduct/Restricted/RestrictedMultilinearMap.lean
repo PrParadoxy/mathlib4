@@ -201,6 +201,16 @@ noncomputable def toMultilinearMap (S : FiniteSet ι) :
     map_smul' := by aesop
   }
 
+variable {F : ι → Type*} (F₀ : (i : ι) → F i) [∀ i, AddCommMonoid (F i)] [∀ i, Module R (F i)]
+variable {M} in
+def compLinearMap (g : RestrictedMultilinearMap R F₀ M) {f : Π i, E i →ₗ[R] F i}
+    (hf : ∀ i, (f i) (E₀ i) = (F₀ i)) :
+    RestrictedMultilinearMap R E₀ M where
+  toFun m := g (RestrictedProduct.map (fun i => f i) (by aesop) m)
+  map_update_add' m i x y := by sorry
+  map_update_smul' m i c x := by sorry
+
+
 end RestrictedMultilinearMap
 
 namespace LinearMap
