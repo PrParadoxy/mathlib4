@@ -154,18 +154,23 @@ variable (ι' : ι → Type*) (b : ∀ i, Basis (ι' i) R (E i))
 variable (j₀ : ∀ i, ι' i)
 variable (hE₀ : ∀ i, E₀ i = b i (j₀ i))
 
-noncomputable def rEquiv : Πʳ (i : ι), [E i, {E₀ i}] ≃ (ι →₀ R) where
-  toFun f := Finsupp.onFinset
-    f.prop.toFinset
-    (fun i => ((b i).repr (f.val i)) (j₀ i) - 1)
-    (by aesop)
-  invFun g := ⟨
-    fun i => (b i).repr.symm (Finsupp.single (j₀ i) (g i + 1)),
-    by sorry
-    ⟩
-  left_inv f := by
-    ext i
-    sorry
-  right_inv g := by
-    ext i
-    simp [Basis.repr_self]
+
+-- noncomputable def rEquiv : Πʳ (i : ι), [E i, {E₀ i}] ≃ (ι →₀ R) where
+--   toFun f := Finsupp.onFinset
+--     f.prop.toFinset
+--     (fun i => ((b i).repr (f.val i)) (j₀ i) - 1)
+--     (by aesop)
+--   invFun g := ⟨
+--     fun i => (b i).repr.symm (Finsupp.single (j₀ i) (g i + 1)),
+--     by
+--       rw [Filter.eventually_cofinite]
+--       refine Set.Finite.subset g.support.finite_toSet (fun i hi => ?_)
+--       aesop
+--     ⟩
+--   left_inv f := by
+--     ext i
+--     simp
+
+--   right_inv g := by
+--     ext _
+--     simp [Basis.repr_self]
