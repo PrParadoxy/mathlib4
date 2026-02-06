@@ -158,11 +158,6 @@ noncomputable def map {f : Π i, E i →ₗ[R] F i} (hf : ∀ i, (f i) (E₀ i) 
 
 open Module
 
-variable {ι : Type*}
-variable {E : ι → Type*} {R : Type*}
-variable [CommRing R] [∀ i, AddCommMonoid (E i)] [∀ i, Module R (E i)]
-variable (E₀ : (i : ι) → E i)
-
 variable {κ : ι → Type*} (b : ∀ i, Basis (κ i) R (E i))
 variable (κ₀ : ∀ i, κ i)
 variable (hE₀ : ∀ i, E₀ i = b i (κ₀ i))
