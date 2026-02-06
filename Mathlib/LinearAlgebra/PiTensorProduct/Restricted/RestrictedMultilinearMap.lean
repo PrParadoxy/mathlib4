@@ -202,7 +202,7 @@ noncomputable def toMultilinearMap (S : FiniteSet ι) :
   }
 
 
-variable {F : ι → Type*} (F₀ : (i : ι) → F i) [∀ i, AddCommMonoid (F i)] [∀ i, Module R (F i)]
+variable {F : ι → Type*} {F₀ : (i : ι) → F i} [∀ i, AddCommMonoid (F i)] [∀ i, Module R (F i)]
 variable {M} in
 def compLinearMap (g : RestrictedMultilinearMap R F₀ M) {f : Π i, E i →ₗ[R] F i}
     (hf : ∀ i, (f i) (E₀ i) = (F₀ i)) :
@@ -226,7 +226,7 @@ def compLinearMap (g : RestrictedMultilinearMap R F₀ M) {f : Π i, E i →ₗ[
 @[simp]
 theorem compLinearMap_apply (g : RestrictedMultilinearMap R F₀ M) {f : Π i, E i →ₗ[R] F i}
     (hf : ∀ i, (f i) (E₀ i) = (F₀ i)) (m : Πʳ (i : ι), [E i, {E₀ i}]) :
-    g.compLinearMap F₀ hf m = g (RestrictedProduct.map (fun i => f i) (by simp_all) m) :=
+    g.compLinearMap hf m = g (RestrictedProduct.map (fun i => f i) (by simp_all) m) :=
   rfl
 
 end RestrictedMultilinearMap

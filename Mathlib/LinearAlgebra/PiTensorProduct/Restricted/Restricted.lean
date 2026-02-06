@@ -138,7 +138,7 @@ variable {F : ι → Type*} (F₀ : (i : ι) → F i) [∀ i, AddCommMonoid (F i
 
 noncomputable def map {f : Π i, E i →ₗ[R] F i} (hf : ∀ i, (f i) (E₀ i) = F₀ i) :
     RestrictedTensor R E₀ →ₗ[R] RestrictedTensor R F₀ :=
-  lift <| (tprodr R F₀).compLinearMap F₀ hf
+  lift <| (tprodr R F₀).compLinearMap hf
 
 
 
@@ -167,4 +167,3 @@ def RestrictedTensorFinsuppEquiv : RestrictedTensor R E₀ ≃ₗ[R] Πʳ (i : �
   ()
   ()
   ()
-
