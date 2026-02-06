@@ -152,6 +152,7 @@ variable (E₀ : (i : ι) → E i)
 variable (κ : ι → Type*) (b : ∀ i, Basis (κ i) R (E i))
 variable (κ₀ : ∀ i, κ i)
 variable (hE₀ : ∀ i, E₀ i = b i (κ₀ i))
+
 #check DirectLimit.exists_eq_mk
 #check Basis.reindex
 #check Basis.map
@@ -159,11 +160,15 @@ variable (hE₀ : ∀ i, E₀ i = b i (κ₀ i))
 #check DirectLimit.Module.lift _ _ _ _ _ _
 #check Basis.piTensorProduct
 #check Basis.repr
+
 noncomputable
 def RestrictedTensorFinsuppEquiv : RestrictedTensor R E₀ ≃ₗ[R] Πʳ (i : ι), [κ i, {κ₀ i}] →₀ R :=
   LinearEquiv.ofLinear
-  (DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i) _ (sorry
+  (DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i) _ (fun S => by
+    haveI := S.prop
+    let b := (Basis.piTensorProduct (fun i : S.val => b i.val)).repr.toLinearMap
+    sorry
   ) sorry)
-  ()
-  ()
-  ()
+  (sorry)
+  (sorry)
+  (sorry)
