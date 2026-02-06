@@ -166,10 +166,9 @@ variable (hE₀ : ∀ i, E₀ i = b i (κ₀ i))
 noncomputable def restrictedFinsuppEquiv {S : FiniteSet ι} :
     (((i : ↑↑S) → κ ↑i) →₀ R) →ₗ[R] Πʳ (i : ι), [κ i, {κ₀ i}] →₀ R :=
   { toFun f := f.mapDomain (finiteSetMap κ₀)
-    map_add' := sorry -- prove this is additive
-    map_smul' := sorry -- prove this respects scalar multiplication
+    map_add' := sorry
+    map_smul' := sorry
   }
-
 
 noncomputable
 def RestrictedTensorFinsuppEquiv : RestrictedTensor R E₀ ≃ₗ[R] Πʳ (i : ι), [κ i, {κ₀ i}] →₀ R :=
