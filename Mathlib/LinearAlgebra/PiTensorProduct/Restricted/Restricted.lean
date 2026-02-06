@@ -163,27 +163,23 @@ variable (hE₀ : ∀ i, E₀ i = b i (κ₀ i))
 #check Finsupp.comp_liftAddHom
 
 #check Finsupp.mapDomain_comapDomain
-
+#check finiteSetMap_injective
 #check Finsupp.comapDomain -- use this
-noncomputable def restrictedFinsuppEquiv {S : FiniteSet ι} :
-    (((i : ↑↑S) → κ ↑i) →₀ R) ≃ₗ[R] Πʳ (i : ι), [κ i, {κ₀ i}] →₀ R where
+
+noncomputable def toRestrictedFinsupp {S : FiniteSet ι} :
+    (((i : S.val) → κ i) →₀ R) →ₗ[R] Πʳ (i : ι), [κ i, {κ₀ i}] →₀ R where
   toFun f := f.mapDomain (finiteSetMap κ₀)
-  invFun g := g.comapDomain (finiteSetMap κ₀) (sorry)
-  map_add' x y := Finsupp.mapDomain_add
-  map_smul' c x  := Finsupp.mapDomain_smul c x
-  left_inv f := by
-    apply?
-  right_inv := sorry
-
-
+  map_add' _ _ := Finsupp.mapDomain_add
+  map_smul' _ _ := Finsupp.mapDomain_smul _ _
 
 noncomputable
 def RestrictedTensorFinsuppEquiv : RestrictedTensor R E₀ ≃ₗ[R] Πʳ (i : ι), [κ i, {κ₀ i}] →₀ R :=
   LinearEquiv.ofLinear
   (DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i) _ (fun S =>
     haveI := S.prop
-    restrictedFinsuppEquiv κ₀ (S := S) (R := R) ∘ₗ
-      ((Basis.piTensorProduct (fun i : S.val => b i.val)).repr.toLinearMap)) sorry)
+    toRestrictedFinsupp κ₀ ∘ₗ
+      ((Basis.piTensorProduct (fun i => b i.val)).repr.toLinearMap))
+    sorry)
   (sorry)
   (sorry)
   (sorry)

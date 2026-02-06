@@ -85,7 +85,8 @@ lemma finiteSetMap_restrictedProduct (f : Πʳ i, [E i, {E₀ i}]) :
   intro h
   convert h.symm
 
-lemma finiteSetMap_injective (S : FiniteSet ι) :
+variable {E₀} in
+lemma finiteSetMap_injective {S : FiniteSet ι} :
     Function.Injective (finiteSetMap E₀ (S := S)) := by
   intro f g h
   ext i
