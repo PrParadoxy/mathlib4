@@ -69,6 +69,7 @@ theorem of_f' (f : Πʳ (i : ι), [E i, {E₀ i}]) :
   · simp only [Set.mem_singleton_iff, Set.mem_compl_iff, Set.mem_setOf_eq, not_not] at hj
     exact hj.symm
 
+@[simp]
 theorem lift'_of {S : FiniteSet ι} {x} : lift' E₀ M g hg (of E₀ S x) = (g S) x := by
   simp [of_eq]
 
@@ -165,19 +166,6 @@ variable {κ : ι → Type*} (b : ∀ i, Basis (κ i) R (E i))
 variable (κ₀ : ∀ i, κ i)
 variable (hE₀ : ∀ i, E₀ i = b i (κ₀ i))
 
-#check DirectLimit.exists_eq_mk
-#check Basis.reindex
-#check Basis.map
-#check DirectLimit.lift
-#check DirectLimit.Module.lift _ _ _ _ _ _
-#check Basis.piTensorProduct
-#check Basis.repr
-#check Finsupp.comp_liftAddHom
-
-#check Finsupp.mapDomain_comapDomain
-#check finiteSetMap_injective
-#check Finsupp.comapDomain -- use this
-
 noncomputable def toRestrictedFinsupp {S : FiniteSet ι} :
     (((i : S.val) → κ i) →₀ R) →ₗ[R] Πʳ (i : ι), [κ i, {κ₀ i}] →₀ R where
   toFun f := f.mapDomain (finiteSetMap κ₀)
@@ -187,20 +175,10 @@ noncomputable def toRestrictedFinsupp {S : FiniteSet ι} :
 noncomputable
 def RestrictedTensorFinsuppEquiv : RestrictedTensor R E₀ ≃ₗ[R] Πʳ (i : ι), [κ i, {κ₀ i}] →₀ R :=
   LinearEquiv.ofLinear
-  (DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i) _ (fun S =>
-    haveI := S.prop
-    toRestrictedFinsupp κ₀ ∘ₗ
-      ((Basis.piTensorProduct (fun i => b i.val)).repr.toLinearMap))
-    sorry)
-  ({
-    toFun f := by
-      let b := fun S : FiniteSet ι => haveI := S.prop;
-         (of E₀ S (R := R)) ∘ₗ (Basis.piTensorProduct (fun i : S.val => b i.val)).repr.symm.toLinearMap
-      dsimp only
-      sorry
-  }
-
-
+  (lift' _ _ (fun S => haveI := S.prop;
+    toRestrictedFinsupp κ₀ ∘ₗ ((Basis.piTensorProduct (fun i => b i.val)).repr.toLinearMap))
+    ()
   )
-  (sorry)
-  (sorry)
+  ()
+  ()
+  ()
