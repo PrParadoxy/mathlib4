@@ -45,7 +45,7 @@ def lift' : RestrictedTensor R E₀ →ₗ[R] M := DirectLimit.Module.lift _ _ _
 @[simp]
 def lift'_eq : lift' g hg = DirectLimit.Module.lift _ _ _ _ _ hg := rfl
 
-noncomputable def of (S : FiniteSet ι) :
+def of (S : FiniteSet ι) :
     (⨂[R] i : ↑S, E i) →ₗ[R] RestrictedTensor R E₀ :=
   DirectLimit.Module.of R _ (fun S : FiniteSet ι ↦ ⨂[R] i : ↑S, E i) ..
 
@@ -79,7 +79,7 @@ open scoped TensorProduct
 
 open Set in
 variable (R) in
-noncomputable def tprodr : RestrictedMultilinearMap R E₀ (RestrictedTensor R E₀) where
+def tprodr : RestrictedMultilinearMap R E₀ (RestrictedTensor R E₀) where
   toFun f := of E₀ ⟨_, f.prop⟩ (⨂ₜ[R] i, f i)
   map_update_add' f i x y := by
     let sx : FiniteSet ι := ⟨_, (f.update i x).prop⟩
@@ -120,7 +120,7 @@ theorem ext {φ₁ φ₂ : RestrictedTensor R E₀ →ₗ[R] M}
     simp [of_eq]
 
 variable (R) in
-noncomputable def liftAux : RestrictedMultilinearMap R E₀ M →ₗ[R] RestrictedTensor R E₀ →ₗ[R] M :=
+def liftAux : RestrictedMultilinearMap R E₀ M →ₗ[R] RestrictedTensor R E₀ →ₗ[R] M :=
   {
     toFun rm :=  lift' (fun S => PiTensorProduct.lift (rm.toMultilinearMap S))
       (fun _ _ _ x ↦ by
@@ -140,7 +140,7 @@ theorem liftAux_tprodr (f : Πʳ i, [E i, {E₀ i}]) (rm : RestrictedMultilinear
   simp [liftAux, tprodr_eq_of_tprod_apply, of, toMultilinearMap]
 
 variable {E₀} {M} in
-noncomputable def lift : RestrictedMultilinearMap R E₀ M ≃ₗ[R] RestrictedTensor R E₀ →ₗ[R] M where
+def lift : RestrictedMultilinearMap R E₀ M ≃ₗ[R] RestrictedTensor R E₀ →ₗ[R] M where
   toFun := liftAux R E₀ M
   invFun l := l.compRestrictedMultilinearMap (tprodr R E₀)
   left_inv l := by ext _ ; simp
@@ -150,7 +150,7 @@ noncomputable def lift : RestrictedMultilinearMap R E₀ M ≃ₗ[R] RestrictedT
 
 variable {F : ι → Type*} (F₀ : (i : ι) → F i) [∀ i, AddCommMonoid (F i)] [∀ i, Module R (F i)]
 
-noncomputable def map {f : Π i, E i →ₗ[R] F i} (hf : ∀ i, (f i) (E₀ i) = F₀ i) :
+def map {f : Π i, E i →ₗ[R] F i} (hf : ∀ i, (f i) (E₀ i) = F₀ i) :
     RestrictedTensor R E₀ →ₗ[R] RestrictedTensor R F₀ :=
   lift <| (tprodr R F₀).compLinearMap hf
 
@@ -162,13 +162,12 @@ variable {κ : ι → Type*} (b : ∀ i, Basis (κ i) R (E i))
 variable (κ₀ : ∀ i, κ i)
 variable (hE₀ : ∀ i, E₀ i = b i (κ₀ i))
 
-noncomputable def toRestrictedFinsupp {S : FiniteSet ι} :
+def toRestrictedFinsupp {S : FiniteSet ι} :
     (((i : S.val) → κ i) →₀ R) →ₗ[R] Πʳ (i : ι), [κ i, {κ₀ i}] →₀ R where
   toFun f := f.mapDomain (finiteSetMap κ₀)
   map_add' _ _ := Finsupp.mapDomain_add
   map_smul' _ _ := Finsupp.mapDomain_smul ..
 
-noncomputable
 def RestrictedTensorFinsuppEquiv : RestrictedTensor R E₀ ≃ₗ[R] Πʳ (i : ι), [κ i, {κ₀ i}] →₀ R :=
   LinearEquiv.ofLinear
   (lift' (fun S => haveI := S.prop;
