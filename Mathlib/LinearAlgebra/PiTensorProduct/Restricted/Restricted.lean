@@ -29,7 +29,20 @@ variable (R) in
 abbrev RestrictedTensor :=
   DirectLimit (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i) (fun _ _ hsub ↦ extendTensor hsub E₀)
 
+
 namespace RestrictedTensor
+
+noncomputable section
+
+variable (M : Type*) [AddCommMonoid M] [Module R M]
+  (g : (S : FiniteSet ι) → (⨂[R] i : S.val, E i) →ₗ[R] M)
+  (hg : ∀ (i j : FiniteSet ι) (hij : i ≤ j)
+    (x : ⨂[R] (k : i.val), E k), (g j) ((extendTensor hij E₀) x) = (g i) x)
+
+def lift' : RestrictedTensor R E₀ →ₗ[R] M := DirectLimit.Module.lift _ _ _ _ _ hg
+
+@[simp]
+def lift'_eq : lift' E₀ M g hg = DirectLimit.Module.lift _ _ _ _ _ hg := rfl
 
 noncomputable def of (S : FiniteSet ι) :
     (⨂[R] i : ↑S, E i) →ₗ[R] RestrictedTensor R E₀ :=
@@ -56,7 +69,8 @@ theorem of_f' (f : Πʳ (i : ι), [E i, {E₀ i}]) :
   · simp only [Set.mem_singleton_iff, Set.mem_compl_iff, Set.mem_setOf_eq, not_not] at hj
     exact hj.symm
 
-variable (M : Type*) [AddCommMonoid M] [Module R M]
+theorem lift'_of {S : FiniteSet ι} {x} : lift' E₀ M g hg (of E₀ S x) = (g S) x := by
+  simp [of_eq]
 
 open RestrictedMultilinearMap
 open scoped TensorProduct
@@ -106,16 +120,14 @@ theorem ext {φ₁ φ₂ : RestrictedTensor R E₀ →ₗ[R] M}
 variable (R) in
 noncomputable def liftAux : RestrictedMultilinearMap R E₀ M →ₗ[R] RestrictedTensor R E₀ →ₗ[R] M :=
   {
-    toFun rm := DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i) _
-      (fun S => PiTensorProduct.lift (rm.toMultilinearMap S))
-      (fun s1 s2 hsub x ↦ by
+    toFun rm :=  lift' _ _
+      (fun S => PiTensorProduct.lift (rm.toMultilinearMap S)) (fun _ _ _ x ↦ by
         induction x using PiTensorProduct.induction_on with
         | smul_tprod r f =>
           simp only [map_smul, extendTensor_tprod, lift.tprod, toMultilinearMap_apply_apply]
           congr 2 with _
           aesop (add safe forward Set.mem_of_subset_of_mem)
-        | add => grind
-      )
+        | add => grind)
     map_add' := by aesop
     map_smul' := by aesop
   }
