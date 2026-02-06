@@ -158,6 +158,12 @@ lemma range_structureMap :
   subset_antisymm (range_subset_iff.mpr fun x i ↦ (x i).2)
     (fun _ hx ↦ mem_range.mpr <| exists_structureMap_eq_of_forall R A hx)
 
+def update [DecidableEq ι] (hG : 𝓖 ≤ cofinite)
+    (f : Πʳ i, [R i, A i]_[𝓖]) (i : ι) (a : R i) : Πʳ i, [R i, A i]_[𝓖] :=
+    ⟨Function.update f i a, by
+  filter_upwards [le_cofinite_iff_compl_singleton_mem.mp hG i, f.prop] with j hj hA
+  simpa [notMem_singleton_iff.mp, (mem_compl_iff _ _).mp hj] using hA⟩
+
 section Algebra
 /-!
 ## Algebraic instances on restricted products
