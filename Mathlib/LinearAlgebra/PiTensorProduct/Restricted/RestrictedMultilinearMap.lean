@@ -88,9 +88,8 @@ lemma finiteSetMap_restrictedProduct (f : Πʳ i, [E i, {E₀ i}]) :
 lemma finiteSetMap_injective (S : FiniteSet ι) :
     Function.Injective (finiteSetMap E₀ (S := S)) := by
   intro f g h
-  ext ⟨i, hi⟩
-  apply congrArg Subtype.val at h
-  replace h := congrFun h i
+  ext i
+  replace h := congrFun (congrArg Subtype.val h) i
   simp_all
 
 end RestrictedProduct
