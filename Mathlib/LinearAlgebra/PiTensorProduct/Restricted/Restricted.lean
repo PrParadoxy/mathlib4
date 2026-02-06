@@ -162,14 +162,16 @@ variable (hE₀ : ∀ i, E₀ i = b i (κ₀ i))
 #check Basis.repr
 #check Finsupp.comp_liftAddHom
 
+#check Finsupp.mapDomain_comapDomain
 
+#check Finsupp.comapDomain -- use this
 noncomputable def restrictedFinsuppEquiv {S : FiniteSet ι} :
     (((i : ↑↑S) → κ ↑i) →₀ R) ≃ₗ[R] Πʳ (i : ι), [κ i, {κ₀ i}] →₀ R where
   toFun f := f.mapDomain (finiteSetMap κ₀)
   invFun g := g.mapDomain (fun f => fun (i : ↑↑S) => f i)
   map_add' x y := Finsupp.mapDomain_add
   map_smul' c x  := Finsupp.mapDomain_smul c x
-  left_inv := sorry
+  left_inv f := sorry
   right_inv := sorry
 
 
