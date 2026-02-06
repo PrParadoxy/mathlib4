@@ -41,7 +41,9 @@ variable (M : Type*) [AddCommMonoid M] [Module R M]
   (hg : ∀ (i j : FiniteSet ι) (hij : i ≤ j) (f : Π i : i.val, E i),
     (g i) (⨂ₜ[R] i, f i) = (g j) (extendTensor hij E₀ (⨂ₜ[R] i, f i)))
 
+
 variable {E₀} {M} in
+@[simp]
 def lift' : RestrictedTensor R E₀ →ₗ[R] M := DirectLimit.Module.lift _ _ _ _ g (fun _ _ hsub x => by
   induction x using PiTensorProduct.induction_on with
   | smul_tprod r f =>
@@ -77,7 +79,7 @@ theorem of_f' (f : Πʳ (i : ι), [E i, {E₀ i}]) :
 
 @[simp]
 theorem lift'_of {S : FiniteSet ι} {x} : lift' g hg (of E₀ S x) = (g S) x := by
-  simp [lift', of_eq]
+  simp [of_eq]
 
 open RestrictedMultilinearMap
 open scoped TensorProduct
@@ -140,7 +142,7 @@ def liftAux : RestrictedMultilinearMap R E₀ M →ₗ[R] RestrictedTensor R E�
 @[simp]
 theorem liftAux_tprodr (f : Πʳ i, [E i, {E₀ i}]) (rm : RestrictedMultilinearMap R E₀ M) :
     (liftAux R E₀ M) rm ((tprodr R E₀) f) = rm f := by
-  simp [lift', liftAux, tprodr_eq_of_tprod_apply, of, toMultilinearMap]
+  simp [liftAux, tprodr_eq_of_tprod_apply, of, toMultilinearMap]
 
 variable {E₀} {M} in
 def lift : RestrictedMultilinearMap R E₀ M ≃ₗ[R] RestrictedTensor R E₀ →ₗ[R] M where
