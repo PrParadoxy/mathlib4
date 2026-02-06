@@ -34,23 +34,21 @@ namespace RestrictedTensor
 
 noncomputable section
 
-
-
 variable (M : Type*) [AddCommMonoid M] [Module R M]
   (g : (S : FiniteSet ι) → (⨂[R] i : S.val, E i) →ₗ[R] M)
   (hg : ∀ (i j : FiniteSet ι) (hij : i ≤ j) (f : Π i : i.val, E i),
     (g i) (⨂ₜ[R] i, f i) = (g j) (extendTensor hij E₀ (⨂ₜ[R] i, f i)))
 
-
 variable {E₀} {M} in
-@[simp]
-def lift' : RestrictedTensor R E₀ →ₗ[R] M := DirectLimit.Module.lift _ _ _ _ g (fun _ _ hsub x => by
-  induction x using PiTensorProduct.induction_on with
-  | smul_tprod r f =>
-    simp only [map_smul]
-    congr 1
-    simp [hg _ _ hsub f]
-  | add => grind)
+abbrev lift' : RestrictedTensor R E₀ →ₗ[R] M := DirectLimit.Module.lift _ _ _ _ g
+  (fun _ _ hsub x => by
+    induction x using PiTensorProduct.induction_on with
+    | smul_tprod r f =>
+      simp only [map_smul]
+      congr 1
+      simp [hg _ _ hsub f]
+    | add => grind
+  )
 
 def of (S : FiniteSet ι) :
     (⨂[R] i : ↑S, E i) →ₗ[R] RestrictedTensor R E₀ :=
