@@ -140,7 +140,7 @@ def liftAux : RestrictedMultilinearMap R E₀ M →ₗ[R] RestrictedTensor R E�
 @[simp]
 theorem liftAux_tprodr (f : Πʳ i, [E i, {E₀ i}]) (rm : RestrictedMultilinearMap R E₀ M) :
     (liftAux R E₀ M) rm ((tprodr R E₀) f) = rm f := by
-  simp [liftAux, tprodr_eq_of_tprod_apply, of, toMultilinearMap]
+  simp [lift', liftAux, tprodr_eq_of_tprod_apply, of, toMultilinearMap]
 
 variable {E₀} {M} in
 def lift : RestrictedMultilinearMap R E₀ M ≃ₗ[R] RestrictedTensor R E₀ →ₗ[R] M where
