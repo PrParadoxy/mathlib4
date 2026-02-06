@@ -34,16 +34,21 @@ namespace RestrictedTensor
 
 noncomputable section
 
+
+
 variable (M : Type*) [AddCommMonoid M] [Module R M]
   (g : (S : FiniteSet ι) → (⨂[R] i : S.val, E i) →ₗ[R] M)
-  (hg : ∀ (i j : FiniteSet ι) (hij : i ≤ j)
-    (x : ⨂[R] (k : i.val), E k), (g j) ((extendTensor hij E₀) x) = (g i) x)
+  (hg : ∀ (i j : FiniteSet ι) (hij : i ≤ j) (f : Π i : i.val, E i),
+    (g i) (⨂ₜ[R] i, f i) = (g j) (extendTensor hij E₀ (⨂ₜ[R] i, f i)))
 
 variable {E₀} {M} in
-def lift' : RestrictedTensor R E₀ →ₗ[R] M := DirectLimit.Module.lift _ _ _ _ _ hg
-
-@[simp]
-def lift'_eq : lift' g hg = DirectLimit.Module.lift _ _ _ _ _ hg := rfl
+def lift' : RestrictedTensor R E₀ →ₗ[R] M := DirectLimit.Module.lift _ _ _ _ g (fun _ _ hsub x => by
+  induction x using PiTensorProduct.induction_on with
+  | smul_tprod r f =>
+    simp only [map_smul]
+    congr 1
+    simp [hg _ _ hsub f]
+  | add => grind)
 
 def of (S : FiniteSet ι) :
     (⨂[R] i : ↑S, E i) →ₗ[R] RestrictedTensor R E₀ :=
@@ -72,7 +77,7 @@ theorem of_f' (f : Πʳ (i : ι), [E i, {E₀ i}]) :
 
 @[simp]
 theorem lift'_of {S : FiniteSet ι} {x} : lift' g hg (of E₀ S x) = (g S) x := by
-  simp [of_eq]
+  simp [lift', of_eq]
 
 open RestrictedMultilinearMap
 open scoped TensorProduct
@@ -122,14 +127,12 @@ theorem ext {φ₁ φ₂ : RestrictedTensor R E₀ →ₗ[R] M}
 variable (R) in
 def liftAux : RestrictedMultilinearMap R E₀ M →ₗ[R] RestrictedTensor R E₀ →ₗ[R] M :=
   {
-    toFun rm :=  lift' (fun S => PiTensorProduct.lift (rm.toMultilinearMap S))
+    toFun rm := lift' (fun S => PiTensorProduct.lift (rm.toMultilinearMap S))
       (fun _ _ _ x ↦ by
-        induction x using PiTensorProduct.induction_on with
-        | smul_tprod r f =>
-          simp only [map_smul, extendTensor_tprod, lift.tprod, toMultilinearMap_apply_apply]
-          congr 2 with _
-          aesop (add safe forward Set.mem_of_subset_of_mem)
-        | add => grind)
+        simp only [extendTensor_tprod, lift.tprod, toMultilinearMap_apply_apply]
+        congr 1
+        aesop (add safe forward Set.mem_of_subset_of_mem)
+      )
     map_add' := by aesop
     map_smul' := by aesop
   }
@@ -172,7 +175,7 @@ def RestrictedTensorFinsuppEquiv : RestrictedTensor R E₀ ≃ₗ[R] Πʳ (i : �
   LinearEquiv.ofLinear
   (lift' (fun S => haveI := S.prop;
     toRestrictedFinsupp κ₀ ∘ₗ ((Basis.piTensorProduct (fun i => b i.val)).repr.toLinearMap))
-    ()
+    (fun i j hij x => by sorry)
   )
   ()
   ()
