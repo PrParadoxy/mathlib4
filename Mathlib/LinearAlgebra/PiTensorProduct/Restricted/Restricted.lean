@@ -106,8 +106,7 @@ theorem ext {φ₁ φ₂ : RestrictedTensor R E₀ →ₗ[R] M}
 variable (R) in
 noncomputable def liftAux : RestrictedMultilinearMap R E₀ M →ₗ[R] RestrictedTensor R E₀ →ₗ[R] M :=
   {
-    toFun rm := DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i)
-      (fun _ _ hsub ↦ extendTensor hsub E₀)
+    toFun rm := DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i) _
       (fun S => PiTensorProduct.lift (rm.toMultilinearMap S))
       (fun s1 s2 hsub x ↦ by
         induction x using PiTensorProduct.induction_on with
@@ -153,34 +152,19 @@ variable (E₀ : (i : ι) → E i)
 variable (κ : ι → Type*) (b : ∀ i, Basis (κ i) R (E i))
 variable (κ₀ : ∀ i, κ i)
 variable (hE₀ : ∀ i, E₀ i = b i (κ₀ i))
-
+#check DirectLimit.exists_eq_mk
+#check Basis.reindex
+#check Basis.map
+#check DirectLimit.lift
+#check DirectLimit.Module.lift _ _ _ _ _ _
+#check Basis.piTensorProduct
+#check Basis.repr
 noncomputable
-def RestrictedTensorFinsuppEquiv : RestrictedTensor R E₀ ≃ₗ[R] Πʳ (i : ι), [κ i, {κ₀ i}] →₀ R where
-  toFun := lift {
-    toFun r := {
-      support := _
-      toFun := _
-      mem_support_toFun := _
+def RestrictedTensorFinsuppEquiv : RestrictedTensor R E₀ ≃ₗ[R] Πʳ (i : ι), [κ i, {κ₀ i}] →₀ R :=
+  LinearEquiv.ofLinear
+  (DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i) _ (sorry
+  ) sorry)
+  ()
+  ()
+  ()
 
-    }
-  }
-
--- noncomputable def rEquiv : Πʳ (i : ι), [E i, {E₀ i}] ≃ (ι →₀ R) where
---   toFun f := Finsupp.onFinset
---     f.prop.toFinset
---     (fun i => ((b i).repr (f.val i)) (j₀ i) - 1)
---     (by aesop)
---   invFun g := ⟨
---     fun i => (b i).repr.symm (Finsupp.single (j₀ i) (g i + 1)),
---     by
---       rw [Filter.eventually_cofinite]
---       refine Set.Finite.subset g.support.finite_toSet (fun i hi => ?_)
---       aesop
---     ⟩
---   left_inv f := by
---     ext i
---     simp
-
---   right_inv g := by
---     ext _
---     simp [Basis.repr_self]
