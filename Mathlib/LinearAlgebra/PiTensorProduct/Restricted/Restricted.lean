@@ -149,7 +149,7 @@ variable {E : ι → Type*} {R : Type*}
 variable [CommRing R] [∀ i, AddCommMonoid (E i)] [∀ i, Module R (E i)]
 variable (E₀ : (i : ι) → E i)
 
-variable (κ : ι → Type*) (b : ∀ i, Basis (κ i) R (E i))
+variable {κ : ι → Type*} (b : ∀ i, Basis (κ i) R (E i))
 variable (κ₀ : ∀ i, κ i)
 variable (hE₀ : ∀ i, E₀ i = b i (κ₀ i))
 
@@ -160,15 +160,24 @@ variable (hE₀ : ∀ i, E₀ i = b i (κ₀ i))
 #check DirectLimit.Module.lift _ _ _ _ _ _
 #check Basis.piTensorProduct
 #check Basis.repr
+#check Finsupp.comp_liftAddHom
+
+
+noncomputable def restrictedFinsuppEquiv {S : FiniteSet ι} :
+    (((i : ↑↑S) → κ ↑i) →₀ R) →ₗ[R] Πʳ (i : ι), [κ i, {κ₀ i}] →₀ R :=
+  { toFun f := f.mapDomain (finiteSetMap κ₀)
+    map_add' := sorry -- prove this is additive
+    map_smul' := sorry -- prove this respects scalar multiplication
+  }
+
 
 noncomputable
 def RestrictedTensorFinsuppEquiv : RestrictedTensor R E₀ ≃ₗ[R] Πʳ (i : ι), [κ i, {κ₀ i}] →₀ R :=
   LinearEquiv.ofLinear
-  (DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i) _ (fun S => by
+  (DirectLimit.Module.lift _ _ (fun S : FiniteSet ι ↦ ⨂[R] (i : ↑S), E i) _ (fun S =>
     haveI := S.prop
-    let b := (Basis.piTensorProduct (fun i : S.val => b i.val)).repr.toLinearMap
-    sorry
-  ) sorry)
+    restrictedFinsuppEquiv κ₀ (S := S) (R := R) ∘ₗ
+      ((Basis.piTensorProduct (fun i : S.val => b i.val)).repr.toLinearMap)) sorry)
   (sorry)
   (sorry)
   (sorry)
