@@ -166,12 +166,14 @@ variable (hE₀ : ∀ i, E₀ i = b i (κ₀ i))
 noncomputable def restrictedFinsuppEquiv {S : FiniteSet ι} :
     (((i : ↑↑S) → κ ↑i) →₀ R) ≃ₗ[R] Πʳ (i : ι), [κ i, {κ₀ i}] →₀ R where
   toFun f := f.mapDomain (finiteSetMap κ₀)
-  invFun f := sorry -- does it exists?
-  map_add' := sorry
-  map_smul' := sorry
+  invFun g := g.mapDomain (fun f => fun (i : ↑↑S) => f i)
+  map_add' x y := Finsupp.mapDomain_add
+  map_smul' c x  := Finsupp.mapDomain_smul c x
   left_inv := sorry
   right_inv := sorry
-  
+
+
+
 noncomputable
 def RestrictedTensorFinsuppEquiv : RestrictedTensor R E₀ ≃ₗ[R] Πʳ (i : ι), [κ i, {κ₀ i}] →₀ R :=
   LinearEquiv.ofLinear
