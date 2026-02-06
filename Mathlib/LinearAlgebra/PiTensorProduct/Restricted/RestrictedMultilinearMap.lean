@@ -26,8 +26,12 @@ open RestrictedProduct Filter
 
 namespace RestrictedProduct
 
-variable {ι : Type*} [DecidableEq ι]
+variable {ι : Type*}
 variable {E : ι → Type*} {R : Type*} {E₀ : (i : ι) → E i}
+
+section update
+
+variable [DecidableEq ι]
 
 lemma update_restricted (f : Πʳ i, [E i, {E₀ i}]) (i : ι) (v : E i) :
     ∀ᶠ (j : ι) in cofinite, Function.update f i v j ∈ (fun i ↦ ({E₀ i} : Set (E i))) j := by
@@ -48,6 +52,8 @@ lemma update_eq_function_update (f : Πʳ i, [E i, {E₀ i}]) (i : ι) (v : E i)
 lemma update_apply (f : Πʳ i, [E i, {E₀ i}]) (i : ι) (v : E i) (j : ι) :
   (update f i v) j = Function.update f i v j := rfl
 
+end update
+
 variable (E₀)
 noncomputable def finiteSetMap {S : FiniteSet ι} (f : Π i : S.val, E i) : Πʳ i, [E i, {E₀ i}] :=
   ⟨fun i ↦ if h : i ∈ S.val then f ⟨i, h⟩ else E₀ i, by
@@ -55,18 +61,21 @@ noncomputable def finiteSetMap {S : FiniteSet ι} (f : Π i : S.val, E i) : Πʳ
     exact Set.Finite.subset S.prop (fun _ hi => hi.choose)
   ⟩
 
-omit [DecidableEq ι] in
 @[simp]
 lemma finiteSetMap_apply {S : FiniteSet ι} (f : Π i : S.val, E i) (i) :
   finiteSetMap E₀ f i = if h : i ∈ S.val then f ⟨i, h⟩ else E₀ i := rfl
 
 @[simp]
-lemma finiteSetMap_update {S : FiniteSet ι} [DecidableEq ↑↑S] (f : Π i : S.val, E i) (i v) :
+lemma finiteSetMap_apply' {S : FiniteSet ι} (f : Π i : S.val, E i) (i) :
+  (finiteSetMap E₀ f).val i = if h : i ∈ S.val then f ⟨i, h⟩ else E₀ i := rfl
+
+@[simp]
+lemma finiteSetMap_update {S : FiniteSet ι} [DecidableEq ι] [DecidableEq ↑↑S]
+    (f : Π i : S.val, E i) (i v) :
     finiteSetMap E₀ (Function.update f i v) = update (finiteSetMap E₀ f) i v := by
   ext j
   by_cases h : j = i <;> aesop
 
-omit [DecidableEq ι] in
 @[simp]
 lemma finiteSetMap_restrictedProduct (f : Πʳ i, [E i, {E₀ i}]) :
     finiteSetMap (S := ⟨_, f.prop⟩) E₀ (fun i => f i) = f := by
@@ -75,6 +84,14 @@ lemma finiteSetMap_restrictedProduct (f : Πʳ i, [E i, {E₀ i}]) :
     dite_eq_ite, ite_eq_left_iff, not_not]
   intro h
   convert h.symm
+
+lemma finiteSetMap_injective (S : FiniteSet ι) :
+    Function.Injective (finiteSetMap E₀ (S := S)) := by
+  intro f g h
+  ext ⟨i, hi⟩
+  apply congrArg Subtype.val at h
+  replace h := congrFun h i
+  simp_all
 
 end RestrictedProduct
 
