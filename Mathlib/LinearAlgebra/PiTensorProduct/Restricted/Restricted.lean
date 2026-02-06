@@ -170,7 +170,7 @@ noncomputable def toRestrictedFinsupp {S : FiniteSet ι} :
     (((i : S.val) → κ i) →₀ R) →ₗ[R] Πʳ (i : ι), [κ i, {κ₀ i}] →₀ R where
   toFun f := f.mapDomain (finiteSetMap κ₀)
   map_add' _ _ := Finsupp.mapDomain_add
-  map_smul' _ _ := Finsupp.mapDomain_smul _ _
+  map_smul' _ _ := Finsupp.mapDomain_smul ..
 
 noncomputable
 def RestrictedTensorFinsuppEquiv : RestrictedTensor R E₀ ≃ₗ[R] Πʳ (i : ι), [κ i, {κ₀ i}] →₀ R :=
@@ -180,6 +180,15 @@ def RestrictedTensorFinsuppEquiv : RestrictedTensor R E₀ ≃ₗ[R] Πʳ (i : �
     toRestrictedFinsupp κ₀ ∘ₗ
       ((Basis.piTensorProduct (fun i => b i.val)).repr.toLinearMap))
     sorry)
-  (sorry)
+  ({
+    toFun f := by
+      let b := fun S : FiniteSet ι => haveI := S.prop;
+         (of E₀ S (R := R)) ∘ₗ (Basis.piTensorProduct (fun i : S.val => b i.val)).repr.symm.toLinearMap
+      dsimp only
+      sorry
+  }
+
+
+  )
   (sorry)
   (sorry)
