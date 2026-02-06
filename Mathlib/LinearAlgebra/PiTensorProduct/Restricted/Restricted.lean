@@ -150,10 +150,20 @@ variable {E : ι → Type*} {R : Type*}
 variable [CommRing R] [∀ i, AddCommMonoid (E i)] [∀ i, Module R (E i)]
 variable (E₀ : (i : ι) → E i)
 
-variable (ι' : ι → Type*) (b : ∀ i, Basis (ι' i) R (E i))
-variable (j₀ : ∀ i, ι' i)
-variable (hE₀ : ∀ i, E₀ i = b i (j₀ i))
+variable (κ : ι → Type*) (b : ∀ i, Basis (κ i) R (E i))
+variable (κ₀ : ∀ i, κ i)
+variable (hE₀ : ∀ i, E₀ i = b i (κ₀ i))
 
+noncomputable
+def RestrictedTensorFinsuppEquiv : RestrictedTensor R E₀ ≃ₗ[R] Πʳ (i : ι), [κ i, {κ₀ i}] →₀ R where
+  toFun := lift {
+    toFun r := {
+      support := _
+      toFun := _
+      mem_support_toFun := _
+
+    }
+  }
 
 -- noncomputable def rEquiv : Πʳ (i : ι), [E i, {E₀ i}] ≃ (ι →₀ R) where
 --   toFun f := Finsupp.onFinset
