@@ -66,6 +66,5 @@ theorem embed_inj [Free R N] [Free R M] :
   rw [Finset.sum_eq_single i] at hc <;> grind
 
 lemma eq_zero_of_forall_dual_eq_zero_free' [Free R N] [Free R M] (x : M ⊗[R] N)
-    (hx : ∀ ψ : Dual R N, TensorProduct.rid R M (LinearMap.lTensor M ψ x) = 0) : x = 0 := by
-  have hr : ∀ B : M →ₗ[R] N →ₗ[R] R, embed x B = 0 := sorry -- follows Raymond's proof
+    (hr : ∀ B : M →ₗ[R] N →ₗ[R] R, embed x B = 0) : x = 0 := by
   exact embed_inj (LinearMap.ext (by simp [hr]))
