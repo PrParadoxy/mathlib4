@@ -1,8 +1,14 @@
 import Mathlib.LinearAlgebra.Dual.Defs
 import Mathlib.LinearAlgebra.TensorProduct.Basis
+import Mathlib.LinearAlgebra.PiTensorProduct
 
-open TensorProduct
+
 open Module Basis
+
+section prop_02
+
+
+namespace TensorProduct
 
 variable {R : Type*} {S : Type*} {M : Type*} {N : Type*} {ι : Type*} {κ : Type*}
   [CommSemiring R] [Semiring S] [Algebra R S] [AddCommMonoid M] [Module R M]
@@ -33,9 +39,7 @@ lemma eq_zero_of_forall_dual_eq_zero_free [Free R N] [Free S M] (x : M ⊗[R] N)
     (hx : ∀ ψ : Dual R N, TensorProduct.rid R M (LinearMap.lTensor M ψ x) = 0) : x = 0 :=
   eq_zero_of_forall_dual_eq_zero (Free.chooseBasis S M) (Free.chooseBasis R N) hx
 
-
-
--- Just for test
+-- Raymond's version
 
 variable {R : Type*} [CommRing R]
   {M : Type*} {N : Type*} {P : Type*}
@@ -66,5 +70,44 @@ theorem embed_inj [Free R N] [Free R M] :
   rw [Finset.sum_eq_single i] at hc <;> grind
 
 lemma eq_zero_of_forall_dual_eq_zero_free' [Free R N] [Free R M] (x : M ⊗[R] N)
-    (hr : ∀ B : M →ₗ[R] N →ₗ[R] R, embed x B = 0) : x = 0 := by
-  exact embed_inj (LinearMap.ext (by simp [hr]))
+    (hr : ∀ B : M →ₗ[R] N →ₗ[R] R, embed x B = 0) : x = 0 :=
+  embed_inj (LinearMap.ext (by simp [hr]))
+
+end prop_02.TensorProduct
+
+
+section prop_03
+
+namespace PiTensorProduct
+open scoped TensorProduct
+
+variable {ι : Type*} {R : Type*} {M : ι → Type*}
+variable [CommSemiring R] [∀ i, AddCommMonoid (M i)] [∀ i, Module R (M i)]
+variable {S T : Set ι} (hsub : S ⊆ T) [(i : ι) → Decidable (i ∈ S)]
+
+def tmulDiffEquiv : (⨂[R] i₁ : S, M i₁) ⊗[R] (⨂[R] i₂ : ↥(T \ S), M i₂) ≃ₗ[R] ⨂[R] i : T, M i :=
+  (tmulEquivDep R (fun i ↦ M ((Equiv.Set.sumDiffSubset hsub) i))) ≪≫ₗ
+   (reindex R (fun i : T ↦ M i) (Equiv.Set.sumDiffSubset hsub).symm).symm
+
+@[simp]
+theorem tmulDiffEquiv_tprod (lv : (i : S) → M i) (rv : (i : ↑(T \ S)) → M i) :
+    tmulDiffEquiv hsub ((⨂ₜ[R] i, lv i) ⊗ₜ (⨂ₜ[R] i, rv i)) =
+     ⨂ₜ[R] i : T, if h : ↑i ∈ S then lv ⟨i, by grind⟩ else rv ⟨i, by grind⟩ := by
+  rw [tmulDiffEquiv, LinearEquiv.trans_apply, LinearEquiv.symm_apply_eq]
+  conv_lhs => apply tmulEquivDep_apply
+  conv_rhs => apply reindex_tprod
+  congr with i
+  cases i with
+  | inl _ => simp
+  | inr i => simp [Set.disjoint_right (s := S).mp (by grind) i.prop]
+
+@[simp]
+theorem tmulDiffEquiv_tprod_symm (av : (i : T) → M i) :
+    (tmulDiffEquiv hsub).symm (⨂ₜ[R] i, av i) =
+      (⨂ₜ[R] i : S, av ⟨i, by grind⟩) ⊗ₜ (⨂ₜ[R] i : ↥(T \ S), av ⟨i, by grind⟩) := by
+  rw [LinearEquiv.symm_apply_eq, tmulDiffEquiv_tprod]
+  grind
+
+
+open Function
+#check LinearMap.prod
