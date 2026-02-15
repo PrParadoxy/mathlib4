@@ -168,6 +168,34 @@ theorem mem_span_iff_bound {f : ι → E →ₗ[𝕜] 𝕜} (φ : E →ₗ[𝕜]
     exact ⟨s, C, hC⟩
   · exact Seminorm.cont_withSeminorms_normedSpace _ this _ H
 
+variable [AddCommGroup F] [Module 𝕜 F]
+
+variable (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜)
+
+lemma dualEmbedding_surjective : Function.Surjective (WeakBilin.eval B) := fun f ↦ by
+  have : f.toLinearMap ∈ Submodule.span 𝕜 ((fun x ↦ ↑(WeakBilin.eval B x)) '' Set.univ) := by
+    simpa [mem_span_iff_continuous, continuous_iff_le_induced, ← induced_to_pi] using
+      f.continuous.le_induced
+  obtain ⟨t, -, c, h⟩ := (Submodule.mem_span_image_iff_exists_fun 𝕜).mp this
+  exact ⟨∑ v, c v • v, by simp_all [← ContinuousLinearMap.coe_inj]⟩
+
+lemma dualEmbedding_injective_of_separatingRight {E F : Type*} [AddCommGroup E] [AddCommGroup F]
+    [Module 𝕜 E] [Module 𝕜 F] (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) (hr : B.SeparatingRight) :
+    Function.Injective (WeakBilin.eval B) :=
+  (injective_iff_map_eq_zero _).mpr (fun f hf ↦
+    (separatingRight_iff_linear_flip_nontrivial.mp hr) f (ContinuousLinearMap.coe_inj.mpr hf))
+
+/-- When `B` is right-separating, `F` is linearly equivalent to the strong dual of `E` with the
+weak topology. -/
+noncomputable def rightDualEquiv (hr : B.SeparatingRight) : F ≃ₗ[𝕜] StrongDual 𝕜 (WeakBilin B) :=
+  LinearEquiv.ofBijective (WeakBilin.eval B)
+    ⟨dualEmbedding_injective_of_separatingRight B hr, dualEmbedding_surjective B⟩
+
+/-- When `B` is left-separating, `E` is linearly equivalent to the strong dual of `F` with the
+weak topology. -/
+noncomputable def leftDualEquiv (hl : B.SeparatingLeft) : E ≃ₗ[𝕜] StrongDual 𝕜 (WeakBilin B.flip) :=
+  rightDualEquiv _ (LinearMap.flip_separatingRight.mpr hl)
+
 end NontriviallyNormedField
 
 end
