@@ -84,11 +84,12 @@ open Set
 
 variable {ι : Type*} {R : Type*} {M : ι → Type*}
 variable [CommSemiring R] [∀ i, AddCommMonoid (M i)] [∀ i, Module R (M i)]
-variable {S : Set ι} {i₀} (h₀ : i₀ ∉ S) [DecidablePred fun x ↦ x ∈ S]
+variable {S : Set ι} {i₀} [DecidablePred fun x ↦ x ∈ S \ {i₀}] (h : i₀ ∈ S)
 
-def tmulInsertEquiv :
-    ((M i₀) ⊗[R] (⨂[R] i₁ : S, M i₁)) ≃ₗ[R] (⨂[R] i₁ : ↥(insert i₀ S), M i₁) :=
+def tmulSingleDiffEquiv :
+    ((M i₀) ⊗[R] (⨂[R] i₁ : (S \ {i₀} : Set ι), M i₁)) ≃ₗ[R] (⨂[R] i₁ : S, M i₁) :=
   (TensorProduct.congr (subsingletonEquiv (s := fun _ : PUnit => M i₀) PUnit.unit).symm
-    (LinearEquiv.refl _ _)) ≪≫ₗ (TensorProduct.comm ..) ≪≫ₗ
-    (tmulEquivDep R (fun i : S ⊕ PUnit => M ((Equiv.Set.insert h₀).symm i))) ≪≫ₗ
-    (reindex R (fun i : ↑(insert i₀ S) => M i) ((Equiv.Set.insert h₀))).symm
+  (LinearEquiv.refl _ _)) ≪≫ₗ  (TensorProduct.comm ..) ≪≫ₗ
+  (tmulEquivDep R (fun i : (S \ {i₀} : Set ι) ⊕ PUnit => M ((Equiv.Set.insert (by grind)).symm i)))
+  ≪≫ₗ (reindex R (fun i : ↑(insert i₀ (S \ {i₀} : Set ι)) => M i)
+    ((Equiv.Set.insert (by grind)))).symm ≪≫ₗ (reindex R _ (Equiv.subtypeEquivProp (by grind)))
