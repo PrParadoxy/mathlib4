@@ -1,7 +1,7 @@
 import Mathlib.LinearAlgebra.Dual.Defs
 import Mathlib.LinearAlgebra.TensorProduct.Basis
 import Mathlib.LinearAlgebra.PiTensorProduct
-
+import Mathlib.LinearAlgebra.PiTensorProduct.Basis
 
 open Module Basis
 
@@ -36,7 +36,7 @@ lemma eq_zero_of_forall_dual_eq_zero (bm : Basis ι S M) (bn : Basis κ R N) {x 
   all_goals aesop (add safe forward Finsupp.single_apply)
 
 lemma eq_zero_of_forall_dual_eq_zero_free [Free R N] [Free S M] (x : M ⊗[R] N)
-    (hx : ∀ ψ : Dual R N, TensorProduct.rid R M (LinearMap.lTensor M ψ x) = 0) : x = 0 :=
+    (hx : ∀ ψ : Dual R N, TensorProduct.rid _ _ (LinearMap.lTensor _ ψ x) = 0) : x = 0 :=
   eq_zero_of_forall_dual_eq_zero (Free.chooseBasis S M) (Free.chooseBasis R N) hx
 
 -- Raymond's version
@@ -87,9 +87,22 @@ variable [CommSemiring R] [∀ i, AddCommMonoid (M i)] [∀ i, Module R (M i)]
 variable {S : Set ι} {i₀} [DecidablePred fun x ↦ x ∈ S \ {i₀}] (h : i₀ ∈ S)
 
 def tmulSingleDiffEquiv :
-    ((M i₀) ⊗[R] (⨂[R] i₁ : (S \ {i₀} : Set ι), M i₁)) ≃ₗ[R] (⨂[R] i₁ : S, M i₁) :=
+    ((M i₀) ⊗[R] (⨂[R] i₁ : (S \ {i₀} : Set ι), M i₁)) ≃ₗ[R] (⨂[R] i : S, M i) :=
   (TensorProduct.congr (subsingletonEquiv (s := fun _ : PUnit => M i₀) PUnit.unit).symm
   (LinearEquiv.refl _ _)) ≪≫ₗ  (TensorProduct.comm ..) ≪≫ₗ
   (tmulEquivDep R (fun i : (S \ {i₀} : Set ι) ⊕ PUnit => M ((Equiv.Set.insert (by grind)).symm i)))
   ≪≫ₗ (reindex R (fun i : ↑(insert i₀ (S \ {i₀} : Set ι)) => M i)
     ((Equiv.Set.insert (by grind)))).symm ≪≫ₗ (reindex R _ (Equiv.subtypeEquivProp (by grind)))
+
+def tmulSingleDiffEquiv' :
+    ((⨂[R] i : (S \ {i₀} : Set ι), M i) ⊗[R] (M i₀)) ≃ₗ[R] (⨂[R] i : S, M i) :=
+  TensorProduct.comm .. ≪≫ₗ tmulSingleDiffEquiv h
+
+
+theorem eq_zero_of_forall_dual_eq_zero_free [∀ i, Free R (M i)] (x : ⨂[R] i : S, M i)
+    (hx : ∀ ψ : Dual R (M i₀), TensorProduct.rid R _
+      (LinearMap.lTensor _ ψ ((tmulSingleDiffEquiv' h).symm x)) = 0) : x = 0 := by
+  apply (tmulSingleDiffEquiv' h).symm.injective
+  simp only [map_zero]
+  have : Free R (⨂[R] (i : ↑(S \ {i₀})), M ↑i) := sorry
+  apply TensorProduct.eq_zero_of_forall_dual_eq_zero_free (S := R) _ hx
