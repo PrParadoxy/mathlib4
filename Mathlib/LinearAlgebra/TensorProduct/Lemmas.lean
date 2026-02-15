@@ -99,10 +99,11 @@ def tmulSingleDiffEquiv' :
   TensorProduct.comm .. ≪≫ₗ tmulSingleDiffEquiv h
 
 
-theorem eq_zero_of_forall_dual_eq_zero_free [∀ i, Free R (M i)] (x : ⨂[R] i : S, M i)
+theorem eq_zero_of_forall_dual_eq_zero_free [∀ i, Free R (M i)] [Finite S] (x : ⨂[R] i : S, M i)
     (hx : ∀ ψ : Dual R (M i₀), TensorProduct.rid R _
       (LinearMap.lTensor _ ψ ((tmulSingleDiffEquiv' h).symm x)) = 0) : x = 0 := by
   apply (tmulSingleDiffEquiv' h).symm.injective
   simp only [map_zero]
-  have : Free R (⨂[R] (i : ↑(S \ {i₀})), M ↑i) := sorry
+  have : Free R (⨂[R] (i : ↑(S \ {i₀})), M ↑i) :=
+    Free.of_basis (Basis.piTensorProduct (fun i => Free.chooseBasis R (M i)))
   apply TensorProduct.eq_zero_of_forall_dual_eq_zero_free (S := R) _ hx
