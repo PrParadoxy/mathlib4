@@ -80,34 +80,15 @@ section prop_03
 
 namespace PiTensorProduct
 open scoped TensorProduct
+open Set
 
 variable {ι : Type*} {R : Type*} {M : ι → Type*}
 variable [CommSemiring R] [∀ i, AddCommMonoid (M i)] [∀ i, Module R (M i)]
-variable {S T : Set ι} (hsub : S ⊆ T) [(i : ι) → Decidable (i ∈ S)]
+variable {S : Set ι} {i₀} (h₀ : i₀ ∉ S) [DecidablePred fun x ↦ x ∈ S]
 
-def tmulDiffEquiv : (⨂[R] i₁ : S, M i₁) ⊗[R] (⨂[R] i₂ : ↥(T \ S), M i₂) ≃ₗ[R] ⨂[R] i : T, M i :=
-  (tmulEquivDep R (fun i ↦ M ((Equiv.Set.sumDiffSubset hsub) i))) ≪≫ₗ
-   (reindex R (fun i : T ↦ M i) (Equiv.Set.sumDiffSubset hsub).symm).symm
-
-@[simp]
-theorem tmulDiffEquiv_tprod (lv : (i : S) → M i) (rv : (i : ↑(T \ S)) → M i) :
-    tmulDiffEquiv hsub ((⨂ₜ[R] i, lv i) ⊗ₜ (⨂ₜ[R] i, rv i)) =
-     ⨂ₜ[R] i : T, if h : ↑i ∈ S then lv ⟨i, by grind⟩ else rv ⟨i, by grind⟩ := by
-  rw [tmulDiffEquiv, LinearEquiv.trans_apply, LinearEquiv.symm_apply_eq]
-  conv_lhs => apply tmulEquivDep_apply
-  conv_rhs => apply reindex_tprod
-  congr with i
-  cases i with
-  | inl _ => simp
-  | inr i => simp [Set.disjoint_right (s := S).mp (by grind) i.prop]
-
-@[simp]
-theorem tmulDiffEquiv_tprod_symm (av : (i : T) → M i) :
-    (tmulDiffEquiv hsub).symm (⨂ₜ[R] i, av i) =
-      (⨂ₜ[R] i : S, av ⟨i, by grind⟩) ⊗ₜ (⨂ₜ[R] i : ↥(T \ S), av ⟨i, by grind⟩) := by
-  rw [LinearEquiv.symm_apply_eq, tmulDiffEquiv_tprod]
-  grind
-
-
-open Function
-#check LinearMap.prod
+def tmulInsertEquiv :
+    ((M i₀) ⊗[R] (⨂[R] i₁ : S, M i₁)) ≃ₗ[R] (⨂[R] i₁ : ↥(insert i₀ S), M i₁) :=
+  (TensorProduct.congr (subsingletonEquiv (s := fun _ : PUnit => M i₀) PUnit.unit).symm
+    (LinearEquiv.refl _ _)) ≪≫ₗ (TensorProduct.comm ..) ≪≫ₗ
+    (tmulEquivDep R (fun i : S ⊕ PUnit => M ((Equiv.Set.insert h₀).symm i))) ≪≫ₗ
+    (reindex R (fun i : ↑(insert i₀ S) => M i) ((Equiv.Set.insert h₀))).symm
