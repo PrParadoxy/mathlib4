@@ -177,9 +177,7 @@ theorem mem_span_iff_bound {f : ι → E →ₗ[𝕜] 𝕜} (φ : E →ₗ[𝕜]
     exact ⟨s, C, hC⟩
   · exact Seminorm.cont_withSeminorms_normedSpace _ this _ H
 
-variable [AddCommGroup F] [Module 𝕜 F]
-
-variable (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜)
+variable [AddCommGroup F] [Module 𝕜 F] (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜)
 
 /-- The Weak Representation Theorem: Every continuous functional on `E` endowed with
 the `σ(E, F; B)`-topology is of the form `x ↦ B(x, y)` for some `y : F`. -/
