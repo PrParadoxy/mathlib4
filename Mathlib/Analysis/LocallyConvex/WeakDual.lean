@@ -181,14 +181,14 @@ variable [AddCommGroup F] [Module 𝕜 F]
 
 variable (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜)
 
-/-- The Weak Representation Theorem: Every continuous linear functional on `E` endowed with
-the `σ(E, F; B)` topology is of the form `x ↦ B(x, y)` for some `y : F`. -/
+/-- The Weak Representation Theorem: Every continuous functional on `E` endowed with
+the `σ(E, F; B)`-topology is of the form `x ↦ B(x, y)` for some `y : F`. -/
 theorem dualEmbedding_surjective : Function.Surjective (WeakBilin.eval B) := fun f ↦ by
-  have : f.toLinearMap ∈ Submodule.span 𝕜 ((fun x ↦ ↑(WeakBilin.eval B x)) '' Set.univ) := by
-    simpa [mem_span_iff_continuous, continuous_iff_le_induced, ← induced_to_pi] using
+  have : f.toLinearMap ∈
+      Submodule.span 𝕜 (ContinuousLinearMap.coeLM 𝕜 ∘ₗ WeakBilin.eval B).range := by
+    simpa [coe_range, mem_span_iff_continuous, continuous_iff_le_induced, ← induced_to_pi] using
       f.continuous.le_induced
-  obtain ⟨t, -, c, h⟩ := (Submodule.mem_span_image_iff_exists_fun 𝕜).mp this
-  exact ⟨∑ v, c v • v, by simpa [← ContinuousLinearMap.coe_inj]⟩
+  simpa
 
 /-- When `B` is right-separating, `F` is linearly equivalent to the strong dual of `E` with the
 weak topology. -/
