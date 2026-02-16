@@ -31,6 +31,10 @@ convex and we explicitly give a neighborhood basis in terms of the family of sem
 * `LinearMap.toSeminormFamily.withSeminorms`: the topology of a weak space is induced by the
   family of seminorms `B.toSeminormFamily`.
 * `WeakBilin.locallyConvexSpace`: a space endowed with a weak topology is locally convex.
+* `LinearMap.rightDualEquiv`: When `B` is right-separating, `F` is linearly equivalent to the
+  strong dual of `E` with the weak topology.
+* `LinearMap.leftDualEquiv`: When `B` is left-separating, `E` is linearly equivalent to the
+  strong dual of `F` with the weak topology.
 
 ## References
 
@@ -83,6 +87,11 @@ def toSeminormFamily (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) : SeminormFamily �
 @[simp]
 theorem toSeminormFamily_apply {B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜} {x y} : (B.toSeminormFamily y) x = ‖B x y‖ :=
   rfl
+
+lemma dualEmbedding_injective_of_separatingRight (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) (hr : B.SeparatingRight) :
+    Function.Injective (WeakBilin.eval B) :=
+  (injective_iff_map_eq_zero _).mpr (fun f hf ↦
+    (separatingRight_iff_linear_flip_nontrivial.mp hr) f (ContinuousLinearMap.coe_inj.mpr hf))
 
 variable {ι 𝕜 E F : Type*}
 
@@ -172,18 +181,14 @@ variable [AddCommGroup F] [Module 𝕜 F]
 
 variable (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜)
 
-lemma dualEmbedding_surjective : Function.Surjective (WeakBilin.eval B) := fun f ↦ by
+/-- The Weak Representation Theorem: Every continuous linear functional on `E` endowed with
+the `σ(E, F; B)` topology is of the form `x ↦ B(x, y)` for some `y : F`. -/
+theorem dualEmbedding_surjective : Function.Surjective (WeakBilin.eval B) := fun f ↦ by
   have : f.toLinearMap ∈ Submodule.span 𝕜 ((fun x ↦ ↑(WeakBilin.eval B x)) '' Set.univ) := by
     simpa [mem_span_iff_continuous, continuous_iff_le_induced, ← induced_to_pi] using
       f.continuous.le_induced
   obtain ⟨t, -, c, h⟩ := (Submodule.mem_span_image_iff_exists_fun 𝕜).mp this
-  exact ⟨∑ v, c v • v, by simp_all [← ContinuousLinearMap.coe_inj]⟩
-
-lemma dualEmbedding_injective_of_separatingRight {E F : Type*} [AddCommGroup E] [AddCommGroup F]
-    [Module 𝕜 E] [Module 𝕜 F] (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) (hr : B.SeparatingRight) :
-    Function.Injective (WeakBilin.eval B) :=
-  (injective_iff_map_eq_zero _).mpr (fun f hf ↦
-    (separatingRight_iff_linear_flip_nontrivial.mp hr) f (ContinuousLinearMap.coe_inj.mpr hf))
+  exact ⟨∑ v, c v • v, by simpa [← ContinuousLinearMap.coe_inj]⟩
 
 /-- When `B` is right-separating, `F` is linearly equivalent to the strong dual of `E` with the
 weak topology. -/
