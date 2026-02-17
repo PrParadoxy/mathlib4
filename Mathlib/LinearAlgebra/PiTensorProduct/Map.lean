@@ -42,6 +42,7 @@ tensors in a nested `PiTensorProduct`. -/
 def tprodTprodHom : (⨂[R] j : (Σ k, β k), s j.1 j.2) →ₗ[R] (⨂[R] k, ⨂[R] i, s k i) :=
   lift (MultilinearMap.compMultilinearMap (tprod R) (fun _ ↦ tprod R))
 
+@[simp]
 theorem tprodTprodHom_tprod (f : (j : (Σ i, β i)) → s j.1 j.2) :
     tprodTprodHom (⨂ₜ[R] j, f j) = ⨂ₜ[R] i, ⨂ₜ[R] b : β i, f ⟨i, b⟩ := by
   simp only [tprodTprodHom, lift.tprod, MultilinearMap.compMultilinearMap_apply]
@@ -49,6 +50,32 @@ theorem tprodTprodHom_tprod (f : (j : (Σ i, β i)) → s j.1 j.2) :
   -- simp only [tprodTprodHom, lift.tprod, MultilinearMap.compMultilinearMap_apply]
   -- unfold Sigma.curry
   -- simp
+
+-- new stuff
+-- variable {ι : Type*} {R : Type*}
+-- variable [CommRing R]
+-- variable {β : ι → Type*}
+-- variable {s : (i : ι) → (i : β i) → Type*}
+-- variable [∀ i, ∀ b, AddCommGroup (s i b)] [∀ i, ∀ b, Module R (s i b)]
+variable [Finite ι]
+
+#check eq_zero_or_neZero
+
+open Function
+theorem tprodTprodHom_surjective : Surjective (tprodTprodHom (R := R) (s := s)) := by
+  intro a
+  induction a using PiTensorProduct.induction_on with
+  | smul_tprod r f =>
+    revert f s β
+    induction ι using Finite.induction_empty_option with
+    | of_equiv => sorry
+    | h_empty => sorry
+    | h_option => sorry
+  | add a b ha hb =>
+    obtain ⟨wa, hwa⟩ := ha
+    obtain ⟨wb, hwb⟩ := hb
+    use wa + wb
+    simp_all
 
 end tprodTprodHom
 
@@ -84,7 +111,7 @@ def sigmaFinSuccEquiv {n : ℕ} {f : Fin n.succ → Type*} :
     toFun x := if h : x.1 = Fin.last n then .inr (h ▸ x.2) else
       .inl ⟨⟨x.1, Fin.lt_last_iff_ne_last.mpr h⟩, x.2⟩
     invFun := Sum.rec (fun y ↦ ⟨y.1.castSucc, y.2⟩) (⟨Fin.last n, ·⟩)
-    left_inv _ := by grind
+    left_inv _ := by aesop
     right_inv _ := by aesop
   }
 
