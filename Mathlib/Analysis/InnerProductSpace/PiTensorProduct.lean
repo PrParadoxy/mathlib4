@@ -98,7 +98,7 @@ def PiTensorProduct.InnerProductspace.Core : InnerProductSpace.Core 𝕜 (⨂[�
     letI tips : InnerProductSpace 𝕜 ((⨂[𝕜] i : Fin n, M i.castSucc) ⊗[𝕜] M (Fin.last n)) :=
       @TensorProduct.instInnerProductSpace 𝕜 _ _ _ normed ips _ _
     exact {
-      inner := fun x y => inner (𝕜 := 𝕜) (tmulFinSucc.symm x) (tmulFinSucc.symm y)
+      inner := fun x y => inner 𝕜 (tmulFinSucc.symm x) (tmulFinSucc.symm y)
       conj_inner_symm := by simp
       re_inner_nonneg := by simp
       add_left x y z := by simp [inner_add_left]
