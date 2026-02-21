@@ -93,9 +93,9 @@ def PiTensorProduct.InnerProductspace.Core : InnerProductSpace.Core 𝕜 (⨂[�
     replace ih := @ih (fun i => M i.castSucc) _ _
     letI normed := ih.toNormedAddCommGroup
     letI ips := InnerProductSpace.ofCore ih.toCore
-    letI normed2 : NormedAddCommGroup ((⨂[𝕜] i : Fin n, M i.castSucc) ⊗[𝕜] M (Fin.last n))
+    letI tnormed : NormedAddCommGroup ((⨂[𝕜] i : Fin n, M i.castSucc) ⊗[𝕜] M (Fin.last n))
       := @TensorProduct.instNormedAddCommGroup 𝕜 _ _ _ normed ips _ _
-    letI h : InnerProductSpace 𝕜 ((⨂[𝕜] i : Fin n, M i.castSucc) ⊗[𝕜] M (Fin.last n)) :=
+    letI tips : InnerProductSpace 𝕜 ((⨂[𝕜] i : Fin n, M i.castSucc) ⊗[𝕜] M (Fin.last n)) :=
       @TensorProduct.instInnerProductSpace 𝕜 _ _ _ normed ips _ _
     exact {
       inner := fun x y => inner (𝕜 := 𝕜) (tmulFinSucc.symm x) (tmulFinSucc.symm y)
