@@ -110,4 +110,4 @@ noncomputable instance : NormedAddCommGroup (⨂[𝕜] (i : Fin n), M i) :=
   PiTensorProduct.InnerProductspace.Core.toNormedAddCommGroup
 
 instance : InnerProductSpace 𝕜 (⨂[𝕜] (i : Fin n), M i) :=
-  InnerProductSpace.ofCore (PiTensorProduct.InnerProductspace.Core).toCore
+  InnerProductSpace.ofCore PiTensorProduct.InnerProductspace.Core.toCore
