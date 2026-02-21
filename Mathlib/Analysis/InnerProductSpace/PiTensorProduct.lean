@@ -111,3 +111,22 @@ noncomputable instance : NormedAddCommGroup (⨂[𝕜] (i : Fin n), M i) :=
 
 instance : InnerProductSpace 𝕜 (⨂[𝕜] (i : Fin n), M i) :=
   InnerProductSpace.ofCore PiTensorProduct.InnerProductspace.Core.toCore
+
+private lemma inner_def_zero {M : Fin 0 → Type*}
+    [∀ i, NormedAddCommGroup (M i)] [∀ i, InnerProductSpace 𝕜 (M i)]
+    (x y : ⨂[𝕜] i : Fin 0, M i) :
+    inner 𝕜 x y = inner 𝕜 (isEmptyEquiv _ x) (isEmptyEquiv _ y) := rfl
+
+private lemma inner_def_succ {n : ℕ} {M : Fin (n + 1) → Type*} [∀ i, NormedAddCommGroup (M i)]
+    [∀ i, InnerProductSpace 𝕜 (M i)]
+    (x y : ⨂[𝕜] i : Fin (n + 1), M i) :
+    inner 𝕜 x y = inner 𝕜 (tmulFinSucc.symm x) (tmulFinSucc.symm y) := rfl
+
+variable (𝕜) in
+@[simp] theorem inner_tprod (v w : ∀ i : Fin n, M i) :
+    inner 𝕜 (⨂ₜ[𝕜] i, v i) (⨂ₜ[𝕜] i, w i) = ∏ i, inner 𝕜 (v i) (w i) := by
+  induction n with
+  | zero => simp [inner_def_zero]
+  | succ n ih =>
+    simp [inner_def_succ, ih (fun i => v i.castSucc) (fun i => w i.castSucc),
+      ← Fin.prod_univ_castSucc (fun i => inner 𝕜 (v i) (w i))]
