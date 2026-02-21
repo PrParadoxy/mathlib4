@@ -74,37 +74,38 @@ end tmulFinSuccEquiv
 
 end tmulFinSucc
 
-
+universe u
 variable {ι : Type*}
 variable {𝕜 : Type*} [RCLike 𝕜]
-variable {n} {M : Fin n → Type*} [∀ i, NormedAddCommGroup (M i)] [∀ i, InnerProductSpace 𝕜 (M i)]
+variable {n} {M : Fin n → Type u} [∀ i, NormedAddCommGroup (M i)] [∀ i, InnerProductSpace 𝕜 (M i)]
 
-def PiTensorProduct.InnerProductspace.Core : InnerProductSpace.Core 𝕜 (⨂[𝕜] i, M i) := by
-  induction n with
-  | zero => exact {
-    inner a b := innerₛₗ 𝕜 (isEmptyEquiv _ a) (isEmptyEquiv _ b)
-    conj_inner_symm := by simp [mul_comm]
-    re_inner_nonneg := by simp
-    add_left := by simp
-    smul_left := by simp [mul_left_comm]
-    definite := by simp
-  }
-  | succ n ih => -- I wish I had this many diamonds irl (how many? :))
-    replace ih := @ih (fun i => M i.castSucc) _ _
-    letI normed := ih.toNormedAddCommGroup
-    letI ips := InnerProductSpace.ofCore ih.toCore
-    letI tnormed : NormedAddCommGroup ((⨂[𝕜] i : Fin n, M i.castSucc) ⊗[𝕜] M (Fin.last n))
-      := @TensorProduct.instNormedAddCommGroup 𝕜 _ _ _ normed ips _ _
-    letI tips : InnerProductSpace 𝕜 ((⨂[𝕜] i : Fin n, M i.castSucc) ⊗[𝕜] M (Fin.last n)) :=
-      @TensorProduct.instInnerProductSpace 𝕜 _ _ _ normed ips _ _
-    exact {
-      inner := fun x y => inner 𝕜 (tmulFinSucc.symm x) (tmulFinSucc.symm y)
-      conj_inner_symm := by simp
+def PiTensorProduct.InnerProductspace.Core :
+  InnerProductSpace.Core 𝕜 (⨂[𝕜] i, M i) :=
+  n.rec (motive := fun n => ∀ (M : Fin n → Type u) [∀ i, NormedAddCommGroup (M i)]
+      [∀ i, InnerProductSpace 𝕜 (M i)], InnerProductSpace.Core 𝕜 (⨂[𝕜] i, M i))
+    (fun M _ _ => {
+      inner a b := innerₛₗ 𝕜 (isEmptyEquiv _ a) (isEmptyEquiv _ b)
+      conj_inner_symm := by simp [mul_comm]
       re_inner_nonneg := by simp
-      add_left x y z := by simp [inner_add_left]
-      smul_left := by simp [inner_smul_left]
+      add_left := by simp
+      smul_left := by simp [mul_left_comm]
       definite := by simp
-    }
+    })
+    (fun n ih M _ _ =>
+      let ih := @ih (fun i => M i.castSucc) _ _
+      letI normed := ih.toNormedAddCommGroup
+      letI ips := InnerProductSpace.ofCore ih.toCore
+      letI tnormed : NormedAddCommGroup ((⨂[𝕜] i : Fin n, M i.castSucc) ⊗[𝕜] M (Fin.last n)) :=
+        @TensorProduct.instNormedAddCommGroup 𝕜 _ _ _ normed ips _ _
+      letI tips : InnerProductSpace 𝕜 ((⨂[𝕜] i : Fin n, M i.castSucc) ⊗[𝕜] M (Fin.last n)) :=
+        @TensorProduct.instInnerProductSpace 𝕜 _ _ _ normed ips _ _
+      { inner := fun x y => inner 𝕜 (tmulFinSucc.symm x) (tmulFinSucc.symm y)
+        conj_inner_symm := by simp
+        re_inner_nonneg := by simp
+        add_left x y z := by simp [inner_add_left]
+        smul_left := by simp [inner_smul_left]
+        definite := by simp })
+    M
 
 noncomputable instance : NormedAddCommGroup (⨂[𝕜] (i : Fin n), M i) :=
   PiTensorProduct.InnerProductspace.Core.toNormedAddCommGroup
