@@ -48,32 +48,6 @@ theorem tprodTprodHom_tprod (f : (j : (Σ i, β i)) → s j.1 j.2) :
   simp only [tprodTprodHom, lift.tprod, MultilinearMap.compMultilinearMap_apply]
   congr
 
--- new stuff
--- variable {ι : Type*} {R : Type*}
--- variable [CommRing R]
--- variable {β : ι → Type*}
--- variable {s : (i : ι) → (i : β i) → Type*}
--- variable [∀ i, ∀ b, AddCommGroup (s i b)] [∀ i, ∀ b, Module R (s i b)]
-variable [Finite ι]
-
-#check eq_zero_or_neZero
-
-open Function
-theorem tprodTprodHom_surjective : Surjective (tprodTprodHom (R := R) (s := s)) := by
-  intro a
-  induction a using PiTensorProduct.induction_on with
-  | smul_tprod r f =>
-    revert f s β
-    induction ι using Finite.induction_empty_option with
-    | of_equiv => sorry
-    | h_empty => sorry
-    | h_option => sorry
-  | add a b ha hb =>
-    obtain ⟨wa, hwa⟩ := ha
-    obtain ⟨wb, hwb⟩ := hb
-    use wa + wb
-    simp_all
-
 end tprodTprodHom
 
 section TprodFinTrodEquiv
