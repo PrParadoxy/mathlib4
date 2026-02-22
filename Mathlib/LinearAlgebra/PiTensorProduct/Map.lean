@@ -11,7 +11,7 @@ public import Mathlib.LinearAlgebra.TensorProduct.Map
 
 /-!
 # Nested PiTensorProducts
-Let `β : ι → Type*` be a family of types. We related nested tensor products
+Let `β : ι → Type*` be a family of types. We relate nested tensor products
  `⨂ i, ⨂ b : β i, s i b`
 to tensors "with double indices", i.e. those indexed by dependent sums
  `⨂ j : (Σ i, β i), s j.fst j.snd`.
@@ -47,9 +47,6 @@ theorem tprodTprodHom_tprod (f : (j : (Σ i, β i)) → s j.1 j.2) :
     tprodTprodHom (⨂ₜ[R] j, f j) = ⨂ₜ[R] i, ⨂ₜ[R] b : β i, f ⟨i, b⟩ := by
   simp only [tprodTprodHom, lift.tprod, MultilinearMap.compMultilinearMap_apply]
   congr
-  -- simp only [tprodTprodHom, lift.tprod, MultilinearMap.compMultilinearMap_apply]
-  -- unfold Sigma.curry
-  -- simp
 
 -- new stuff
 -- variable {ι : Type*} {R : Type*}
@@ -193,13 +190,12 @@ product, if the outer index type is finite. -/
 theorem span_tprodFiniteTprod_eq_top :
     Submodule.span R
       (Set.range fun f : (k : ι) → (i : β k) → s k i ↦ ⨂ₜ[R] k, ⨂ₜ[R] i, f k i) = ⊤ := by
-  rw [eq_top_iff, ←tprodFiniteTprodEquiv.symm.range, LinearMap.range_eq_map,
-    ←span_tprod_eq_top, ←Submodule.span_image, LinearEquiv.coe_coe]
+  rw [eq_top_iff, ← tprodFiniteTprodEquiv.symm.range, LinearMap.range_eq_map,
+    ← span_tprod_eq_top, ←Submodule.span_image, LinearEquiv.coe_coe]
   gcongr
   intro f
   simp only [Set.mem_range, Set.mem_image, exists_exists_eq_and, tprodFiniteTprodEquiv_symm_tprod]
-  intro ⟨y, hy⟩
-  use (fun j k ↦ y ⟨j, k⟩)
+  exact fun ⟨y, hy⟩ ↦ ⟨fun j k ↦ y ⟨j, k⟩, hy⟩
 
 end tprodFiniteTprodEquiv
 
